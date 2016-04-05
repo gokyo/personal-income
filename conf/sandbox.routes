@@ -1,0 +1,1 @@
+GET /sa/:utr/example             controllers.SandboxExampleController.fetchExample(utr: uk.gov.hmrc.domain.SaUtr)

@@ -1,0 +1,30 @@
+{
+  "scopes":[
+    {
+      "key":"read:api-microservice-template",
+      "name":"Execute example microservice call",
+      "description":"Access example information"
+    }
+  ],
+  "api":{
+    "name":"Api Microservice Template",
+    "description":"The API Microservice Template provides example service, such as retrieval of an example.",
+    "context":"api-microservice-template",
+    "versions":[
+      {
+        "version":"1.0",
+        "status":"PROTOTYPED",
+        "endpoints":[
+          {
+            "uriPattern":"/sa/{utr}/example",
+            "endpointName":"Fetch Example",
+            "method":"GET",
+            "authType":"USER",
+            "throttlingTier":"UNLIMITED",
+            "scope":"read:api-microservice-template"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,89 @@
+<endpoint>
+  <name>Fetch Example</name>
+  <description>This endpoint fetches example.</description>
+  <section id="resource">
+    <title>Resource</title>
+    <resource>GET /api-microservice-template/sa/{utr}/example</resource>
+  </section>
+  <section id="path-parameters">
+    <title>Path Parameters</title>
+    <table>
+      <headings>
+        <cell>Name</cell>
+        <cell>Type</cell>
+        <cell>Example</cell>
+        <cell>Description</cell>
+      </headings>
+      <rows>
+        <row>
+          <cell><code>UTR</code></cell>
+          <cell><code>String</code></cell>
+          <cell><code>2234567890</code></cell>
+          <cell>The 10 digit SA UTR for the individual.</cell>
+        </row>
+      </rows>
+    </table>
+  </section>
+  <section id="authorisation">
+    <title>Authorisation</title>
+    <authorisation>
+      <type>USER</type>
+      <scope>read:api-microservice-template</scope>
+    </authorisation>
+  </section>
+  <section id="content-types">
+    <title>Accepted Media Types</title>
+    <list>
+      <item>
+        <code>application/vnd.hmrc.1.0+json</code>
+      </item>
+    </list>
+  </section>
+  <section id="sample-response">
+    <title>Response</title>
+    <httpStatus>200 (OK)</httpStatus>
+    <json><![CDATA[{
+	"text" : "example",
+	"number" : 1.00
+}]]></json>
+    <table>
+      <headings>
+        <cell>Name</cell>
+        <cell>Type</cell>
+        <cell>Example</cell>
+        <cell>Description</cell>
+      </headings>
+      <rows>
+        <row>
+          <cell><code>text</code></cell>
+          <cell><code>String</code></cell>
+          <cell><code>example</code></cell>
+          <cell>An example String.</cell>
+        </row>
+        <row>
+          <cell><code>number</code></cell>
+          <cell><code>float</code></cell>
+          <cell><code>1.00</code></cell>
+          <cell>An example Number.</cell>
+        </row>
+      </rows>
+    </table>
+  </section>
+  <section id="error-responses">
+    <title>Error Scenarios</title>
+    <table>
+      <headings>
+        <cell>Error Scenario</cell>
+        <cell>HTTP Status</cell>
+        <cell>Code</cell>
+      </headings>
+      <rows>
+        <row>
+          <cell>Invalid UTR</cell>
+          <cell><code>400 (Bad Request)</code></cell>
+          <cell><code>SA_UTR_INVALID</code></cell>
+        </row>
+      </rows>
+    </table>
+  </section>
+</endpoint>
