@@ -1,8 +1,8 @@
 package controllers
 
 import play.api.libs.json.Json
-import services.{ExampleService, LiveExampleService, SandboxExampleService}
-import uk.gov.hmrc.domain.SaUtr
+import services.{LivePersonalIncomeService, PersonalIncomeService, SandboxExampleService}
+import uk.gov.hmrc.domain.Nino
 import play.api.Logger
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.NotFoundException
@@ -10,12 +10,12 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-trait ExampleController extends BaseController with HeaderValidator {
-  val service: ExampleService
+trait PersonalIncomeController extends BaseController with HeaderValidator {
+  val service: PersonalIncomeService
   implicit val hc: HeaderCarrier
 
-  final def fetchExample(utr: SaUtr) = validateAccept(acceptHeaderValidationRules).async {
-    service.fetchExample(utr).map(as => Ok(Json.toJson(as))
+  final def getSummary(nino:Nino,year:Int) = validateAccept(acceptHeaderValidationRules).async {
+    service.getSummary(nino,year).map(as => Ok(Json.toJson(as))
     ) recover {
       case ex: NotFoundException => Status(ErrorNotFound.httpStatusCode)(Json.toJson(ErrorNotFound))
       case e: Throwable =>
@@ -25,12 +25,12 @@ trait ExampleController extends BaseController with HeaderValidator {
   }
 }
 
-object SandboxExampleController extends ExampleController {
+object SandboxPersonalIncomeController extends PersonalIncomeController {
   override val service = SandboxExampleService
   override implicit val hc: HeaderCarrier = HeaderCarrier()
 }
 
-object LiveExampleController extends ExampleController {
-  override val service = LiveExampleService
+object LivePersonalIncomeController extends PersonalIncomeController {
+  override val service = LivePersonalIncomeService
   override implicit val hc: HeaderCarrier = HeaderCarrier()
 }

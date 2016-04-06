@@ -8,6 +8,4 @@ package object domain {
     )
   }
 
-  implicit val exampleFmt = Json.format[Example]
-
 }

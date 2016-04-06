@@ -34,7 +34,6 @@ trait ServiceLocatorRegistration extends GlobalSettings with RunMode {
   }
 }
 
-
 object ControllerConfiguration extends ControllerConfig {
   lazy val controllerConfigs = Play.current.configuration.underlying.as[Config]("controllers")
 }
@@ -99,7 +98,7 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with Se
 
   override def onBadRequest(request: RequestHeader, error: String): Future[Result] = {
     val errorScenario = error match {
-      case "ERROR_SA_UTR_INVALID" => ErrorSaUtrInvalid
+      case "ERROR_NINO_INVALID" => ErrorNinoInvalid
       case _ => ErrorGenericBadRequest
     }
     Future.successful(Status(ErrorGenericBadRequest.httpStatusCode)(Json.toJson(errorScenario)))

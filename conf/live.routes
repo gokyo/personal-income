@@ -1,1 +1,1 @@
-GET /sa/:utr/example              controllers.LiveExampleController.fetchExample(utr: uk.gov.hmrc.domain.SaUtr)
+GET /:nino/tax-summary/:year controllers.LivePersonalIncomeController.getSummary(nino: uk.gov.hmrc.domain.Nino, year: Int)

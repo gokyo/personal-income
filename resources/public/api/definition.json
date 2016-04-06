@@ -1,27 +1,27 @@
 {
   "scopes":[
     {
-      "key":"read:api-microservice-template",
-      "name":"Execute example microservice call",
-      "description":"Access example information"
+      "key":"read:personal-income",
+      "name":"Execute tax-summary call",
+      "description":"Retrieve the tax-summary for a specific NINO and year"
     }
   ],
   "api":{
-    "name":"Api Microservice Template",
-    "description":"The API Microservice Template provides example service, such as retrieval of an example.",
-    "context":"api-microservice-template",
+    "name":"personal-income",
+    "description":"The API is used to retrieve tax-summary information.",
+    "context":"personal-income",
     "versions":[
       {
         "version":"1.0",
         "status":"PROTOTYPED",
         "endpoints":[
           {
-            "uriPattern":"/sa/{utr}/example",
-            "endpointName":"Fetch Example",
+            "uriPattern":"/:nino/tax-summary/:year",
+            "endpointName":"Get Summary",
             "method":"GET",
             "authType":"USER",
             "throttlingTier":"UNLIMITED",
-            "scope":"read:api-microservice-template"
+            "scope":"read:personal-income"
           }
         ]
       }

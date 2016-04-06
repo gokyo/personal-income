@@ -1,1 +1,1 @@
-GET /sa/:utr/example             controllers.SandboxExampleController.fetchExample(utr: uk.gov.hmrc.domain.SaUtr)
+GET /:nino/tax-summary/:year  controllers.SandboxPersonalIncomeController.getSummary(nino: uk.gov.hmrc.domain.Nino, year: Int)

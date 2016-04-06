@@ -1,9 +1,9 @@
 <endpoint>
-  <name>Fetch Example</name>
-  <description>This endpoint fetches example.</description>
+  <name>Get Summary</name>
+  <description>This endpoint retrieves the tax summary.</description>
   <section id="resource">
     <title>Resource</title>
-    <resource>GET /api-microservice-template/sa/{utr}/example</resource>
+    <resource>GET /:nino/tax-summary/:year</resource>
   </section>
   <section id="path-parameters">
     <title>Path Parameters</title>
@@ -16,10 +16,16 @@
       </headings>
       <rows>
         <row>
-          <cell><code>UTR</code></cell>
+          <cell><code>NINO</code></cell>
           <cell><code>String</code></cell>
-          <cell><code>2234567890</code></cell>
-          <cell>The 10 digit SA UTR for the individual.</cell>
+          <cell><code>NS123456B</code></cell>
+          <cell>The NINO for the individual.</cell>
+        </row>
+        <row>
+          <cell><code>Year</code></cell>
+          <cell><code>Int</code></cell>
+          <cell><code>10</code></cell>
+          <cell>The tax-summary for the specific year.</cell>
         </row>
       </rows>
     </table>
@@ -28,7 +34,7 @@
     <title>Authorisation</title>
     <authorisation>
       <type>USER</type>
-      <scope>read:api-microservice-template</scope>
+      <scope>read:personal-income</scope>
     </authorisation>
   </section>
   <section id="content-types">
@@ -43,8 +49,12 @@
     <title>Response</title>
     <httpStatus>200 (OK)</httpStatus>
     <json><![CDATA[{
-	"text" : "example",
-	"number" : 1.00
+        "nino":"KM569110B",
+        "version":1,
+        "workingTaxableTotal":0,
+        "actualTaxableTotal":0,
+        "remainingTaxFree":0,
+        "adjustedNetIncome":0
 }]]></json>
     <table>
       <headings>
@@ -55,16 +65,22 @@
       </headings>
       <rows>
         <row>
-          <cell><code>text</code></cell>
+          <cell><code>NINO</code></cell>
           <cell><code>String</code></cell>
-          <cell><code>example</code></cell>
-          <cell>An example String.</cell>
+          <cell><code>KM569110B</code></cell>
+          <cell>An example NINO.</cell>
         </row>
         <row>
-          <cell><code>number</code></cell>
-          <cell><code>float</code></cell>
-          <cell><code>1.00</code></cell>
-          <cell>An example Number.</cell>
+          <cell><code>Version</code></cell>
+          <cell><code>Int</code></cell>
+          <cell><code>1</code></cell>
+          <cell>An example version number.</cell>
+        </row>
+        <row>
+          <cell><code>workingTaxableTotal</code></cell>
+          <cell><code>Int</code></cell>
+          <cell><code>1</code></cell>
+          <cell>An example version number.</cell>
         </row>
       </rows>
     </table>
@@ -79,9 +95,9 @@
       </headings>
       <rows>
         <row>
-          <cell>Invalid UTR</cell>
+          <cell>Invalid NINO</cell>
           <cell><code>400 (Bad Request)</code></cell>
-          <cell><code>SA_UTR_INVALID</code></cell>
+          <cell><code>NINO_INVALID</code></cell>
         </row>
       </rows>
     </table>

@@ -6,7 +6,7 @@ import uk.gov.hmrc.play.auth.microservice.connectors.AuthConnector
 import uk.gov.hmrc.play.config.{AppName, RunMode, ServicesConfig}
 import uk.gov.hmrc.play.http.ws._
 
-object WSHttp extends WSGet with WSPut with WSPost with WSDelete with WSPatch with AppName with RunMode {
+object WSHttp extends WSGet with WSPost with RunMode {
   override val hooks = NoneRequired
 }
 

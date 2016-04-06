@@ -14,9 +14,6 @@ import scala.concurrent.Future
 
 class RegisterInServiceLocatorSpec extends UnitSpec with MockitoSugar {
 
-
-
-
   trait Setup extends ServiceLocatorRegistration {
     val mockConnector = mock[ServiceLocatorConnector]
     override val slConnector = mockConnector

@@ -5,7 +5,7 @@ sealed abstract class ErrorResponse(
                                      val errorCode: String,
                                      val message: String)
 
-case object ErrorSaUtrInvalid extends ErrorResponse(400, "SA_UTR_INVALID", "The provided SA UTR is invalid")
+case object ErrorNinoInvalid extends ErrorResponse(400, "NINO_INVALID", "The provided NINO is invalid")
 
 case object ErrorUnauthorized extends ErrorResponse(401, "UNAUTHORIZED", "Bearer token is missing or not authorized")
 
