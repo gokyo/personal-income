@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package unit.controllers
+package it.utils
 
-import controllers.ErrorAcceptHeaderInvalid
-import org.scalatest.Matchers
-import play.api.libs.json.Json
-import uk.gov.hmrc.play.test.UnitSpec
+import play.api.Play
+import play.api.test.FakeApplication
 
-class ErrorResponseSpec extends UnitSpec with Matchers{
-  "errorResponse" should {
-    "be translated to error Json with only the required fields" in {
-      Json.toJson(ErrorAcceptHeaderInvalid).toString() shouldBe
-        """{"code":"ACCEPT_HEADER_INVALID","message":"The accept header is missing or invalid"}"""
-    }
+trait MicroserviceLocalRunSugar {
+  val additionalConfiguration: Map[String, Any]
+  val localMicroserviceUrl = s"http://localhost:${port}"
+  val port = sys.env.getOrElse("MICROSERVICE_PORT", "9001").toInt
+  lazy val fakeApplication = FakeApplication(additionalConfiguration = additionalConfiguration)
+
+  def run(block: () => Unit) = {
+    Play.start(fakeApplication)
+    block()
+    Play.stop()
   }
-
 }

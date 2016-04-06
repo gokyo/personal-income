@@ -1,15 +1,22 @@
-import play.PlayImport.PlayKeys._
 import sbt._
+import uk.gov.hmrc.SbtAutoBuildPlugin
+import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
+import uk.gov.hmrc.versioning.SbtGitVersioning
+
 
 object MicroServiceBuild extends Build with MicroService {
-  import scala.util.Properties.envOrElse
+
+  import play.PlayImport.PlayKeys._
 
   val appName = "personal-income"
-  val appVersion = envOrElse("PERSONAL_INCOME_VERSION", "999-SNAPSHOT")
+
+  override lazy val plugins: Seq[Plugins] = Seq(
+    SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin
+  )
 
   override lazy val appDependencies: Seq[ModuleID] = AppDependencies()
-
   override lazy val playSettings : Seq[Setting[_]] = Seq(routesImport ++= Seq("binders.Binder._"))
+
 }
 
 private object AppDependencies {
@@ -32,7 +39,6 @@ private object AppDependencies {
   private val domainVersion = "3.5.0"
   private val hmrcTestVersion = "1.6.0"
 
-
   val compile = Seq(
 
     ws,
@@ -42,7 +48,8 @@ private object AppDependencies {
     "uk.gov.hmrc" %% "play-url-binders" % playUrlBindersVersion,
     "uk.gov.hmrc" %% "play-config" % playConfigVersion,
     "uk.gov.hmrc" %% "play-json-logger" % playJsonLoggerVersion,
-    "uk.gov.hmrc" %% "domain" % domainVersion
+    "uk.gov.hmrc" %% "domain" % domainVersion,
+    "uk.gov.hmrc" %% "reactive-circuit-breaker" % "1.7.0"
   )
 
   trait TestDependencies {
@@ -50,7 +57,9 @@ private object AppDependencies {
     lazy val test : Seq[ModuleID] = ???
   }
 
-  val test = Seq(
+  object Test {
+    def apply() = new TestDependencies {
+      override lazy val test = Seq(
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % "test,it",
         "org.scalaj" %% "scalaj-http" % scalaJVersion % "test,it",
         "org.scalatest" %% "scalatest" % scalaTestVersion % "test,it",
@@ -59,8 +68,23 @@ private object AppDependencies {
         "com.github.tomakehurst" % "wiremock" % wireMockVersion % "test,it",
         "info.cukes" %% "cucumber-scala" % cucumberVersion % "test,it",
         "info.cukes" % "cucumber-junit" % cucumberVersion % "test,it"
-  )
+      )
+    }.test
+  }
 
-  def apply() = compile ++ test
+  object IntegrationTest {
+    def apply() = new TestDependencies {
+
+      override lazy val scope: String = "it"
+
+      override lazy val test = Seq(
+        "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
+        "org.scalatest" %% "scalatest" % "2.2.6" % scope,
+        "org.pegdown" % "pegdown" % "1.5.0" % scope,
+        "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
+      )
+    }.test
+  }
+
+  def apply() = compile ++ Test() ++ IntegrationTest()
 }
-
