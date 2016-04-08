@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package binders
+package uk.gov.hmrc.apigateway.personalincome.binders
 
-import play.api.mvc.PathBindable
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.play.binders.SimpleObjectBinder
 
-object Binder {
+object NinoBinder extends SimpleObjectBinder[Nino](Nino.apply, _.value)
 
-  implicit def ninoBinder(implicit stringBinder: PathBindable[String]) = new PathBindable[Nino] {
-
-    def unbind(key: String, nino: Nino): String = stringBinder.unbind(key, nino.value)
-
-    def bind(key: String, value: String): Either[String, Nino] = {
-      Nino.isValid(value) match {
-        case true => Right(Nino(value))
-        case false => Left("ERROR_NINO_INVALID")
-      }
-    }
-  }
+object Binders {
+  implicit val ninoBinder = NinoBinder
 }

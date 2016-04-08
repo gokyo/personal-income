@@ -14,19 +14,28 @@
  * limitations under the License.
  */
 
-package controllers
+package uk.gov.hmrc.apigateway.personalincome.services
 
-import play.api.mvc.{AnyContent, Action}
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import java.io.InputStream
 
-trait DocumentationController extends AssetsBuilder with BaseController {
-  def documentation(version: String, endpointName: String): Action[AnyContent] = {
-    super.at(s"/public/api/documentation/$version", s"${endpointName.replaceAll(" ", "-")}.xml")
+import play.api.Logger
+
+import scala.io.Source
+
+trait FileResource {
+  private def readStreamToString(is: InputStream) = {
+    try Source.fromInputStream(is).mkString.toString
+    finally is.close()
   }
 
-  def definition() = {
-    super.at(s"/public/api", "definition.json")
+  def findResource(path: String): Option[String] = {
+    val resource = getClass.getResourceAsStream(path)
+    if (resource == null) {
+      Logger.warn(s"Could not find resource '$path'")
+      None
+    } else {
+      Some(readStreamToString(resource))
+    }
   }
+
 }
-
-object DocumentationController extends DocumentationController

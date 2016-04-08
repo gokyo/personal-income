@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package uk.gov.hmrc.apigateway.personalincome.controllers
 
 sealed abstract class ErrorResponse(
                                      val httpStatusCode: Int,
@@ -24,6 +24,10 @@ sealed abstract class ErrorResponse(
 case object ErrorNinoInvalid extends ErrorResponse(400, "NINO_INVALID", "The provided NINO is invalid")
 
 case object ErrorUnauthorized extends ErrorResponse(401, "UNAUTHORIZED", "Bearer token is missing or not authorized")
+
+case object ErrorUnauthorizedNoNino extends ErrorResponse(401, "UNAUTHORIZED", "NINO does not exist on account")
+
+case object ErrorUnauthorizedLowCL extends ErrorResponse(401, "UNAUTHORIZED", "Confidence Level on account does not allow access")
 
 case object ErrorNotFound extends ErrorResponse(404, "NOT_FOUND", "Resource was not found")
 

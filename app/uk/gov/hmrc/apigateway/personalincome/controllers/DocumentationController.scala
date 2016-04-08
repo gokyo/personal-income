@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package domain
+package uk.gov.hmrc.apigateway.personalincome.controllers
 
-import play.api.libs.json.Json
+import controllers.AssetsBuilder
+import play.api.mvc.{AnyContent, Action}
+import uk.gov.hmrc.play.microservice.controller.BaseController
 
-case class Registration(serviceName: String, serviceUrl: String, metadata: Option[Map[String, String]] = None)
+trait DocumentationController extends AssetsBuilder with BaseController {
+  def documentation(version: String, endpointName: String): Action[AnyContent] = {
+    super.at(s"/public/api/documentation/$version", s"${endpointName.replaceAll(" ", "-")}.xml")
+  }
 
-object Registration {
-  implicit val format = Json.format[Registration]
+  def definition() = {
+    super.at(s"/public/api", "definition.json")
+  }
 }
+
+object DocumentationController extends DocumentationController

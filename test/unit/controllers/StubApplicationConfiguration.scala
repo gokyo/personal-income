@@ -26,6 +26,9 @@ trait StubApplicationConfiguration {
     "microservice.services.service-locator.enabled" -> false,
     "microservice.services.service-locator.host" -> "host",
     "microservice.services.service-locator.port" -> "2345",
-    "appName" -> "personal-income"
+    "appName" -> "personal-income",
+    "microservice.services.auth.host" -> "host",
+    "microservice.services.auth.port" -> "3456"
+
   )
 }

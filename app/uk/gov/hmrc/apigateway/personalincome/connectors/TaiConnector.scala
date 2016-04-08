@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package connectors
+package uk.gov.hmrc.apigateway.personalincome.connectors
 
-import config.WSHttp
-import domain.TaxSummaryDetails
+import uk.gov.hmrc.apigateway.personalincome.config.WSHttp
+import uk.gov.hmrc.apigateway.personalincome.domain.TaxSummaryDetails
 import play.api.Logger
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.config.ServicesConfig

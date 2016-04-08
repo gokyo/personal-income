@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package domain
+package uk.gov.hmrc.apigateway.personalincome.domain
 
 import org.joda.time.LocalDate
 import play.api.libs.json._

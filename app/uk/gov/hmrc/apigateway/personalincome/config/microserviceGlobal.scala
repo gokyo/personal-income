@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package config
+package uk.gov.hmrc.apigateway.personalincome.config
 
 import com.typesafe.config.Config
-import connectors.ServiceLocatorConnector
-import controllers._
+import uk.gov.hmrc.apigateway.personalincome.connectors.ServiceLocatorConnector
 import net.ceedubs.ficus.Ficus._
 import play.api._
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{RequestHeader, Result}
+import uk.gov.hmrc.apigateway.personalincome.controllers._
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
 import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter

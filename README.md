@@ -13,13 +13,13 @@ API
 
 | *Task* | *Supported Methods* | *Description* |
 |--------|----|----|
-| ```/:nino/tax-summary/:taxYear``` | GET | Returns a the ```Tax Summary``` for the given nino. [More...](docs/tax-summary.md)  |
+| ```/income/:nino/tax-summary/:taxYear``` | GET | Returns a the ```Tax Summary``` for the given nino. [More...](docs/tax-summary.md)  |
 
 
 # Sandbox
 All the above endpoints are accessible on sandbox with `/sandbox` prefix on each endpoint,e.g.
 ```
-    GET /sandbox/:nino/tax-summary/:taxYear
+    GET /sandbox/income/:nino/tax-summary/:taxYear
 ```
 
 # Definition

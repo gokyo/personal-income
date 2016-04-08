@@ -1,1 +1,2 @@
-GET /:nino/tax-summary/:year controllers.LivePersonalIncomeController.getSummary(nino:uk.gov.hmrc.domain.Nino,year:Int)
+
+GET /income/:nino/tax-summary/:year     uk.gov.hmrc.apigateway.personalincome.controllers.LivePersonalIncomeController.getSummary(nino: uk.gov.hmrc.domain.Nino, year: Int)

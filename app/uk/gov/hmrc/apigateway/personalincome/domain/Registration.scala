@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package unit.controllers
+package uk.gov.hmrc.apigateway.personalincome.domain
 
-import org.scalatest.Matchers
 import play.api.libs.json.Json
-import uk.gov.hmrc.apigateway.personalincome.controllers.ErrorAcceptHeaderInvalid
-import uk.gov.hmrc.play.test.UnitSpec
 
-class ErrorResponseSpec extends UnitSpec with Matchers{
-  "errorResponse" should {
-    "be translated to error Json with only the required fields" in {
-      Json.toJson(ErrorAcceptHeaderInvalid).toString() shouldBe
-        """{"code":"ACCEPT_HEADER_INVALID","message":"The accept header is missing or invalid"}"""
-    }
-  }
+case class Registration(serviceName: String, serviceUrl: String, metadata: Option[Map[String, String]] = None)
 
+object Registration {
+  implicit val format = Json.format[Registration]
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package uk.gov.hmrc.apigateway.personalincome.controllers
 
 import play.api.libs.json.Json
 import play.api.mvc.{ActionBuilder, Request, Result, Results}
@@ -43,3 +43,4 @@ trait HeaderValidator extends Results {
     }
   }
 }
+

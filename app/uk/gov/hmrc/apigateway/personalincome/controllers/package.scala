@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+package uk.gov.hmrc.apigateway.personalincome
+
 import play.api.libs.json.{JsValue, Json, Writes}
 
 package object controllers {

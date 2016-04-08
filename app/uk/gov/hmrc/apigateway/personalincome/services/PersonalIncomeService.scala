@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package services
+package uk.gov.hmrc.apigateway.personalincome.services
 
-import config.MicroserviceAuditConnector
-import connectors.TaiConnector
-import domain._
+import play.api.libs.json.Json
+import uk.gov.hmrc.apigateway.personalincome.config.MicroserviceAuditConnector
+import uk.gov.hmrc.apigateway.personalincome.connectors.{AuthConnector, TaiConnector}
+import uk.gov.hmrc.apigateway.personalincome.domain.TaxSummaryDetails
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.http.HeaderCarrier
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -30,9 +32,11 @@ trait PersonalIncomeService {
 }
 
 trait LivePersonalIncomeService extends PersonalIncomeService {
-  val connector: TaiConnector
+  def authConnector: AuthConnector
 
-  def audit(method:String, nino:Nino, year:Int, details:Map[String, String]) = {
+  def taiConnector: TaiConnector
+
+  def audit(method:String, nino:Nino, year:Int, details:Map[String, String])(implicit hc: HeaderCarrier) = {
     def auditResponse(): Unit = {
       MicroserviceAuditConnector.sendEvent(
         DataEvent("personal-income", "ServiceResponseSent",
@@ -42,19 +46,25 @@ trait LivePersonalIncomeService extends PersonalIncomeService {
   }
 
   override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryDetails] = {
-    connector.taxSummary(nino, year).map {
+    taiConnector.taxSummary(nino, year).map {
       resp => audit("getSummary", nino, year, Map("nino" -> nino.value, "year" -> year.toString))
         resp
     }
   }
 }
 
-object SandboxExampleService extends PersonalIncomeService {
+object SandboxPersonalIncomeService extends PersonalIncomeService with FileResource {
+
   override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryDetails] = {
-    Future.successful(TaxSummaryDetails("somevalue", 1))
+    val resource: Option[String] = findResource(s"/resources/getsummary/${nino.value}_$year.json")
+    Future.successful(resource.fold(TaxSummaryDetails(nino.value, year)) { found =>
+      Json.parse(found).as[TaxSummaryDetails]
+    })
   }
 }
 
 object LivePersonalIncomeService extends LivePersonalIncomeService {
-  override val connector = TaiConnector
+  override val authConnector: AuthConnector = AuthConnector
+
+  override val taiConnector = TaiConnector
 }

@@ -1,4 +1,5 @@
-GET        /api/definition                                       controllers.DocumentationController.definition()
 
-GET        /api/documentation/:version/:endpointName             controllers.DocumentationController.documentation(version:String,endpointName:String)
+GET        /api/definition                                       uk.gov.hmrc.apigateway.personalincome.controllers.DocumentationController.definition()
+
+GET        /api/documentation/:version/:endpointName             uk.gov.hmrc.apigateway.personalincome.controllers.DocumentationController.documentation(version:String,endpointName:String)
 

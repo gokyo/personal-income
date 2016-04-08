@@ -16,8 +16,8 @@
 
 package unit.config
 
-import config.ServiceLocatorRegistration
-import connectors.ServiceLocatorConnector
+import uk.gov.hmrc.apigateway.personalincome.config.ServiceLocatorRegistration
+import uk.gov.hmrc.apigateway.personalincome.connectors.ServiceLocatorConnector
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar

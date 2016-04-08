@@ -1,0 +1,158 @@
+{
+  "nino": "CS700100",
+  "version": 1,
+  "increasesTax": {
+    "incomes": {
+      "taxCodeIncomes": {
+        "occupationalPensions": {
+          "taxCodeIncomes": [
+            {
+              "name": "PAYESCHEMEOPERATORNAME52603",
+              "taxCode": "K804",
+              "employmentId": 1,
+              "employmentPayeRef": "TZ99924",
+              "employmentType": 1,
+              "incomeType": 1,
+              "employmentStatus": 2,
+              "tax": {
+                "totalIncome": 33488,
+                "totalTaxableIncome": 41545,
+                "totalTax": 10245,
+                "taxBands": [
+                  {
+                    "income": 31865,
+                    "tax": 6373,
+                    "lowerBand": 0,
+                    "upperBand": 31865,
+                    "rate": 20
+                  },
+                  {
+                    "income": 9680,
+                    "tax": 3872,
+                    "lowerBand": 31865,
+                    "upperBand": 150000,
+                    "rate": 40
+                  },
+                  {
+                    "income": 0,
+                    "tax": 0,
+                    "lowerBand": 150000,
+                    "upperBand": 0,
+                    "rate": 45
+                  }
+                ],
+                "allowReliefDeducts": -8057,
+                "actualTaxDueAssumingBasicRateAlreadyPaid": 3547.4
+              },
+              "startDate": "2012-01-01",
+              "endDate": "2013-01-01",
+              "income": 33488,
+              "otherIncomeSourceIndicator": false,
+              "isEditable": true,
+              "isLive": false,
+              "isOccupationalPension": true,
+              "isPrimary": true
+            }
+          ],
+          "totalIncome": 33488,
+          "totalTax": 10245,
+          "totalTaxableIncome": 41545
+        },
+        "hasDuplicateEmploymentNames": false,
+        "totalIncome": 33488,
+        "totalTaxableIncome": 41545,
+        "totalTax": 10245
+      },
+      "noneTaxCodeIncomes": {
+        "statePension": 25557,
+        "totalIncome": 25557
+      },
+      "total": 59045
+    },
+    "total": 74045
+  },
+  "other": {
+    "amount": 15000,
+    "componentType": 0,
+    "description": "",
+    "iabdSummaries": [
+      {
+        "iabdType": 12,
+        "description": "Death, Sickness or Funeral Benefits",
+        "amount": 15000
+      }
+    ]
+  },
+  "totalLiability": {
+    "totalTax": 10245,
+    "totalTaxOnIncome": 10245,
+    "underpaymentPreviousYear": 0,
+    "outstandingDebt": 0,
+    "childBenefitAmount": 0,
+    "childBenefitTaxDue": 0
+  },
+  "workingTaxableTotal": 0,
+  "actualTaxableTotal": 0,
+  "remainingTaxFree": 0,
+  "adjustedNetIncome": 0,
+  "gateKeeper": {
+    "gateKeepered": true,
+    "gateKeeperResults": [
+      {
+        "gateKeeperType": 1,
+        "id": 3,
+        "description": "TaxForCitizens:Gatekeeper Exception :- All Employments end before this year"
+      }
+    ]
+  },
+  "taxCodeDetails": {
+    "employment": [
+      {
+        "id": 1,
+        "name": "PAYESCHEMEOPERATORNAME52603",
+        "taxCode": "K804"
+      }
+    ],
+    "taxCode": [
+      {
+        "taxCode": "K"
+      }
+    ],
+    "taxCodeDescriptions": [
+      {
+        "taxCode": "K804",
+        "name": "PAYESCHEMEOPERATORNAME52603",
+        "taxCodeDescriptors": [
+          {
+            "taxCode": "K"
+          }
+        ]
+      }
+    ],
+    "deductions": [
+      {
+        "description": "savings income taxable at higher rate",
+        "amount": 7500,
+        "componentType": 32
+      },
+      {
+        "description": "state pension/state benefits",
+        "amount": 25557,
+        "componentType": 1
+      }
+    ],
+    "allowances": [
+      {
+        "description": "personal allowance",
+        "amount": 10000,
+        "componentType": 11
+      },
+      {
+        "description": "death, sickness or funeral benefits",
+        "amount": 15000,
+        "componentType": 25
+      }
+    ],
+    "total": 0
+  }
+}

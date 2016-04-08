@@ -16,8 +16,8 @@
 
 package unit.controllers
 
-import controllers.HeaderValidator
 import org.scalatest.Matchers
+import uk.gov.hmrc.apigateway.personalincome.controllers.HeaderValidator
 import uk.gov.hmrc.play.test.UnitSpec
 
 class HeaderValidatorSpec extends UnitSpec with Matchers with HeaderValidator{

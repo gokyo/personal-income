@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package config
+package uk.gov.hmrc.apigateway.personalincome.config
 
 import play.api.Play._
 import uk.gov.hmrc.play.config.ServicesConfig

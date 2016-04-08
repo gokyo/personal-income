@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package connectors
+package uk.gov.hmrc.apigateway.personalincome.connectors
 
-import config.{AppContext, WSHttp}
-import domain.Registration
+import uk.gov.hmrc.apigateway.personalincome.config.{AppContext, WSHttp}
+import uk.gov.hmrc.apigateway.personalincome.domain.Registration
 import play.api.Logger
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpPost}
 
@@ -33,9 +33,7 @@ trait ServiceLocatorConnector {
 
   val metadata: Option[Map[String, String]]
 
-
   val http: HttpPost
-
 
   def register(implicit hc: HeaderCarrier): Future[Boolean] = {
     val registration = Registration(appName, appUrl, metadata)
@@ -50,7 +48,6 @@ trait ServiceLocatorConnector {
     }
   }
 }
-
 
 object ServiceLocatorConnector extends ServiceLocatorConnector {
   override lazy val appName = AppContext.appName
