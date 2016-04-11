@@ -16,8 +16,11 @@
 
 package uk.gov.hmrc.apigateway.personalincome.controllers
 
+import models.TcrRenewal
+import play.api.mvc.{BodyParsers, Action}
+import uk.gov.hmrc.apigateway.personalincome.connectors.Error
 import uk.gov.hmrc.apigateway.personalincome.controllers.action.{AccountAccessControlWithHeaderCheck, AccountAccessControlForSandbox}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsError, JsValue, Json}
 import uk.gov.hmrc.apigateway.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService, SandboxPersonalIncomeService}
 import uk.gov.hmrc.domain.Nino
 import play.api.{mvc, Logger}
@@ -54,6 +57,25 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
       errorWrapper(service.getSummary(nino,year).map(as => Ok(Json.toJson(as))))
   }
+
+  final def submitRenewal(nino:Nino): Action[JsValue] = accessControl.validateAccept(acceptHeaderValidationRules).async(BodyParsers.parse.json) {
+    implicit request =>
+      implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
+
+      request.body.validate[TcrRenewal].fold (
+        errors => {
+          Logger.warn("Received error with service submitRenewal: " + errors)
+          Future.successful(BadRequest(Json.obj("message" -> JsError.toFlatJson(errors))))
+        },
+        renewal => {
+          service.submitRenewal(nino,renewal).map {
+            case Error(status) => Status(status)(Json.toJson(ErrorwithNtcRenewal))
+            case _ => Ok
+          }
+        }
+      )
+  }
+
 }
 
 object SandboxPersonalIncomeController extends PersonalIncomeController {

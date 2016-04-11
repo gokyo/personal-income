@@ -1,2 +1,4 @@
 
-GET /income/:nino/tax-summary/:year    uk.gov.hmrc.apigateway.personalincome.controllers.SandboxPersonalIncomeController.getSummary(nino: uk.gov.hmrc.domain.Nino, year: Int)
+GET     /income/:nino/tax-summary/:year         uk.gov.hmrc.apigateway.personalincome.controllers.SandboxPersonalIncomeController.getSummary(nino: uk.gov.hmrc.domain.Nino, year: Int)
+
+POST    /income/:nino/renewal                   uk.gov.hmrc.apigateway.personalincome.controllers.SandboxPersonalIncomeController.submitRenewal(nino: uk.gov.hmrc.domain.Nino)

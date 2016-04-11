@@ -14,6 +14,7 @@ API
 | *Task* | *Supported Methods* | *Description* |
 |--------|----|----|
 | ```/income/:nino/tax-summary/:taxYear``` | GET | Returns a the ```Tax Summary``` for the given nino. [More...](docs/tax-summary.md)  |
+| ```/income/:nino/renewal``` | POST | Post a renewal to the NTC HOD |
 
 
 # Sandbox
