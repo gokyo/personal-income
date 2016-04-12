@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.apigateway.personalincome.controllers
 
-import models.TcrRenewal
-import play.api.mvc.{BodyParsers, Action}
+import play.api.mvc.{Request, BodyParsers}
 import uk.gov.hmrc.apigateway.personalincome.connectors.Error
 import uk.gov.hmrc.apigateway.personalincome.controllers.action.{AccountAccessControlWithHeaderCheck, AccountAccessControlForSandbox}
-import play.api.libs.json.{JsError, JsValue, Json}
+import play.api.libs.json.{JsError, Json}
+import uk.gov.hmrc.apigateway.personalincome.domain.{TcrRenewal, RenewalReference}
 import uk.gov.hmrc.apigateway.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService, SandboxPersonalIncomeService}
 import uk.gov.hmrc.domain.Nino
 import play.api.{mvc, Logger}
@@ -55,10 +55,29 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
   final def getSummary(nino: Nino, year: Int) = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
-      errorWrapper(service.getSummary(nino,year).map(as => Ok(Json.toJson(as))))
+      errorWrapper(service.getSummary(nino, year).map(as => Ok(Json.toJson(as))))
   }
 
-  final def submitRenewal(nino:Nino): Action[JsValue] = accessControl.validateAccept(acceptHeaderValidationRules).async(BodyParsers.parse.json) {
+  final def getRenewalAuthentication(nino: Nino, renewalReference:RenewalReference) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+    implicit request =>
+      implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
+      errorWrapper(
+        service.authenticateRenewal(nino, renewalReference).map {
+          case Some(authToken) => Ok(Json.toJson(authToken))
+          case _ => InternalServerError(Json.toJson(ErrorwithNtcRenewalAuthentication))
+      })
+  }
+
+  final def claimentDetails(nino: Nino) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+    implicit request =>
+      implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
+      errorWrapper(validateTcrAuthHeader() {
+        token => hc =>
+          service.claimantDetails(nino)(hc).map(as => Ok(Json.toJson(as)))
+      })
+  }
+
+  final def submitRenewal(nino: Nino) = accessControl.validateAccept(acceptHeaderValidationRules).async(BodyParsers.parse.json) {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
 
@@ -68,12 +87,24 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
           Future.successful(BadRequest(Json.obj("message" -> JsError.toFlatJson(errors))))
         },
         renewal => {
-          service.submitRenewal(nino,renewal).map {
-            case Error(status) => Status(status)(Json.toJson(ErrorwithNtcRenewal))
-            case _ => Ok
-          }
+          errorWrapper(validateTcrAuthHeader() {
+            token => hc =>
+              service.submitRenewal(nino,renewal)(hc).map {
+                case Error(status) => Status(status)(Json.toJson(ErrorwithNtcRenewal))
+                case _ => Ok
+              }
+
+          })
         }
       )
+  }
+
+  private def validateTcrAuthHeader()(func: String => HeaderCarrier => Future[mvc.Result])(implicit request:Request[_], hc:HeaderCarrier) = {
+    request.headers.get(HeaderKeys.tcrAuthToken) match {
+      case Some(token) => func(token)(hc.copy(extraHeaders = Seq(HeaderKeys.tcrAuthToken -> token)))
+
+      case _ => Future.successful(Unauthorized(Json.toJson(ErrorNoAuthToken)))
+    }
   }
 
 }

@@ -38,3 +38,7 @@ case object ErrorAcceptHeaderInvalid extends ErrorResponse(406, "ACCEPT_HEADER_I
 case object ErrorInternalServerError extends ErrorResponse(500, "INTERNAL_SERVER_ERROR", "Internal server error")
 
 case object ErrorwithNtcRenewal extends ErrorResponse(500, "NTC_RENEWAL_ERROR", "Failed to process renewal")
+
+case object ErrorwithNtcRenewalAuthentication extends ErrorResponse(500, "NTC_RENEWAL_AUTH_ERROR", "Failed to obtain renewal auth token")
+
+case object ErrorNoAuthToken extends ErrorResponse(500, "NTC_RENEWAL_AUTH_ERROR", "No tcr auth header supplied in http request!")

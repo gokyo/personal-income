@@ -1,10 +1,10 @@
 The Tax Summary object
 ----
-  Fetches the Tax Summary object for a given nino and year.
+  Fetch the Tax Summary object for a given nino and year.
   
 * **URL**
 
-  `/:nino/tax-summary/:taxYear`
+  `/income/:nino/tax-summary/:taxYear`
 
 * **Method:**
   
@@ -117,10 +117,17 @@ The Tax Summary object
 * **Error Response:**
 
   * **Code:** 401 UNAUTHORIZED <br />
-    **Content:** `{"statusCode":401,"message":"Authorisation refused for access to GET /tai/CS700100A/tax-summary/2014"}`
+    **Content:** `{"code":"UNAUTHORIZED","message":"NINO does not exist on account"}`
+
+  * **Code:** 401 UNAUTHORIZED <br />
+    **Content:** `{"code":"NTC_RENEWAL_AUTH_ERROR","message":"No tcr auth header supplied in http request!"}`
+
+  * **Code:** 406 NOT ACCEPTABLE <br />
+    **Content:** `{"code":"ACCEPT_HEADER_INVALID","message":"The accept header is missing or invalid"}`
 
   OR when a user does not exist
 
   * **Code:** 500 INTERNAL_SERVER_ERROR <br />
+
 
 

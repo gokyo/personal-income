@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.apigateway.personalincome.binders
+package uk.gov.hmrc.apigateway.personalincome.controllers
 
-import uk.gov.hmrc.apigateway.personalincome.domain.RenewalReference
-import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.play.binders.SimpleObjectBinder
+object HeaderKeys {
 
-object NinoBinder extends SimpleObjectBinder[Nino](Nino.apply, _.value)
-
-object Binders {
-  implicit val ninoBinder = NinoBinder
-  implicit val renewalReferenceBinder = RenewalReferenceBinder
+    val tcrAuthToken="tcrAuthToken"
 }
-
-object RenewalReferenceBinder extends SimpleObjectBinder[RenewalReference](RenewalReference.apply, _.value)
-

@@ -16,19 +16,17 @@
 
 package unit.controllers
 
-import models.{RenewalData, IncomeDetails, TcrRenewal}
 import play.api.libs.json.{Json, JsValue}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.apigateway.personalincome.connectors._
-import uk.gov.hmrc.apigateway.personalincome.controllers.PersonalIncomeController
+import uk.gov.hmrc.apigateway.personalincome.controllers.{HeaderKeys, PersonalIncomeController}
 import uk.gov.hmrc.apigateway.personalincome.controllers.action.{AccountAccessControlForSandbox, AccountAccessControlWithHeaderCheck, AccountAccessControl}
-import uk.gov.hmrc.apigateway.personalincome.domain.{Accounts, TaxCreditsNino, TaxSummaryDetails}
+import uk.gov.hmrc.apigateway.personalincome.domain._
 import uk.gov.hmrc.apigateway.personalincome.services.{PersonalIncomeService, SandboxPersonalIncomeService, LivePersonalIncomeService}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
-import uk.gov.hmrc.play.http.ws.WSPost
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpPost, HttpGet}
+import uk.gov.hmrc.play.http.{Upstream4xxResponse, HeaderCarrier, HttpPost, HttpGet}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -42,14 +40,23 @@ class TestTaiConnector(taxSummaryDetails:TaxSummaryDetails) extends TaiConnector
   }
 }
 
-class TestNtcConnector(response:Response) extends NtcConnector {
-  override def http: WSPost = ???
+class TestNtcConnector(response:Response, tcrAuthToken:Option[TcrAuthenticationToken], claimantDetails:ClaimantDetails) extends NtcConnector {
+  override def http: HttpGet with HttpPost = ???
 
   override def serviceUrl: String = ???
 
   override def submitRenewal(nino: TaxCreditsNino,
                              renewalData: TcrRenewal)(implicit headerCarrier: HeaderCarrier): Future[Response] = {
     Future.successful(response)
+  }
+
+  override def authenticateRenewal(nino: TaxCreditsNino,
+                          renewalReference: RenewalReference)(implicit headerCarrier: HeaderCarrier): Future[Option[TcrAuthenticationToken]] = {
+    Future.successful(tcrAuthToken)
+  }
+
+  override def claimantDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails] = {
+    Future.successful(claimantDetails)
   }
 }
 
@@ -92,24 +99,43 @@ trait Setup {
   val nino = Nino("CS700100A")
   val taxSummaryDetails = TaxSummaryDetails(nino.value,1)
   val incomeDetails = IncomeDetails(Some(10), Some(20), Some(30), Some(40), Some(true))
-  val renewal = TcrRenewal(RenewalData(Some(incomeDetails), None, None), None, None, None, false)
+  val certainBenefits = CertainBenefits(false, false, false, false, false)
+  val otherIncome = OtherIncome(Some(100), Some(false))
+  val renewal = TcrRenewal(RenewalData(Some(incomeDetails), Some(incomeDetails), Some(certainBenefits)), None, Some(otherIncome), Some(otherIncome), false)
+  val renewalReference = RenewalReference("some-reference")
 
   val emptyRequest = FakeRequest()
   val renewalJsonBody: JsValue = Json.toJson(renewal)
 
-
-  val emptyRequestWithHeader = FakeRequest().withHeaders("Accept" -> "application/vnd.hmrc.1.0+json")
-
   def fakeRequest(body:JsValue) = FakeRequest(POST, "url").withBody(body)
     .withHeaders("Content-Type" -> "application/json")
 
-  lazy val renewalRequest = fakeRequest(renewalJsonBody).withHeaders("Accept" -> "application/vnd.hmrc.1.0+json")
-  lazy val renewalRequestNoAcceptHeader = fakeRequest(renewalJsonBody)
-  lazy val renewalBadRequest = fakeRequest(Json.toJson("Something Incorrect")).withHeaders("Accept" -> "application/vnd.hmrc.1.0+json")
+  val emptyRequestWithAcceptHeader = FakeRequest().withHeaders(
+    "Accept" -> "application/vnd.hmrc.1.0+json")
+  
+  val emptyRequestWithAcceptHeaderAndAuthHeader = FakeRequest().withHeaders(
+    "Accept" -> "application/vnd.hmrc.1.0+json",
+    HeaderKeys.tcrAuthToken -> "some-auth-token")
+
+  lazy val renewalBadRequest = fakeRequest(Json.toJson("Something Incorrect")).withHeaders(
+    "Accept" -> "application/vnd.hmrc.1.0+json")
+
+  lazy val jsonRenewalRequestWithNoAuthHeader = fakeRequest(renewalJsonBody).withHeaders(
+    "Accept" -> "application/vnd.hmrc.1.0+json"
+  )
+
+  lazy val jsonRenewalRequestWithAuthHeader = fakeRequest(renewalJsonBody).withHeaders(
+    "Accept" -> "application/vnd.hmrc.1.0+json",
+    HeaderKeys.tcrAuthToken -> "some-auth-token"
+  )
+  lazy val jsonRenewalRequestNoAcceptHeader = fakeRequest(renewalJsonBody)
 
   val authConnector = new TestAuthConnector(Some(nino))
   val taiConnector = new TestTaiConnector(taxSummaryDetails)
-  val ntcConnector = new TestNtcConnector(Success(200))
+  val tcrAuthToken = TcrAuthenticationToken("some-auth-token")
+  val claimentDetails = ClaimantDetails(false, 1, "renewalForm", nino.value, None, false, "some-app-id")
+
+  val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails)
   val testAccess = new TestAccessCheck(authConnector)
   val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
   val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector)
@@ -128,7 +154,7 @@ trait Success extends Setup {
 trait AuthWithoutNino extends Setup {
 
   override val authConnector =  new TestAuthConnector(None) {
-    override def hasNino()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(new uk.gov.hmrc.play.http.Upstream4xxResponse("Error", 401, 401))
+    override def hasNino()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(new Upstream4xxResponse("Error", 401, 401))
   }
 
   override val testAccess = new TestAccessCheck(authConnector)

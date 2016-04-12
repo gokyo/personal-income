@@ -16,18 +16,17 @@
 
 package unit.connectors
 
-import models.{IncomeDetails, RenewalData, TcrRenewal}
 import org.scalatest.concurrent.ScalaFutures
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.{Json, JsSuccess, Writes}
 import uk.gov.hmrc.apigateway.personalincome.connectors.NtcConnector
-import uk.gov.hmrc.apigateway.personalincome.domain.TaxCreditsNino
+import uk.gov.hmrc.apigateway.personalincome.domain._
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.http.hooks.HttpHook
-import uk.gov.hmrc.play.http.ws.WSPost
 import uk.gov.hmrc.play.http.{HeaderCarrier, _}
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.Future
+
 
 class NtcConnectorSpec
   extends UnitSpec
@@ -41,23 +40,91 @@ class NtcConnectorSpec
     val taxCreditNino = TaxCreditsNino(nino.value)
     val incomeDetails = IncomeDetails(Some(10), Some(20), Some(30), Some(40), Some(true))
     val renewal = TcrRenewal(RenewalData(Some(incomeDetails), None, None), None, None, None, false)
+    val renewalReference = RenewalReference("123456")
+    val tcrAuthToken = TcrAuthenticationToken("some-token")
+    val claimentDetails = ClaimantDetails(false, 1, "renewalForm", nino.value, None, false, "some-app-id")
 
     lazy val http500Response = Future.failed(new Upstream5xxResponse("Error", 500, 500))
     lazy val http400Response = Future.failed(new BadRequestException("bad request"))
-    lazy val http200Response = Future.successful(HttpResponse(200, Some(Json.toJson(renewal))))
+    lazy val http204Response = Future.successful(HttpResponse(204))
+    lazy val http200AuthenticateResponse = Future.successful(HttpResponse(200, Some(Json.toJson(tcrAuthToken))))
+
+    lazy val http200ClaimantDetailsResponse = Future.successful(HttpResponse(200, Some(Json.toJson(claimentDetails))))
+
 
     lazy val response: Future[HttpResponse] = http400Response
 
     val connector = new NtcConnector {
       override lazy val serviceUrl = "someUrl"
-      override lazy val http: WSPost = new WSPost {
+
+      override lazy val http: HttpGet with HttpPost = new HttpGet with HttpPost {
         override val hooks: Seq[HttpHook] = NoneRequired
-        override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit wts: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = response
+        override protected def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = response
+
+        override protected def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit wts: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = response
+
+        override protected def doPostString(url: String, body: String, headers: Seq[(String, String)])(implicit hc: HeaderCarrier): Future[HttpResponse] = ???
+
+        override protected def doFormPost(url: String, body: Map[String, Seq[String]])(implicit hc: HeaderCarrier): Future[HttpResponse] = ???
+
+        override protected def doEmptyPost[A](url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = ???
       }
+
     }
   }
 
-  "tcsConnector" should {
+
+  "authenticate tcsConnector" should {
+
+    "throw BadRequestException when a 400 response is returned" in new Setup {
+      override lazy val response = http400Response
+      intercept[BadRequestException] {
+        await(connector.authenticateRenewal(taxCreditNino, renewalReference))
+      }
+    }
+
+    "throw Upstream5xxResponse when a 500 response is returned" in new Setup {
+      override lazy val response = http500Response
+      intercept[Upstream5xxResponse] {
+        await(connector.authenticateRenewal(taxCreditNino, renewalReference))
+      }
+    }
+
+    "return a valid response when a 200 response is received with a valid json payload" in new Setup {
+      override lazy val response = http200AuthenticateResponse
+      val result: Option[TcrAuthenticationToken] = await(connector.authenticateRenewal(taxCreditNino, renewalReference))
+
+      result.get shouldBe tcrAuthToken
+    }
+
+  }
+
+  "claimantDetails tcsConnector" should {
+
+    "throw BadRequestException when a 400 response is returned" in new Setup {
+      override lazy val response = http400Response
+      intercept[BadRequestException] {
+        await(connector.claimantDetails(taxCreditNino))
+      }
+    }
+
+    "throw Upstream5xxResponse when a 500 response is returned" in new Setup {
+      override lazy val response = http500Response
+      intercept[Upstream5xxResponse] {
+        await(connector.claimantDetails(taxCreditNino))
+      }
+    }
+
+    "return a valid response when a 200 response is received with a valid json payload" in new Setup {
+      override lazy val response = http200ClaimantDetailsResponse
+      val result = await(connector.claimantDetails(taxCreditNino))
+
+      result shouldBe claimentDetails
+    }
+
+  }
+
+  "submitRenewal tcsConnector" should {
 
     "throw BadRequestException when a 400 response is returned" in new Setup {
       override lazy val response = http400Response
@@ -74,9 +141,9 @@ class NtcConnectorSpec
     }
 
     "return a valid response when a 200 response is received with a valid json payload" in new Setup {
-      override lazy val response = http200Response
+      override lazy val response = http204Response
       val result = await(connector.submitRenewal(taxCreditNino, renewal))
-      result.status shouldBe 200
+      result.status shouldBe 204
     }
   }
 

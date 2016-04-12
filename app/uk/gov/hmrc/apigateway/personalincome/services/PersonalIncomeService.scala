@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.apigateway.personalincome.services
 
-import models.TcrRenewal
 import play.api.libs.json.Json
 import uk.gov.hmrc.apigateway.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.apigateway.personalincome.connectors._
-import uk.gov.hmrc.apigateway.personalincome.domain.{TaxCreditsNino, TaxSummaryDetails}
+import uk.gov.hmrc.apigateway.personalincome.domain._
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -30,6 +29,11 @@ import scala.concurrent.Future
 
 trait PersonalIncomeService {
   def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryDetails]
+
+  // Renewal specific - authenticateRenewal, claimantDetails, submitRenewal.
+  def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier): Future[Option[TcrAuthenticationToken]]
+
+  def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails]
 
   def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier): Future[Response]
 }
@@ -59,6 +63,19 @@ trait LivePersonalIncomeService extends PersonalIncomeService {
     withAudit("getSummary", Map("nino" -> nino.value, "year" -> year.toString)){taiConnector.taxSummary(nino, year)}
   }
 
+  // Note: The TcrAuthenticationToken must be supplied to claimantDetails and submitRenewal.
+  override def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier): Future[Option[TcrAuthenticationToken]] = {
+    withAudit("submitRenewal", Map("nino" -> nino.value)) {
+      ntcConnector.authenticateRenewal(TaxCreditsNino(nino.value), tcrRenewalReference)
+    }
+  }
+
+  override def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails] = {
+    withAudit("getSummary", Map("nino" -> nino.value)) {
+      ntcConnector.claimantDetails(TaxCreditsNino(nino.value))
+    }
+  }
+
   override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier): Future[Response] = {
     withAudit("submitRenewal", Map("nino" -> nino.value)) {
       ntcConnector.submitRenewal(TaxCreditsNino(nino.value), tcrRenewal)
@@ -74,6 +91,14 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
     Future.successful(resource.fold(TaxSummaryDetails(nino.value, year)) { found =>
       Json.parse(found).as[TaxSummaryDetails]
     })
+  }
+
+  override def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier): Future[Option[TcrAuthenticationToken]] = {
+    Future.successful(Some(TcrAuthenticationToken("some-token")))
+  }
+
+  override def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails] = {
+    Future.successful(ClaimantDetails(false, 1, "renewalForm", nino.value, None, false, "some-app-id"))
   }
 
   override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier): Future[Response] = {

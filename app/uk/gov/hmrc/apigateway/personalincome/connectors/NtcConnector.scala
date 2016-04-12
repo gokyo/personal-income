@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.apigateway.personalincome.connectors
 
-import models.TcrRenewal
 import uk.gov.hmrc.apigateway.personalincome.config.WSHttp
-import uk.gov.hmrc.apigateway.personalincome.domain.TaxCreditsNino
+import uk.gov.hmrc.apigateway.personalincome.domain._
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
-import uk.gov.hmrc.play.http.ws.WSPost
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -33,14 +31,23 @@ case class Success(status:Int) extends Response
 case class Error(status:Int) extends Response
 
 trait NtcConnector {
-  def http: WSPost = ???
+  def http: HttpGet with HttpPost
 
   def serviceUrl: String
+
+  def authenticateRenewal(nino: TaxCreditsNino,
+                          renewalReference: RenewalReference)(implicit headerCarrier: HeaderCarrier): Future[Option[TcrAuthenticationToken]] = {
+    http.GET[Option[TcrAuthenticationToken]](s"$serviceUrl/tcs/${nino.value}/${renewalReference.value}/auth")
+  }
+
+  def claimantDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails] = {
+    http.GET[ClaimantDetails](s"$serviceUrl/tcs/${nino.value}/claimant-details")
+  }
 
   def submitRenewal(nino: TaxCreditsNino,
                     renewalData: TcrRenewal)(implicit headerCarrier: HeaderCarrier): Future[Response] = {
     val uri = s"$serviceUrl/tcs/${nino.taxCreditsNino}/renewal"
-    http.doPost[TcrRenewal](uri, renewalData, Seq()).map(response => {
+    http.POST[TcrRenewal, HttpResponse](uri, renewalData, Seq()).map(response => {
       response.status match {
         case x if x >= 200 && x < 300 => Success(x)
         case _ => Error(response.status)

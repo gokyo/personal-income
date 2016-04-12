@@ -1,20 +1,26 @@
 personal-income
 =============================================
 
-Allows users to view their paye tax information.
+Allows users to view their paye tax information and perform a renewal.
 
 Requirements
 ------------
 
 The following services are exposed from the micro-service.
 
+Please note it is mandatory to supply an Accept HTTP header to all below services with the value ```application/vnd.hmrc.1.0+json```. 
+
 API
 ---
 
+TODO...
+
 | *Task* | *Supported Methods* | *Description* |
 |--------|----|----|
-| ```/income/:nino/tax-summary/:taxYear``` | GET | Returns a the ```Tax Summary``` for the given nino. [More...](docs/tax-summary.md)  |
-| ```/income/:nino/renewal``` | POST | Post a renewal to the NTC HOD |
+| ```/income/:nino/tax-summary/:taxYear``` | GET | Returns the ```Tax Summary``` for the given nino. [More...](docs/tax-summary.md)  |
+| ```/income/:nino/:renewalReference/auth``` | GET | Validate and retrieve the TCR auth-token assoicated with the NINO and renewal reference. [More...](docs/authenticate.md)|
+| ```/income/:nino/claimant-details``` | GET | Retrieve the claiment-details associated with the nino. Note the header tcrAuthToken must be supplied. [More...](docs/claimentDetails.md) |
+| ```/income/:nino/renewal``` | POST | Post a renewal to the NTC micro-service for off-line processing. Note the header tcrAuthToken must be supplied. [More...](docs/renewal.md)|
 
 
 # Sandbox
