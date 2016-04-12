@@ -4,7 +4,7 @@ Submit renewal
 
 * **URL**
 
-  `/income/:nino/renewal`
+  `/income/:nino/tax-credits/renewal`
 
 * **Method:**
 

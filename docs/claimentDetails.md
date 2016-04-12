@@ -4,7 +4,7 @@ Return Claiment Details object
 
 * **URL**
 
-  `/income/:nino/claimant-details`
+  `/income/:nino/tax-credits/claimant-details`
 
 * **Method:**
   

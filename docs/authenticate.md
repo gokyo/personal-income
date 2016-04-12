@@ -4,7 +4,7 @@ First step in Renewal process
   
 * **URL**
 
-  `/income/:nino/:renewalReference/auth`
+  `/income/:nino/tax-credits/:renewalReference/auth`
 
 * **Method:**
   
@@ -29,7 +29,7 @@ First step in Renewal process
 
 ```json
 {
-  "tcrAuthToken": "some-token",
+  "tcrAuthToken": "some-token"
 }
 ```
  

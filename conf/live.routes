@@ -1,8 +1,8 @@
 
-GET     /income/:nino/tax-summary/:year          uk.gov.hmrc.apigateway.personalincome.controllers.LivePersonalIncomeController.getSummary(nino: uk.gov.hmrc.domain.Nino, year: Int)
+GET     /income/:nino/tax-summary/:year                      uk.gov.hmrc.apigateway.personalincome.controllers.LivePersonalIncomeController.getSummary(nino: uk.gov.hmrc.domain.Nino, year: Int)
 
-GET     /income/:nino/:renewalReference/auth     uk.gov.hmrc.apigateway.personalincome.controllers.LivePersonalIncomeController.getRenewalAuthentication(nino:uk.gov.hmrc.domain.Nino, renewalReference:uk.gov.hmrc.apigateway.personalincome.domain.RenewalReference)
+GET     /income/:nino/tax-credits/:renewalReference/auth     uk.gov.hmrc.apigateway.personalincome.controllers.LivePersonalIncomeController.getRenewalAuthentication(nino:uk.gov.hmrc.domain.Nino, renewalReference:uk.gov.hmrc.apigateway.personalincome.domain.RenewalReference)
 
-GET     /income/:nino/claimant-details           uk.gov.hmrc.apigateway.personalincome.controllers.LivePersonalIncomeController.claimentDetails(nino: uk.gov.hmrc.domain.Nino)
+GET     /income/:nino/tax-credits/claimant-details           uk.gov.hmrc.apigateway.personalincome.controllers.LivePersonalIncomeController.claimentDetails(nino: uk.gov.hmrc.domain.Nino)
 
-POST    /income/:nino/renewal                    uk.gov.hmrc.apigateway.personalincome.controllers.LivePersonalIncomeController.submitRenewal(nino: uk.gov.hmrc.domain.Nino)
+POST    /income/:nino/tax-credits/renewal                    uk.gov.hmrc.apigateway.personalincome.controllers.LivePersonalIncomeController.submitRenewal(nino: uk.gov.hmrc.domain.Nino)
