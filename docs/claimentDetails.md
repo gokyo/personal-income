@@ -29,6 +29,8 @@ Return Claiment Details object
   * **Code:** 200 <br />
     **Content:**
 
+        [Source...](Please see https://github.com/hmrc/personal-income/blob/master/app/uk/gov/hmrc/apigateway/personalincome/domain/Renewals.scala#L55)
+
 ```json
 {
   "hasPartner": false,
