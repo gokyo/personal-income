@@ -15,8 +15,6 @@ Please note it is mandatory to supply an Accept HTTP header to all below service
 API
 ---
 
-TODO...
-
 | *Task* | *Supported Methods* | *Description* |
 |--------|----|----|
 | ```/income/:nino/tax-summary/:taxYear``` | GET | Returns the ```Tax Summary``` for the given nino. [More...](docs/tax-summary.md)  |
