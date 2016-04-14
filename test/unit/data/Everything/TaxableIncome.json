@@ -1,0 +1,802 @@
+{
+  "taxFreeAmount": 2260,
+  "incomeTax": 51184,
+  "income": 145435,
+  "taxCodeList": [
+    "K5817",
+    "D0"
+  ],
+  "increasesTax": {
+    "incomes": {
+      "taxCodeIncomes": {
+        "employments": {
+          "taxCodeIncomes": [
+            {
+              "name": "Sainsburys",
+              "taxCode": "K5817",
+              "employmentId": 1,
+              "employmentPayeRef": "BT456",
+              "employmentType": 1,
+              "incomeType": 0,
+              "employmentStatus": 1,
+              "tax": {
+                "totalIncome": 50000,
+                "totalTaxableIncome": 108167,
+                "totalTax": 36909.8,
+                "potentialUnderpayment": 234,
+                "taxBands": [
+                  {
+                    "income": 31785,
+                    "tax": 6357,
+                    "lowerBand": 0,
+                    "upperBand": 31785,
+                    "rate": 20
+                  },
+                  {
+                    "income": 76382,
+                    "tax": 30552.8,
+                    "lowerBand": 31785,
+                    "upperBand": 150000,
+                    "rate": 40
+                  },
+                  {
+                    "income": 0,
+                    "tax": 0,
+                    "lowerBand": 150000,
+                    "rate": 45
+                  }
+                ],
+                "allowReliefDeducts": -58167,
+                "actualTaxDueAssumingBasicRateAlreadyPaid": 26909.8
+              },
+              "worksNumber": "WN 1",
+              "jobTitle": "Job Title 1",
+              "startDate": "2010-01-01",
+              "income": 50000,
+              "isEditable": true,
+              "isLive": true,
+              "isOccupationalPension": false,
+              "isPrimary": true
+            }
+          ],
+          "totalIncome": 50000,
+          "totalTax": 36909.8,
+          "totalTaxableIncome": 108167
+        },
+        "occupationalPensions": {
+          "taxCodeIncomes": [
+            {
+              "name": "Aviva Pensions",
+              "taxCode": "D0",
+              "employmentId": 2,
+              "employmentPayeRef": "AS456",
+              "employmentType": 2,
+              "incomeType": 1,
+              "employmentStatus": 1,
+              "tax": {
+                "totalIncome": 50000,
+                "totalTaxableIncome": 50000,
+                "totalTax": 11273.36,
+                "actualTaxDueAssumingBasicRateAlreadyPaid": 11273.36
+              },
+              "worksNumber": "WN 2",
+              "jobTitle": "Job Title 2",
+              "startDate": "2010-01-01",
+              "income": 50000,
+              "isEditable": true,
+              "isLive": true,
+              "isOccupationalPension": true,
+              "isPrimary": false
+            }
+          ],
+          "totalIncome": 50000,
+          "totalTax": 11273.36,
+          "totalTaxableIncome": 50000
+        },
+        "hasDuplicateEmploymentNames": false,
+        "totalIncome": 100000,
+        "totalTaxableIncome": 158167,
+        "totalTax": 48183.16
+      },
+      "noneTaxCodeIncomes": {
+        "statePension": 100,
+        "otherIncome": {
+          "amount": 200,
+          "componentType": 0,
+          "description": "",
+          "iabdSummaries": [
+            {
+              "iabdType": 72,
+              "description": "Profit",
+              "amount": 100,
+              "employmentId": 0
+            },
+            {
+              "iabdType": 19,
+              "description": "Non-Coded Income",
+              "amount": 100,
+              "employmentId": 0
+            }
+          ]
+        },
+        "taxableStateBenefit": {
+          "amount": 300,
+          "componentType": 0,
+          "description": "",
+          "iabdSummaries": [
+            {
+              "iabdType": 123,
+              "description": "Employment and Support Allowance",
+              "amount": 100,
+              "employmentId": 0
+            },
+            {
+              "iabdType": 84,
+              "description": "Job Seekers Allowance",
+              "amount": 100,
+              "employmentId": 0
+            },
+            {
+              "iabdType": 83,
+              "description": "Incapacity Benefit",
+              "amount": 100,
+              "employmentId": 0
+            }
+          ]
+        },
+        "untaxedInterest": {
+          "amount": 5000,
+          "componentType": 0,
+          "description": "",
+          "iabdSummaries": [
+            {
+              "iabdType": 82,
+              "description": "Untaxed Interest",
+              "amount": 5000,
+              "employmentId": 0
+            }
+          ]
+        },
+        "bankBsInterest": {
+          "amount": 5000,
+          "componentType": 0,
+          "description": "",
+          "iabdSummaries": [
+            {
+              "iabdType": 75,
+              "description": "Bank \/ Building Society Interest",
+              "amount": 5000,
+              "employmentId": 0
+            }
+          ]
+        },
+        "dividends": {
+          "amount": 20000,
+          "componentType": 0,
+          "description": "",
+          "iabdSummaries": [
+            {
+              "iabdType": 76,
+              "description": "UK Dividend",
+              "amount": 20000,
+              "employmentId": 0
+            }
+          ]
+        },
+        "totalIncome": 30600
+      },
+      "total": 130600
+    },
+    "benefitsFromEmployment": {
+      "amount": 14835,
+      "componentType": 0,
+      "description": "",
+      "iabdSummaries": [
+        {
+          "iabdType": 53,
+          "description": "Travel and Subsistence",
+          "amount": 12000,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 54,
+          "description": "Vouchers and Credit Cards",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 53,
+          "description": "Travel and Subsistence",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 50,
+          "description": "Qualfying Relocation Expenses",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 49,
+          "description": "Personal Incidental Expenses",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 48,
+          "description": "Payments on Employee's Behalf",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 47,
+          "description": "Other Items",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 46,
+          "description": "Nursery Places",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 45,
+          "description": "Non-qualifying Relocation Expenses",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 44,
+          "description": "Mileage",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 52,
+          "description": "Income Tax Paid but not deducted from Director's Remuneration",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 43,
+          "description": "Expenses",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 42,
+          "description": "Entertaining",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 8,
+          "description": "Employer Provided Services",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 51,
+          "description": "Employer Provided Professional Subscription",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 41,
+          "description": "Educational Services",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 40,
+          "description": "Asset Transfer",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 39,
+          "description": "Assets",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 38,
+          "description": "Accommodation",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 117,
+          "description": "Non-Cash Benefit",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 37,
+          "description": "Beneficial Loan",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 36,
+          "description": "Van Fuel Benefit",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 35,
+          "description": "Van Benefit",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 34,
+          "description": "Taxable Expenses Benefit",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 33,
+          "description": "Service Benefit",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 32,
+          "description": "Telephone",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 31,
+          "description": "Car Benefit",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 30,
+          "description": "Medical Insurance",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 29,
+          "description": "Car Fuel Benefit",
+          "amount": 100,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        },
+        {
+          "iabdType": 54,
+          "description": "Vouchers and Credit Cards",
+          "amount": 35,
+          "employmentId": 1,
+          "employmentName": "Sainsburys"
+        }
+      ]
+    },
+    "total": 145435
+  },
+  "employmentPension": {
+    "taxCodeIncomes": {
+      "employments": {
+        "taxCodeIncomes": [
+          {
+            "name": "Sainsburys",
+            "taxCode": "K5817",
+            "employmentId": 1,
+            "employmentPayeRef": "BT456",
+            "employmentType": 1,
+            "incomeType": 0,
+            "employmentStatus": 1,
+            "tax": {
+              "totalIncome": 50000,
+              "totalTaxableIncome": 108167,
+              "totalTax": 36909.8,
+              "potentialUnderpayment": 234,
+              "taxBands": [
+                {
+                  "income": 31785,
+                  "tax": 6357,
+                  "lowerBand": 0,
+                  "upperBand": 31785,
+                  "rate": 20
+                },
+                {
+                  "income": 76382,
+                  "tax": 30552.8,
+                  "lowerBand": 31785,
+                  "upperBand": 150000,
+                  "rate": 40
+                },
+                {
+                  "income": 0,
+                  "tax": 0,
+                  "lowerBand": 150000,
+                  "rate": 45
+                }
+              ],
+              "allowReliefDeducts": -58167,
+              "actualTaxDueAssumingBasicRateAlreadyPaid": 26909.8
+            },
+            "worksNumber": "WN 1",
+            "jobTitle": "Job Title 1",
+            "startDate": "2010-01-01",
+            "income": 50000,
+            "isEditable": true,
+            "isLive": true,
+            "isOccupationalPension": false,
+            "isPrimary": true
+          }
+        ],
+        "totalIncome": 50000,
+        "totalTax": 36909.8,
+        "totalTaxableIncome": 108167
+      },
+      "occupationalPensions": {
+        "taxCodeIncomes": [
+          {
+            "name": "Aviva Pensions",
+            "taxCode": "D0",
+            "employmentId": 2,
+            "employmentPayeRef": "AS456",
+            "employmentType": 2,
+            "incomeType": 1,
+            "employmentStatus": 1,
+            "tax": {
+              "totalIncome": 50000,
+              "totalTaxableIncome": 50000,
+              "totalTax": 11273.36,
+              "actualTaxDueAssumingBasicRateAlreadyPaid": 11273.36
+            },
+            "worksNumber": "WN 2",
+            "jobTitle": "Job Title 2",
+            "startDate": "2010-01-01",
+            "income": 50000,
+            "isEditable": true,
+            "isLive": true,
+            "isOccupationalPension": true,
+            "isPrimary": false
+          }
+        ],
+        "totalIncome": 50000,
+        "totalTax": 11273.36,
+        "totalTaxableIncome": 50000
+      },
+      "hasDuplicateEmploymentNames": false,
+      "totalIncome": 100000,
+      "totalTaxableIncome": 158167,
+      "totalTax": 48183.16
+    },
+    "totalEmploymentPensionAmt": 100000,
+    "hasEmployment": true,
+    "isOccupationalPension": true
+  },
+  "investmentIncomeData": [
+    {
+      "a": "Dividends",
+      "b": "20,000",
+      "c": "From 6 April 2016 up to \u00a35,000 of this dividend income is tax free. On amounts over \u00a35,000 tax is payable at 7.5%, 32.5% or 38.1% depending on your tax band. Your tax code is adjusted to collect any additional tax due."
+    },
+    {
+      "a": "Bank and building society interest",
+      "b": "5,000",
+      "c": "Savings interest from bank and building society accounts."
+    },
+    {
+      "a": "Untaxed interest on savings and investments",
+      "b": "5,000",
+      "c": "You are not taxed on savings and investments by your bank. Your tax code is adjusted so that you pay the tax due on this through PAYE."
+    }
+  ],
+  "investmentIncomeTotal": 30000,
+  "otherIncomeData": [
+    {
+      "a": "Profit",
+      "b": "100",
+      "c": "The profit you made on the sale of UK property or land."
+    },
+    {
+      "a": "Other income",
+      "b": "100",
+      "c": "Income from other sources, such as self employment or renting out a room, that won\u2019t be collected through your tax code."
+    }
+  ],
+  "otherIncomeTotal": 200,
+  "benefitsData": [
+    {
+      "a": "Travel and subsistence for Sainsburys",
+      "b": "12,000",
+      "c": "The amounts received for the cost of travelling on business.",
+      "d": "",
+      "e": 1,
+      "f": 53
+    },
+    {
+      "a": "Vouchers and credit cards for Sainsburys",
+      "b": "100",
+      "c": "The value of vouchers and credit cards provided by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 54
+    },
+    {
+      "a": "Travel and subsistence for Sainsburys",
+      "b": "100",
+      "c": "The amounts received for the cost of travelling on business.",
+      "d": "",
+      "e": 1,
+      "f": 53
+    },
+    {
+      "a": "Qualifying relocation expenses for Sainsburys",
+      "b": "100",
+      "c": "All relocation costs under \u00a38,000 paid for by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 50
+    },
+    {
+      "a": "Personal incidental expenses for Sainsburys",
+      "b": "100",
+      "c": "The value of other personal expenses.",
+      "d": "",
+      "e": 1,
+      "f": 49
+    },
+    {
+      "a": "Payments of employee\u2019s behalf for Sainsburys",
+      "b": "100",
+      "c": "The amount your employer(s) has paid for items on your behalf.",
+      "d": "",
+      "e": 1,
+      "f": 48
+    },
+    {
+      "a": "Other items for Sainsburys",
+      "b": "100",
+      "c": "Other non-specific benefits you\u2019ve received.",
+      "d": "",
+      "e": 1,
+      "f": 47
+    },
+    {
+      "a": "Nursery places for Sainsburys",
+      "b": "100",
+      "c": "The value of childcare provided by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 46
+    },
+    {
+      "a": "Non-qualifying relocation expenses for Sainsburys",
+      "b": "100",
+      "c": "All relocation costs over \u00a38,000 paid for by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 45
+    },
+    {
+      "a": "Mileage for Sainsburys",
+      "b": "100",
+      "c": "The amount your employer(s) paid for mileage.",
+      "d": "",
+      "e": 1,
+      "f": 44
+    },
+    {
+      "a": "Income Tax paid but not deducted from director\u2019s renumeration for Sainsburys",
+      "b": "100",
+      "c": "Income Tax you paid but that was not deducted from your director\u2019s salary.",
+      "d": "",
+      "e": 1,
+      "f": 52
+    },
+    {
+      "a": "Expenses for Sainsburys",
+      "b": "100",
+      "c": "The amount of expenses paid for by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 43
+    },
+    {
+      "a": "Entertaining for Sainsburys",
+      "b": "100",
+      "c": "The value of entertaining business clients paid for by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 42
+    },
+    {
+      "a": "Employer provided services for Sainsburys",
+      "b": "100",
+      "c": "The value of any services paid for by your employer.",
+      "d": "",
+      "e": 1,
+      "f": 8
+    },
+    {
+      "a": "Employer provided professional subscriptions for Sainsburys",
+      "b": "100",
+      "c": "Professional subscriptions paid for by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 51
+    },
+    {
+      "a": "Education services for Sainsburys",
+      "b": "100",
+      "c": "The value of external training provided by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 41
+    },
+    {
+      "a": "Assets transfered for Sainsburys",
+      "b": "100",
+      "c": "The value of items given to you by your employer at no cost or less than market value. For example; a previous company car.",
+      "d": "",
+      "e": 1,
+      "f": 40
+    },
+    {
+      "a": "Assets for Sainsburys",
+      "b": "100",
+      "c": "The value of assets, such as PCs and TVs, provided by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 39
+    },
+    {
+      "a": "Accomodation for Sainsburys",
+      "b": "100",
+      "c": "The value of accommodation provided by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 38
+    },
+    {
+      "a": "Non-Cash benefit for Sainsburys",
+      "b": "100",
+      "c": "A taxable benefit provided by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 117
+    },
+    {
+      "a": "Beneficial loan for Sainsburys",
+      "b": "100",
+      "c": "The value of an interest free or low interest loan provided by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 37
+    },
+    {
+      "a": "Van fuel benefit for Sainsburys",
+      "b": "100",
+      "c": "The value of van fuel benefit provided by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 36
+    },
+    {
+      "a": "Van benefit for Sainsburys",
+      "b": "100",
+      "c": "The value of the benefit on the van(s) provided by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 35
+    },
+    {
+      "a": "Taxable expenses benefits for Sainsburys",
+      "b": "100",
+      "c": "This is a payment made by your employer for using your own car to carry out your employer\u2019s business.",
+      "d": "",
+      "e": 1,
+      "f": 34
+    },
+    {
+      "a": "Service benefits for Sainsburys",
+      "b": "100",
+      "c": "The amount based on taxable long service awards that your employer(s) give(s) you.",
+      "d": "",
+      "e": 1,
+      "f": 33
+    },
+    {
+      "a": "Telephone for Sainsburys",
+      "b": "100",
+      "c": "The amount you receive from your employer(s) for use of your telephone.",
+      "d": "",
+      "e": 1,
+      "f": 32
+    },
+    {
+      "a": "Car benefit for Sainsburys",
+      "b": "100",
+      "c": "The value of the benefit on the car(s) provided by your employer(s).",
+      "d": "SOME URL",
+      "e": 1,
+      "f": 31
+    },
+    {
+      "a": "Medical insurance for Sainsburys",
+      "b": "100",
+      "c": "The value of medical benefit(s) provided by your employer(s).",
+      "d": "SOME URL",
+      "e": 1,
+      "f": 30
+    },
+    {
+      "a": "Car fuel benefit for Sainsburys",
+      "b": "100",
+      "c": "The value of car fuel benefit provided by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 29
+    },
+    {
+      "a": "Vouchers and credit cards for Sainsburys",
+      "b": "35",
+      "c": "The value of vouchers and credit cards provided by your employer(s).",
+      "d": "",
+      "e": 1,
+      "f": 54
+    }
+  ],
+  "benefitsTotal": 14835,
+  "taxableBenefitsData": [
+    {
+      "a": "Employment and Support Allowance",
+      "b": "100",
+      "c": "The amount of Employment and Support Allowance you received."
+    },
+    {
+      "a": "Jobseeker\u2019s Allowance",
+      "b": "100",
+      "c": "The amount of Jobseeker\u2019s Allowance you received."
+    },
+    {
+      "a": "Incapacity Benefit",
+      "b": "100",
+      "c": "The amount of Incapacity Benefit you received."
+    },
+    {
+      "a": "tai.income.statePension.title",
+      "b": "100",
+      "c": "tai.iabdSummary.description-state-pension"
+    }
+  ],
+  "taxableBenefitsTotal": 400,
+  "hasChanges": false
+}

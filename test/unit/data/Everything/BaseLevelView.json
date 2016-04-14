@@ -1,0 +1,12 @@
+{
+  "estimatedIncomeTax": 51184,
+  "taxableIncome": 145435,
+  "taxFree": 2260,
+  "personalAllowance": 1060,
+  "hasTamc": true,
+  "taxCodesList": [
+    "K5817",
+    "D0"
+  ],
+  "hasChanges": false
+}

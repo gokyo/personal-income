@@ -1,0 +1,74 @@
+{
+  "increasesTax": true,
+  "incomeTaxEstimate": 51184,
+  "incomeEstimate": 145435,
+  "taxFreeEstimate": 2260,
+  "taxRelief": true,
+  "taxCodes": [
+    "K5817",
+    "D0"
+  ],
+  "potentialUnderpayment": true,
+  "additionalTaxTable": [
+    {
+      "a": "Underpayment from previous years",
+      "b": "147.00"
+    },
+    {
+      "a": "Child Benefit",
+      "b": "1,500.00"
+    },
+    {
+      "a": "Outstanding debt from previous year",
+      "b": "169.00"
+    }
+  ],
+  "additionalTaxTableTotal": "1,816.00",
+  "reductionsTable": [
+    {
+      "a": "Tax on other income",
+      "b": "-40.00",
+      "c": "Tax on other income not collected through your tax code, for example tax paid through Self Assessment."
+    }
+  ],
+  "reductionsTableTotal": "-40.00",
+  "graph": {
+    "id": "taxGraph",
+    "bands": [
+      {
+        "colour": "TaxFree",
+        "barPercentage": 1.48,
+        "tablePercentage": "0",
+        "income": 2260,
+        "tax": 0
+      },
+      {
+        "colour": "Band1",
+        "barPercentage": 20.99,
+        "tablePercentage": "20",
+        "income": 32010,
+        "tax": 6402
+      },
+      {
+        "colour": "Band2",
+        "barPercentage": 13.11,
+        "tablePercentage": "32.5",
+        "income": 20000,
+        "tax": 6500
+      },
+      {
+        "colour": "Band3",
+        "barPercentage": 59.78,
+        "tablePercentage": "40",
+        "income": 91165,
+        "tax": 36466
+      }
+    ],
+    "minBand": 0,
+    "nextBand": 152485,
+    "incomeTotal": 145435,
+    "incomeAsPercentage": 95.37,
+    "taxTotal": 49368
+  },
+  "hasChanges": false
+}

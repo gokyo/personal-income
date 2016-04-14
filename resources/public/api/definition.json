@@ -16,7 +16,7 @@
         "status":"PROTOTYPED",
         "endpoints":[
           {
-            "uriPattern":"/:nino/tax-summary/:year",
+            "uriPattern":"/income/:nino/tax-summary/:year",
             "endpointName":"Get Summary",
             "method":"GET",
             "authType":"USER",
