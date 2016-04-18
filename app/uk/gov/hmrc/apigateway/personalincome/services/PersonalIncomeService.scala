@@ -16,21 +16,24 @@
 
 package uk.gov.hmrc.apigateway.personalincome.services
 
+import play.api.Logger
 import play.api.libs.json.Json
 import uk.gov.hmrc.apigateway.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.apigateway.personalincome.connectors._
 import uk.gov.hmrc.apigateway.personalincome.domain._
+import uk.gov.hmrc.apigateway.personalincome.utils.TaxSummaryHelper
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{Success, Failure, Try}
 
 trait PersonalIncomeService {
-  def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryDetails]
+  def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryContainer]
 
-  // Renewal specific - authenticateRenewal, claimantDetails, submitRenewal.
+  // Renewal specific - authenticateRenewal must be called first to retrieve the authToken before calling claimantDetails, submitRenewal.
   def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier): Future[Option[TcrAuthenticationToken]]
 
   def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails]
@@ -59,8 +62,41 @@ trait LivePersonalIncomeService extends PersonalIncomeService {
     func
   }
 
-  override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryDetails] = {
-    withAudit("getSummary", Map("nino" -> nino.value, "year" -> year.toString)){taiConnector.taxSummary(nino, year)}
+  def gateKeepered(taxSummary: TaxSummaryDetails): Boolean = {
+    taxSummary.gateKeeper.map(_.gateKeepered).getOrElse(false)
+  }
+
+  override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryContainer] = {
+    withAudit("getSummary", Map("nino" -> nino.value, "year" -> year.toString)) {
+
+      taiConnector.taxSummary(nino, year).map(summary =>
+      gateKeepered(summary) match {
+        case false =>
+          val estimatedIncomeWrapper = Try(EstimatedIncomePageVM.createObject(nino, summary)) match {
+            case Success(value) => Some(EstimatedIncomeWrapper(value, TaxSummaryHelper.getPotentialUnderpayment(summary)))
+            case Failure(failure) =>
+              Logger.error(s"Failed to create EstimatedIncome! Failure is $failure")
+              None
+          }
+
+          val taxableIncome = YourTaxableIncomePageVM.createObject(nino, summary)
+
+          TaxSummaryContainer(summary,
+            BaseViewModelVM.createObject(nino, summary),
+            estimatedIncomeWrapper,
+            Some(taxableIncome),
+            None)
+
+        case true =>
+          val gateKeeper = GateKeeperPageVM.createObject(nino, summary)
+
+          TaxSummaryContainer(summary,
+            BaseViewModelVM.createObject(nino, summary),
+            None,
+            None,
+            Some(gateKeeper))
+      })
+    }
   }
 
   // Note: The TcrAuthenticationToken must be supplied to claimantDetails and submitRenewal.
@@ -86,10 +122,11 @@ trait LivePersonalIncomeService extends PersonalIncomeService {
 
 object SandboxPersonalIncomeService extends PersonalIncomeService with FileResource {
 
-  override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryDetails] = {
+  override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryContainer] = {
     val resource: Option[String] = findResource(s"/resources/getsummary/${nino.value}_$year.json")
-    Future.successful(resource.fold(TaxSummaryDetails(nino.value, year)) { found =>
-      Json.parse(found).as[TaxSummaryDetails]
+
+    Future.successful(resource.fold(TaxSummaryContainer(TaxSummaryDetails(nino.value, year), BaseViewModel(estimatedIncomeTax=0), None, None, None)) { found =>
+      Json.parse(found).as[TaxSummaryContainer]
     })
   }
 
@@ -102,7 +139,7 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
   }
 
   override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier): Future[Response] = {
-    Future.successful(Success(200))
+    Future.successful(uk.gov.hmrc.apigateway.personalincome.connectors.Success(200))
   }
 
 }

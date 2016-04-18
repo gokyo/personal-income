@@ -17,8 +17,10 @@
 package uk.gov.hmrc.apigateway.personalincome.domain
 
 import play.api.i18n.Messages
+import uk.gov.hmrc.apigateway.personalincome.domain.EmploymentPension
 import uk.gov.hmrc.apigateway.personalincome.utils.{TaxDecorator, TaxSummaryHelper}
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.views.helpers.MoneyPounds
 
 
@@ -298,5 +300,20 @@ object YourTaxableIncomePageVM extends ViewModelFactory {
     TaxableIncome(taxFreeAmount, incomeTax, income, taxCodeList, increasesTax, EmploymentPension(taxCodeIncomes,
       employmentPension._1, employmentPension._2, employmentPension._3), MessageWrapper.applyForList(investmentIncomeData._1), investmentIncomeData._2,
       MessageWrapper.applyForList(otherIncomeData._1), otherIncomeData._2, BenefitsDataWrapper.applyBenefit(benefitsData._1), benefitsData._2, MessageWrapper.applyForList(taxableBenefitsData._1), taxableBenefitsData._2,  TaxSummaryHelper.cyPlusOneAvailable(details))
+  }
+}
+
+
+// TODO...REQUIRED FOR THE GATE KEEPER VIEW
+object GateKeeperPageVM extends ViewModelFactory {
+  override type ViewModelType = GateKeeperDetails
+  override def createObject(nino:Nino, details: TaxSummaryDetails): GateKeeperDetails = {
+
+    val decreasesTax = details.decreasesTax.getOrElse(new DecreasesTax(total = BigDecimal(0)))
+    val liabilities = details.totalLiability.getOrElse(new TotalLiability(totalTax = BigDecimal(0), totalTaxOnIncome = BigDecimal(0)))
+    val employments = details.taxCodeDetails.flatMap(_.employment)
+    val employmentList = for ( emp <- employments.getOrElse(List())) yield (MessageWrapper(emp.name.getOrElse(""), emp.taxCode.getOrElse("")))
+    val increasesTax = details.increasesTax.getOrElse(new IncreasesTax(total = BigDecimal(0)))
+    new GateKeeperDetails(liabilities, decreasesTax, employmentList, increasesTax)
   }
 }

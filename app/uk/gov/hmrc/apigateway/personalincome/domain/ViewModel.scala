@@ -89,6 +89,11 @@ object EstimatedIncome {
   implicit val format = Json.format[EstimatedIncome]
 }
 
+case class EstimatedIncomeWrapper(estimatedIncome:EstimatedIncome, potentialUnderpayment:Option[BigDecimal])
+object EstimatedIncomeWrapper {
+  implicit val format = Json.format[EstimatedIncomeWrapper]
+}
+
 case class BenefitsDataWrapper(a:String, b:String, c:String, d:String, e:Option[Int], f:Option[Int])
 
 object BenefitsDataWrapper {
@@ -128,3 +133,13 @@ object TaxableIncome {
   implicit val format = Json.format[TaxableIncome]
 }
 
+
+case class GateKeeperDetails (totalLiability: TotalLiability,
+                               decreasesTax: DecreasesTax,
+                               employmentList: List[MessageWrapper] = List(),
+                               increasesTax: IncreasesTax
+                               )
+
+object GateKeeperDetails {
+  implicit val format = Json.format[GateKeeperDetails]
+}

@@ -18,7 +18,7 @@ package uk.gov.hmrc.apigateway.personalincome.domain
 
 import play.api.libs.json.Json
 
-case class TaxSummaryContainer(taxSummaryDetails: TaxSummaryDetails, baseViewModel: BaseViewModel, estimatedIncome: Option[EstimatedIncome], taxableIncome: Option[TaxableIncome])
+case class TaxSummaryContainer(taxSummaryDetails: TaxSummaryDetails, baseViewModel: BaseViewModel, estimatedIncomeWrapper: Option[EstimatedIncomeWrapper], taxableIncome: Option[TaxableIncome], gatekeeper:Option[GateKeeperDetails])
 object TaxSummaryContainer {
   implicit val format = Json.format[TaxSummaryContainer]
 }

@@ -57,7 +57,7 @@ override lazy val fakeApplication = FakeApplication(additionalConfiguration = co
       val estimated: EstimatedIncome = EstimatedIncomePageVM.createObject(nino, taxSummaryDetails)
       val taxable = YourTaxableIncomePageVM.createObject(nino, taxSummaryDetails)
 
-      val taxSummaryContainer = TaxSummaryContainer(taxSummaryDetails, base, Some(estimated), Some(taxable))
+      val taxSummaryContainer = TaxSummaryContainer(taxSummaryDetails, base, Some(EstimatedIncomeWrapper(estimated, Some(10))), Some(taxable), None)
 
       Json.toJson(taxSummaryContainer) shouldBe Json.toJson(Data.getTaxSummaryContainer)
     }
