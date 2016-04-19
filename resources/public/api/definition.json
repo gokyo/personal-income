@@ -22,6 +22,30 @@
             "authType":"USER",
             "throttlingTier":"UNLIMITED",
             "scope":"read:personal-income"
+          },
+          {
+            "uriPattern":"/income/:nino/tax-credits/:renewalReference/auth",
+            "endpointName":"Get Auth Token",
+            "method":"GET",
+            "authType":"USER",
+            "throttlingTier":"UNLIMITED",
+            "scope":"read:personal-income"
+          },
+          {
+            "uriPattern":"/income/:nino/tax-credits/claimant-details",
+            "endpointName":"Get Claiment Details",
+            "method":"GET",
+            "authType":"USER",
+            "throttlingTier":"UNLIMITED",
+            "scope":"read:personal-income"
+          },
+          {
+            "uriPattern":"/income/:nino/tax-credits/renewal",
+            "endpointName":"Submit Renewal",
+            "method":"POST",
+            "authType":"USER",
+            "throttlingTier":"UNLIMITED",
+            "scope":"read:personal-income"
           }
         ]
       }
