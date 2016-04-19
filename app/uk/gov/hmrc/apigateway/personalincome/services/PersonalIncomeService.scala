@@ -48,13 +48,11 @@ trait LivePersonalIncomeService extends PersonalIncomeService {
 
   def ntcConnector: NtcConnector
 
-  def audit(method:String, details:Map[String, String])(implicit hc: HeaderCarrier) = {
-    def auditResponse(): Unit = {
-      MicroserviceAuditConnector.sendEvent(
-        DataEvent("personal-income", "ServiceResponseSent",
-          tags = Map("transactionName" -> method),
-          detail = details))
-    }
+  def audit(method:String, details:Map[String, String])(implicit hc: HeaderCarrier) : Unit = {
+    MicroserviceAuditConnector.sendEvent(
+      DataEvent("personal-income", "ServiceResponseSent",
+        tags = Map("transactionName" -> method),
+        detail = details))
   }
 
   def withAudit[T](service:String, details:Map[String, String])(func:Future[T])(implicit hc:HeaderCarrier) = {
@@ -63,39 +61,35 @@ trait LivePersonalIncomeService extends PersonalIncomeService {
   }
 
   def gateKeepered(taxSummary: TaxSummaryDetails): Boolean = {
-    taxSummary.gateKeeper.map(_.gateKeepered).getOrElse(false)
+    taxSummary.gateKeeper.exists(_.gateKeepered)
   }
 
   override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryContainer] = {
     withAudit("getSummary", Map("nino" -> nino.value, "year" -> year.toString)) {
 
       taiConnector.taxSummary(nino, year).map(summary =>
-      gateKeepered(summary) match {
-        case false =>
-          val estimatedIncomeWrapper = Try(EstimatedIncomePageVM.createObject(nino, summary)) match {
-            case Success(value) => Some(EstimatedIncomeWrapper(value, TaxSummaryHelper.getPotentialUnderpayment(summary)))
-            case Failure(failure) =>
-              Logger.error(s"Failed to create EstimatedIncome! Failure is $failure")
-              None
-          }
+        gateKeepered(summary) match {
+          case false =>
+            val estimatedIncomeWrapper = Try(EstimatedIncomePageVM.createObject(nino, summary)) match {
+              case Success(value) => Some(EstimatedIncomeWrapper(value, TaxSummaryHelper.getPotentialUnderpayment(summary)))
+              case Failure(failure) =>
+                Logger.error(s"Failed to create EstimatedIncome! Failure is $failure")
+                None
+            }
 
-          val taxableIncome = YourTaxableIncomePageVM.createObject(nino, summary)
+            TaxSummaryContainer(summary,
+              BaseViewModelVM.createObject(nino, summary),
+              estimatedIncomeWrapper,
+              Some(YourTaxableIncomePageVM.createObject(nino, summary)),
+              None)
 
-          TaxSummaryContainer(summary,
-            BaseViewModelVM.createObject(nino, summary),
-            estimatedIncomeWrapper,
-            Some(taxableIncome),
-            None)
-
-        case true =>
-          val gateKeeper = GateKeeperPageVM.createObject(nino, summary)
-
-          TaxSummaryContainer(summary,
-            BaseViewModelVM.createObject(nino, summary),
-            None,
-            None,
-            Some(gateKeeper))
-      })
+          case true =>
+            TaxSummaryContainer(summary,
+              BaseViewModelVM.createObject(nino, summary),
+              None,
+              None,
+              Some(GateKeeperPageVM.createObject(nino, summary)))
+        })
     }
   }
 
@@ -135,7 +129,7 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
   }
 
   override def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails] = {
-    Future.successful(ClaimantDetails(false, 1, "renewalForm", nino.value, None, false, "some-app-id"))
+    Future.successful(ClaimantDetails(hasPartner=false, 1, "renewalForm", nino.value, None, availableForCOCAutomation=false, "some-app-id"))
   }
 
   override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier): Future[Response] = {

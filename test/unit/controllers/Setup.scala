@@ -98,34 +98,46 @@ trait Setup {
 
   val nino = Nino("CS700100A")
   val taxSummaryDetails = TaxSummaryDetails(nino.value,1)
+
+  val taxableIncome = TaxableIncome(taxFreeAmount=0,
+                        incomeTax=0,
+                        income=0,
+                        taxCodeList=List.empty,
+                        employmentPension = EmploymentPension(None),
+                        investmentIncomeTotal = 0,
+                        otherIncomeTotal =0,
+                        benefitsTotal = 0,
+                        taxableBenefitsTotal=0
+                        )
+
+  val taxSummaryContainer = TaxSummaryContainer(TaxSummaryDetails(nino.value, 1), BaseViewModel(estimatedIncomeTax=0), None, Some(taxableIncome), None)
+  val taxSummaryContainerGK = TaxSummaryContainer(TaxSummaryDetails(nino.value, 1, gateKeeper=Some(GateKeeper(gateKeepered=true, gateKeeperResults=List.empty))), BaseViewModel(estimatedIncomeTax=0), None, None, Some(GateKeeperDetails(TotalLiability(totalTax=0), DecreasesTax(total=0), increasesTax=IncreasesTax(total=0))))
+
   val incomeDetails = IncomeDetails(Some(10), Some(20), Some(30), Some(40), Some(true))
   val certainBenefits = CertainBenefits(false, false, false, false, false)
   val otherIncome = OtherIncome(Some(100), Some(false))
   val renewal = TcrRenewal(RenewalData(Some(incomeDetails), Some(incomeDetails), Some(certainBenefits)), None, Some(otherIncome), Some(otherIncome), false)
   val renewalReference = RenewalReference("some-reference")
 
+  val acceptHeader = "Accept" -> "application/vnd.hmrc.1.0+json"
   val emptyRequest = FakeRequest()
   val renewalJsonBody: JsValue = Json.toJson(renewal)
 
   def fakeRequest(body:JsValue) = FakeRequest(POST, "url").withBody(body)
     .withHeaders("Content-Type" -> "application/json")
 
-  val emptyRequestWithAcceptHeader = FakeRequest().withHeaders(
-    "Accept" -> "application/vnd.hmrc.1.0+json")
-  
+  val emptyRequestWithAcceptHeader = FakeRequest().withHeaders(acceptHeader)
+
   val emptyRequestWithAcceptHeaderAndAuthHeader = FakeRequest().withHeaders(
-    "Accept" -> "application/vnd.hmrc.1.0+json",
+    acceptHeader,
     HeaderKeys.tcrAuthToken -> "some-auth-token")
 
-  lazy val renewalBadRequest = fakeRequest(Json.toJson("Something Incorrect")).withHeaders(
-    "Accept" -> "application/vnd.hmrc.1.0+json")
+  lazy val renewalBadRequest = fakeRequest(Json.toJson("Something Incorrect")).withHeaders(acceptHeader)
 
-  lazy val jsonRenewalRequestWithNoAuthHeader = fakeRequest(renewalJsonBody).withHeaders(
-    "Accept" -> "application/vnd.hmrc.1.0+json"
-  )
+  lazy val jsonRenewalRequestWithNoAuthHeader = fakeRequest(renewalJsonBody).withHeaders(acceptHeader)
 
   lazy val jsonRenewalRequestWithAuthHeader = fakeRequest(renewalJsonBody).withHeaders(
-    "Accept" -> "application/vnd.hmrc.1.0+json",
+    acceptHeader,
     HeaderKeys.tcrAuthToken -> "some-auth-token"
   )
   lazy val jsonRenewalRequestNoAcceptHeader = fakeRequest(renewalJsonBody)
@@ -145,6 +157,16 @@ trait Setup {
 }
 
 trait Success extends Setup {
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+  }
+}
+
+trait GateKeeper extends Setup {
+  override val taiConnector = new TestTaiConnector(taxSummaryDetails.copy(gateKeeper=Some(GateKeeper(true, List.empty))))
+  override val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector)
+
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
