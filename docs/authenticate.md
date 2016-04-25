@@ -35,12 +35,11 @@ First step in Renewal process
  
 * **Error Response:**
 
+  * **Code:** 400 BADREQUEST <br />
+    **Content:** `{"code":"BADREQUEST","message":"Bad Request"}`
 
   * **Code:** 401 UNAUTHORIZED <br />
-    **Content:** `{"code":"UNAUTHORIZED","message":"NINO does not exist on account"}`
-
-  * **Code:** 401 UNAUTHORIZED <br />
-    **Content:** `{"code":"NTC_RENEWAL_AUTH_ERROR","message":"No tcr auth header supplied in http request!"}`
+    **Content:** `{"code":"UNAUTHORIZED","message":"Bearer token is missing or not authorized for access"}`
 
   * **Code:** 406 NOT ACCEPTABLE <br />
     **Content:** `{"code":"ACCEPT_HEADER_INVALID","message":"The accept header is missing or invalid"}`

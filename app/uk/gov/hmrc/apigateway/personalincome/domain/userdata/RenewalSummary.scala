@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.apigateway.personalincome
+package uk.gov.hmrc.apigateway.personalincome.domain.userdata
 
-import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.libs.json.Json
 
-package object controllers {
+case class RenewalSummary(paymentSummary: PaymentSummary,
+                          personalDetails: PersonalDetails,
+                          partnerDetails:Option[PartnerDetails],
+                          children: Children)
 
-  implicit val errorResponseWrites = new Writes[ErrorResponse] {
-    def writes(e: ErrorResponse): JsValue = Json.obj("code" -> e.errorCode, "message" -> e.message)
-  }
+object RenewalSummary {
+  implicit val format = Json.format[RenewalSummary]
 }

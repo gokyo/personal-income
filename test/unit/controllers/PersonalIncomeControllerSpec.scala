@@ -145,10 +145,10 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
       status(result) shouldBe 401
     }
 
-    "return 401 response when the tcr auth header is not supplied in the request" in new Success {
+    "return 403 response when the tcr auth header is not supplied in the request" in new Success {
       val result = await(controller.claimentDetails(nino)(emptyRequestWithAcceptHeader))
 
-      status(result) shouldBe 401
+      status(result) shouldBe 403
       contentAsJson(result) shouldBe Json.toJson(ErrorNoAuthToken)
     }
 
@@ -169,10 +169,10 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
       contentAsJson(result) shouldBe Json.toJson(claimentDetails)
     }
 
-    "return 401 response when the tcr auth header is not supplied in the request" in new Success {
+    "return 403 response when the tcr auth header is not supplied in the request" in new Success {
       val result = await(controller.claimentDetails(nino)(emptyRequestWithAcceptHeader))
 
-      status(result) shouldBe 401
+      status(result) shouldBe 403
 
       contentAsJson(result) shouldBe Json.toJson(ErrorNoAuthToken)
     }
@@ -198,10 +198,10 @@ class TestPersonalIncomeRenewalSpec extends UnitSpec with WithFakeApplication wi
       status(result) shouldBe 200
     }
 
-    "return 401 result when no tcr auth header has been supplied" in new Success {
+    "return 403 result when no tcr auth header has been supplied" in new Success {
       val result = await(controller.submitRenewal(nino)(jsonRenewalRequestWithNoAuthHeader))
 
-      status(result) shouldBe 401
+      status(result) shouldBe 403
     }
 
     "return bad result request when invalid json is submitted" in new Success {
@@ -231,10 +231,10 @@ class TestPersonalIncomeRenewalSpec extends UnitSpec with WithFakeApplication wi
       status(result) shouldBe 200
     }
 
-    "return 401 result when no tcr auth header has been supplied" in new Success {
+    "return 403 result when no tcr auth header has been supplied" in new Success {
       val result = await(controller.submitRenewal(nino)(jsonRenewalRequestWithNoAuthHeader))
 
-      status(result) shouldBe 401
+      status(result) shouldBe 403
     }
 
     "return 406 result when the headers are invalid" in new SandboxSuccess {
@@ -243,4 +243,61 @@ class TestPersonalIncomeRenewalSpec extends UnitSpec with WithFakeApplication wi
       status(result) shouldBe 406
     }
   }
+}
+
+
+class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {
+
+  override lazy val fakeApplication = FakeApplication(additionalConfiguration = config)
+
+  "renewal summary live" should {
+
+    "process the renewal successfully" in new Success {
+      val result = await(controller.renewalSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(taxRenewalSummary)
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
+    }
+
+    "return unauthorized when authority record does not contain a NINO" in new AuthWithoutNino {
+      val result = await(controller.renewalSummary(nino)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 401
+      testPersonalIncomeService.saveDetails shouldBe Map.empty
+    }
+
+    "return status code 406 when the headers are invalid" in new Success {
+      val result = await(controller.renewalSummary(nino)(emptyRequest))
+
+      status(result) shouldBe 406
+      testPersonalIncomeService.saveDetails shouldBe Map.empty
+    }
+
+    // TODO...add to all actions! This must be defined in an IT:test. Here as a reminder only to add!
+    "return the sandbox result when the X-MOBILE-USER-ID is supplied" in new Success {
+      val resource = findResource(s"/resources/renewalsummary/${nino.value}.json")
+      val result = await(controller.renewalSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.parse(resource.get)
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
+    }
+  }
+
+  "renewal summary Sandbox" should {
+
+    "return the summary response from a resource" in new SandboxSuccess {
+      val result = await(controller.renewalSummary(nino)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+
+      val resource = findResource(s"/resources/renewalsummary/${nino.value}.json")
+      contentAsJson(result) shouldBe Json.parse(resource.get)
+
+      testPersonalIncomeService.saveDetails shouldBe Map.empty
+    }
+
+  }
+
 }

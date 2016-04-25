@@ -17,7 +17,6 @@
 package uk.gov.hmrc.apigateway.personalincome.config
 
 import com.typesafe.config.Config
-import uk.gov.hmrc.apigateway.personalincome.connectors.ServiceLocatorConnector
 import net.ceedubs.ficus.Ficus._
 import play.api._
 import play.api.libs.json.Json
@@ -31,24 +30,12 @@ import uk.gov.hmrc.play.config.{RunMode, AppName, ControllerConfig}
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
+import uk.gov.hmrc.api.config.{ServiceLocatorConfig, ServiceLocatorRegistration}
+import uk.gov.hmrc.api.connector.ServiceLocatorConnector
+import uk.gov.hmrc.api.controllers._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
-trait ServiceLocatorRegistration extends GlobalSettings with RunMode {
-
-  val registrationEnabled: Boolean
-  val slConnector: ServiceLocatorConnector
-  implicit val hc: HeaderCarrier
-
-  override def onStart(app: Application): Unit = {
-    super.onStart(app)
-    registrationEnabled match {
-      case true => slConnector.register
-      case false => Logger.warn("Registration in Service Locator is disabled")
-    }
-  }
-}
 
 object ControllerConfiguration extends ControllerConfig {
   lazy val controllerConfigs = Play.current.configuration.underlying.as[Config]("controllers")
@@ -73,7 +60,9 @@ object MicroserviceAuthFilter extends AuthorisationFilter {
     super.apply(next)(rh) map { res =>
       res.header.status
       match {
+
         case 401 => Status(ErrorUnauthorized.httpStatusCode)(Json.toJson(ErrorUnauthorized))
+
         case _ => res
       }
     }
@@ -85,7 +74,7 @@ object MicroserviceAuthFilter extends AuthorisationFilter {
   override def controllerNeedsAuth(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsAuth
 }
 
-object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with ServiceLocatorRegistration {
+object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with ServiceLocatorConfig with ServiceLocatorRegistration {
   override val auditConnector = MicroserviceAuditConnector
 
   override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig(s"microservice.metrics")
@@ -96,11 +85,9 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with Se
 
   override val authFilter = Some(MicroserviceAuthFilter)
 
-  override val slConnector: ServiceLocatorConnector = ServiceLocatorConnector
+  override val slConnector: ServiceLocatorConnector = ServiceLocatorConnector(WSHttp)
 
   override implicit val hc: HeaderCarrier = HeaderCarrier()
-
-  override lazy val registrationEnabled = AppContext.registrationEnabled
 
   override def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
     super.onError(request, ex) map (res => {
@@ -115,9 +102,9 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with Se
   override def onBadRequest(request: RequestHeader, error: String): Future[Result] = {
     val errorScenario = error match {
       case "ERROR_NINO_INVALID" => ErrorNinoInvalid
-      case _ => ErrorGenericBadRequest
+      case _ => ErrorGenericBadRequest(error)
     }
-    Future.successful(Status(ErrorGenericBadRequest.httpStatusCode)(Json.toJson(errorScenario)))
+    Future.successful(Status(errorScenario.httpStatusCode)(Json.toJson(errorScenario)))
   }
 
   override def onHandlerNotFound(request: RequestHeader): Future[Result] = Future.successful(NotFound(Json.toJson(ErrorNotFound)))

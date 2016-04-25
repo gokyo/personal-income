@@ -6,3 +6,5 @@ GET     /income/:nino/tax-credits/:renewalReference/auth     uk.gov.hmrc.apigate
 GET     /income/:nino/tax-credits/claimant-details           uk.gov.hmrc.apigateway.personalincome.controllers.LivePersonalIncomeController.claimentDetails(nino: uk.gov.hmrc.domain.Nino)
 
 POST    /income/:nino/tax-credits/renewal                    uk.gov.hmrc.apigateway.personalincome.controllers.LivePersonalIncomeController.submitRenewal(nino: uk.gov.hmrc.domain.Nino)
+
+GET     /income/:nino/tax-credits/renewal-summary/           uk.gov.hmrc.apigateway.personalincome.controllers.LivePersonalIncomeController.renewalSummary(nino: uk.gov.hmrc.domain.Nino)

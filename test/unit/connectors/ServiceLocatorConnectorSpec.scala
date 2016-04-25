@@ -16,14 +16,13 @@
 
 package unit.connectors
 
-import uk.gov.hmrc.apigateway.personalincome.connectors.ServiceLocatorConnector
-import uk.gov.hmrc.apigateway.personalincome.domain.Registration
+import uk.gov.hmrc.api.domain.Registration
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http.{HttpPost, HttpResponse}
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpPost, HttpResponse}
 import uk.gov.hmrc.play.test.UnitSpec
+import uk.gov.hmrc.api.connector.ServiceLocatorConnector
 
 import scala.concurrent.Future
 
@@ -33,14 +32,14 @@ class ServiceLocatorConnectorSpec extends UnitSpec with MockitoSugar with ScalaF
     implicit val hc = HeaderCarrier()
     val serviceLocatorException = new RuntimeException
 
-    val connector = new ServiceLocatorConnector {
-      override val http = mock[HttpPost]
-      override val appUrl: String = "http://api-microservice-template.service"
-      override val appName: String = "api-microservice-template"
-      override val serviceUrl: String = "https://SERVICE_LOCATOR"
-      override val handlerOK: () => Unit = mock[Function0[Unit]]
-      override val handlerError: Throwable => Unit = mock[Function1[Throwable, Unit]]
-      override val metadata: Option[Map[String, String]] = Some(Map("third-party-api" -> "true"))
+    lazy val connector = new ServiceLocatorConnector {
+      override lazy val http = mock[HttpPost]
+      override lazy val appUrl: String = "http://api-microservice-template.service"
+      override lazy val appName: String = "api-microservice-template"
+      override lazy val serviceUrl: String = "https://SERVICE_LOCATOR"
+      override lazy val handlerOK: () => Unit = mock[Function0[Unit]]
+      override lazy val handlerError: Throwable => Unit = mock[Function1[Throwable, Unit]]
+      override lazy val metadata: Option[Map[String, String]] = Some(Map("third-party-api" -> "true"))
     }
   }
 

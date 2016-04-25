@@ -14,28 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.apigateway.personalincome.services
+package uk.gov.hmrc.apigateway.personalincome.domain.userdata
 
-import java.io.InputStream
+import play.api.libs.json.Json
 
-import play.api.Logger
+case class Address(addressLine1: String, addressLine2: String, addressLine3: Option[String], addressLine4: Option[String], postCode: String)
 
-import scala.io.Source
-
-trait FileResource {
-  private def readStreamToString(is: InputStream) = {
-    try Source.fromInputStream(is).mkString.toString
-    finally is.close()
-  }
-
-  def findResource(path: String): Option[String] = {
-    val resource = getClass.getResourceAsStream(path)
-    if (resource == null) {
-      Logger.warn(s"Could not find resource '$path'")
-      None
-    } else {
-      Some(readStreamToString(resource))
-    }
-  }
-
+object Address {
+  implicit val formats = Json.format[Address]
 }

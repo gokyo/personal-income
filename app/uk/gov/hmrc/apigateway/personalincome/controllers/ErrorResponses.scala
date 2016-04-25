@@ -16,29 +16,11 @@
 
 package uk.gov.hmrc.apigateway.personalincome.controllers
 
-sealed abstract class ErrorResponse(
-                                     val httpStatusCode: Int,
-                                     val errorCode: String,
-                                     val message: String)
+import uk.gov.hmrc.api.controllers.ErrorResponse
+
 
 case object ErrorNinoInvalid extends ErrorResponse(400, "NINO_INVALID", "The provided NINO is invalid")
-
-case object ErrorUnauthorized extends ErrorResponse(401, "UNAUTHORIZED", "Bearer token is missing or not authorized")
-
 case object ErrorUnauthorizedNoNino extends ErrorResponse(401, "UNAUTHORIZED", "NINO does not exist on account")
-
-case object ErrorUnauthorizedLowCL extends ErrorResponse(401, "UNAUTHORIZED", "Confidence Level on account does not allow access")
-
-case object ErrorNotFound extends ErrorResponse(404, "NOT_FOUND", "Resource was not found")
-
-case object ErrorGenericBadRequest extends ErrorResponse(400, "BAD_REQUEST", "Bad Request")
-
-case object ErrorAcceptHeaderInvalid extends ErrorResponse(406, "ACCEPT_HEADER_INVALID", "The accept header is missing or invalid")
-
-case object ErrorInternalServerError extends ErrorResponse(500, "INTERNAL_SERVER_ERROR", "Internal server error")
-
 case object ErrorwithNtcRenewal extends ErrorResponse(500, "NTC_RENEWAL_ERROR", "Failed to process renewal")
-
 case object ErrorwithNtcRenewalAuthentication extends ErrorResponse(500, "NTC_RENEWAL_AUTH_ERROR", "Failed to obtain renewal auth token")
-
-case object ErrorNoAuthToken extends ErrorResponse(500, "NTC_RENEWAL_AUTH_ERROR", "No tcr auth header supplied in http request!")
+case object ErrorNoAuthToken extends ErrorResponse(500, "NTC_RENEWAL_AUTH_ERROR", "No auth header supplied in http request")

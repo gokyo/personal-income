@@ -24,22 +24,19 @@ import uk.gov.hmrc.apigateway.personalincome.domain.{TcrRenewal, RenewalReferenc
 import uk.gov.hmrc.apigateway.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService, SandboxPersonalIncomeService}
 import uk.gov.hmrc.domain.Nino
 import play.api.{mvc, Logger}
-import uk.gov.hmrc.play.http.{HeaderCarrier, ForbiddenException, UnauthorizedException, NotFoundException}
+import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.api.controllers._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait ErrorHandling {
-  self:BaseController =>
+  self: BaseController =>
 
-  def errorWrapper(func: => Future[mvc.Result])(implicit hc:HeaderCarrier) = {
+  def errorWrapper(func: => Future[mvc.Result])(implicit hc: HeaderCarrier) = {
     func.recover {
-      case ex:NotFoundException => Status(ErrorNotFound.httpStatusCode)(Json.toJson(ErrorNotFound))
-
-      case ex:UnauthorizedException => Unauthorized(Json.toJson(ErrorUnauthorizedNoNino))
-
-      case ex:ForbiddenException => Unauthorized(Json.toJson(ErrorUnauthorizedLowCL))
+      case ex: NotFoundException => Status(ErrorNotFound.httpStatusCode)(Json.toJson(ErrorNotFound))
 
       case e: Throwable =>
         Logger.error(s"Internal server error: ${e.getMessage}", e)
@@ -99,11 +96,19 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       )
   }
 
+  final def renewalSummary(nino: Nino) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+    implicit request =>
+      implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
+      errorWrapper(service.getRenewalSummary(nino).map(as => Ok(Json.toJson(as))))
+  }
+
   private def validateTcrAuthHeader()(func: String => HeaderCarrier => Future[mvc.Result])(implicit request:Request[_], hc:HeaderCarrier) = {
     request.headers.get(HeaderKeys.tcrAuthToken) match {
       case Some(token) => func(token)(hc.copy(extraHeaders = Seq(HeaderKeys.tcrAuthToken -> token)))
 
-      case _ => Future.successful(Unauthorized(Json.toJson(ErrorNoAuthToken)))
+      case _ =>
+        Logger.warn("Failed to find auth header")
+        Future.successful(Forbidden(Json.toJson(ErrorNoAuthToken)))
     }
   }
 

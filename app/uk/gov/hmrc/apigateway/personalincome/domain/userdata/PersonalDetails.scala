@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-package component
+package uk.gov.hmrc.apigateway.personalincome.domain.userdata
 
-import component.steps.Env
-import cucumber.api.CucumberOptions
-import cucumber.api.junit.Cucumber
-import org.junit.{BeforeClass, AfterClass}
-import org.junit.runner.RunWith
+import play.api.libs.json.Json
+import uk.gov.hmrc.apigateway.personalincome.domain.TaxCreditsNino
 
-@RunWith(classOf[Cucumber])
-@CucumberOptions(
-  features = Array("features"),
-  glue = Array("component/steps"),
-  format = Array("pretty",
-    "html:target/component-reports/cucumber",
-    "json:target/component-reports/cucumber.json"),
-  tags = Array("~@wip")
+case class PersonalDetails(
+  forename: String,
+  surname: String,
+  nino: TaxCreditsNino,
+  address: Address,
+  wtcPaymentFrequency: Option[String],
+  ctcPaymentFrequency: Option[String],
+  dayPhoneNumber: Option[String],
+  eveningPhoneNumber: Option[String]
 )
-class FeatureSuite
 
-object FeatureSuite {
-  @BeforeClass
-  def beforeCukesRun() = Env.startServer
-
-  @AfterClass
-  def afterCukesRun() = Env.shutdown()
+object PersonalDetails {
+  def key: String = {
+    "personal-details-data"
+  }
+  implicit val formats = Json.format[PersonalDetails]
 }

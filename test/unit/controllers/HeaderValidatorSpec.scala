@@ -17,10 +17,10 @@
 package unit.controllers
 
 import org.scalatest.Matchers
-import uk.gov.hmrc.apigateway.personalincome.controllers.HeaderValidator
 import uk.gov.hmrc.play.test.UnitSpec
+import uk.gov.hmrc.api.controllers._
 
-class HeaderValidatorSpec extends UnitSpec with Matchers with HeaderValidator{
+class HeaderValidatorSpec extends UnitSpec with Matchers with HeaderValidator {
 
   "acceptHeaderValidationRules" should {
     "return false when the header value is missing" in {

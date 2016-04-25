@@ -14,12 +14,26 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.apigateway.personalincome.domain
+package uk.gov.hmrc.apigateway.personalincome.domain.userdata
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.apigateway.personalincome.domain.TaxCreditsNino
 
-case class Registration(serviceName: String, serviceUrl: String, metadata: Option[Map[String, String]] = None)
+case class PartnerDetails(
+  forename:String,
+  otherForenames: Option[String],
+  surname: String,
+  nino: TaxCreditsNino,
+  address: Address,
+  wtcPaymentFrequency: Option[String],
+  ctcPaymentFrequency: Option[String],
+  dayPhoneNumber: Option[String],
+  eveningPhoneNumber: Option[String]
+) {
+  val fullName: String = forename + " " + otherForenames.map(_ + " ").getOrElse("") + surname
+}
 
-object Registration {
-  implicit val format = Json.format[Registration]
+object PartnerDetails {
+  def key: String = "partner-details-data"
+  implicit val formats = Json.format[PartnerDetails]
 }

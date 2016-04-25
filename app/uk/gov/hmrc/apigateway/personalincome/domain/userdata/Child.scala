@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package unit.controllers
+package uk.gov.hmrc.apigateway.personalincome.domain.userdata
 
-import org.scalatest.Matchers
+import org.joda.time.DateTime
 import play.api.libs.json.Json
-import uk.gov.hmrc.play.test.UnitSpec
-import uk.gov.hmrc.api.controllers._
 
-class ErrorResponseSpec extends UnitSpec with Matchers{
-  "errorResponse" should {
-    "be translated to error Json with only the required fields" in {
-      Json.toJson(ErrorAcceptHeaderInvalid).toString() shouldBe
-        """{"code":"ACCEPT_HEADER_INVALID","message":"The accept header is missing or invalid"}"""
-    }
-  }
+case class Child(firstNames:String,
+                 surname:String,
+                 dateOfBirth:DateTime,
+                 hasFTNAE:Boolean,
+                 hasConnexions: Boolean,
+                 isActive:Boolean)
 
+
+object Child {
+  implicit val formats = Json.format[Child]
 }

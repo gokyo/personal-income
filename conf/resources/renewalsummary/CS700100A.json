@@ -1,0 +1,67 @@
+{
+  "paymentSummary": {
+    "workingTaxCredit": {
+      "amount": 160.34,
+      "paymentDate": 1437004800000,
+      "paymentFrequency": "WEEKLY"
+    },
+    "childTaxCredit": {
+      "amount": 140.12,
+      "paymentDate": 1437004800000,
+      "paymentFrequency": "WEEKLY"
+    }
+  },
+  "personalDetails": {
+    "forename": "firstname",
+    "surname": "surname",
+    "nino": "CS700100A",
+    "address": {
+      "addressLine1": "addressLine1",
+      "addressLine2": "addressLine2",
+      "addressLine3": "addressLine3",
+      "addressLine4": "addressLine4",
+      "postCode": "postcode"
+    }
+  },
+  "partnerDetails": {
+    "forename": "forename",
+    "otherForenames": "othernames",
+    "surname": "surname",
+    "nino": "CS700100A",
+    "address": {
+      "addressLine1": "addressLine1",
+      "addressLine2": "addressLine2",
+      "addressLine3": "addressLine3",
+      "addressLine4": "addressLine4",
+      "postCode": "postcode"
+    }
+  },
+  "children": {
+    "child": [
+      {
+        "firstNames": "Sarah",
+        "surname": "Smith",
+        "dateOfBirth": 936057600000,
+        "hasFTNAE": false,
+        "hasConnexions": false,
+        "isActive": true
+      },
+      {
+        "firstNames": "Joseph",
+        "surname": "Smith",
+        "dateOfBirth": 884304000000,
+        "hasFTNAE": false,
+        "hasConnexions": false,
+        "isActive": true
+      },
+      {
+        "firstNames": "Mary",
+        "surname": "Smith",
+        "dateOfBirth": 852768000000,
+        "hasFTNAE": false,
+        "hasConnexions": false,
+        "isActive": true
+      }
+    ]
+  }
+}

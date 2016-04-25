@@ -16,13 +16,16 @@
 
 package uk.gov.hmrc.apigateway.personalincome.controllers.action
 
-import uk.gov.hmrc.apigateway.personalincome.connectors.AuthConnector
 import play.api.libs.json.Json
-import play.api.mvc.{Results, ActionBuilder, Request, Result}
-import uk.gov.hmrc.apigateway.personalincome.controllers.{ErrorUnauthorizedNoNino, ErrorAcceptHeaderInvalid, HeaderValidator}
+import play.api.mvc.{ActionBuilder, Request, Result, Results}
+import uk.gov.hmrc.api.controllers.{ErrorAcceptHeaderInvalid, HeaderValidator}
+import uk.gov.hmrc.api.controllers.{HeaderValidator, ErrorAcceptHeaderInvalid}
+import uk.gov.hmrc.apigateway.personalincome.connectors.AuthConnector
+import uk.gov.hmrc.apigateway.personalincome.controllers.ErrorUnauthorizedNoNino
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
 import uk.gov.hmrc.play.http._
 import uk.gov.hmrc.play.http.hooks.HttpHook
+import uk.gov.hmrc.api.controllers._
 
 import scala.concurrent.Future
 
@@ -41,6 +44,8 @@ trait AccountAccessControl extends ActionBuilder[Request] with Results {
         block(request)
     }.recover {
       case ex:uk.gov.hmrc.play.http.Upstream4xxResponse => Unauthorized(Json.toJson(ErrorUnauthorizedNoNino))
+
+      case ex:ForbiddenException => Unauthorized(Json.toJson(ErrorUnauthorizedLowCL))
     }
   }
 

@@ -118,18 +118,21 @@ The Tax Summary object
  
 * **Error Response:**
 
-  * **Code:** 401 UNAUTHORIZED <br />
-    **Content:** `{"code":"UNAUTHORIZED","message":"NINO does not exist on account"}`
+  * **Code:** 400 BADREQUEST <br />
+    **Content:** `{"code":"BADREQUEST","message":"Bad Request"}`
 
-  * **Code:** 401 UNAUTHORIZED <br />
-    **Content:** `{"code":"NTC_RENEWAL_AUTH_ERROR","message":"No tcr auth header supplied in http request!"}`
+  * **Code:** 401 UNAUTHORIZED <br/>
+    **Content:** `{"code":"UNAUTHORIZED","message":"Bearer token is missing or not authorized for access"}`
+
+  * **Code:** 404 NOTFOUND <br/>
+    **Content:** `{ "code" : "MATCHING_RESOURCE_NOT_FOUND", "message" : "A resource with the name in the request can not be found in the API" }`
 
   * **Code:** 406 NOT ACCEPTABLE <br />
     **Content:** `{"code":"ACCEPT_HEADER_INVALID","message":"The accept header is missing or invalid"}`
 
-  OR when a user does not exist
+  OR when a user does not exist or server failure
 
-  * **Code:** 500 INTERNAL_SERVER_ERROR <br />
+  * **Code:** 500 INTERNAL_SERVER_ERROR <br/>
 
 
 

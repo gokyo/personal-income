@@ -1,9 +1,9 @@
 <endpoint>
-  <name>Get Summary</name>
-  <description>This endpoint retrieves the tax summary.</description>
+  <name>Get Renewal Summary</name>
+  <description>This endpoint retrieves the renewal summary.</description>
   <section id="resource">
     <title>Resource</title>
-    <resource>GET /income/:nino/tax-summary/:year</resource>
+    <resource>GET /income/:nino/tax-credits/renewal-summary</resource>
   </section>
   <section id="path-parameters">
     <title>Path Parameters</title>
@@ -20,12 +20,6 @@
           <cell><code>String</code></cell>
           <cell><code>NS123456B</code></cell>
           <cell>The NINO for the individual.</cell>
-        </row>
-        <row>
-          <cell><code>Year</code></cell>
-          <cell><code>Int</code></cell>
-          <cell><code>10</code></cell>
-          <cell>The tax-summary for the specific year.</cell>
         </row>
       </rows>
     </table>

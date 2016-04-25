@@ -30,7 +30,9 @@ trait StubApplicationConfiguration {
     "microservice.services.auth.host" -> "host",
     "microservice.services.auth.port" -> "3456",
     "microservice.services.ntc.host" -> "host",
-    "microservice.services.ntc.port" -> "4567"
-
+    "microservice.services.ntc.port" -> "4567",
+    "router.regex" -> ".*",
+    "router.prefix" -> "/sandbox",
+    "router.regex" -> "X-MOBILE-USER-ID"
   )
 }

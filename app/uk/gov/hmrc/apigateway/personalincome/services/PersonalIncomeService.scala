@@ -21,10 +21,13 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.apigateway.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.apigateway.personalincome.connectors._
 import uk.gov.hmrc.apigateway.personalincome.domain._
+import uk.gov.hmrc.apigateway.personalincome.domain.userdata.RenewalSummary
 import uk.gov.hmrc.apigateway.personalincome.utils.TaxSummaryHelper
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.play.audit.model.DataEvent
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.api.service._
+import uk.gov.hmrc.api.sandbox._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -39,26 +42,18 @@ trait PersonalIncomeService {
   def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails]
 
   def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier): Future[Response]
+
+  def getRenewalSummary(nino:Nino)(implicit hc:HeaderCarrier): Future[RenewalSummary]
 }
 
-trait LivePersonalIncomeService extends PersonalIncomeService {
+trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
   def authConnector: AuthConnector
 
   def taiConnector: TaiConnector
 
   def ntcConnector: NtcConnector
 
-  def audit(method:String, details:Map[String, String])(implicit hc: HeaderCarrier) : Unit = {
-    MicroserviceAuditConnector.sendEvent(
-      DataEvent("personal-income", "ServiceResponseSent",
-        tags = Map("transactionName" -> method),
-        detail = details))
-  }
-
-  def withAudit[T](service:String, details:Map[String, String])(func:Future[T])(implicit hc:HeaderCarrier) = {
-    audit(service, details) // No need to wait!
-    func
-  }
+  def taxCreditBrokerConnector: TaxCreditsBrokerConnector
 
   def gateKeepered(taxSummary: TaxSummaryDetails): Boolean = {
     taxSummary.gateKeeper.exists(_.gateKeepered)
@@ -95,13 +90,13 @@ trait LivePersonalIncomeService extends PersonalIncomeService {
 
   // Note: The TcrAuthenticationToken must be supplied to claimantDetails and submitRenewal.
   override def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier): Future[Option[TcrAuthenticationToken]] = {
-    withAudit("submitRenewal", Map("nino" -> nino.value)) {
+    withAudit("authenticateRenewal", Map("nino" -> nino.value)) {
       ntcConnector.authenticateRenewal(TaxCreditsNino(nino.value), tcrRenewalReference)
     }
   }
 
   override def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails] = {
-    withAudit("getSummary", Map("nino" -> nino.value)) {
+    withAudit("claimantDetails", Map("nino" -> nino.value)) {
       ntcConnector.claimantDetails(TaxCreditsNino(nino.value))
     }
   }
@@ -109,6 +104,17 @@ trait LivePersonalIncomeService extends PersonalIncomeService {
   override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier): Future[Response] = {
     withAudit("submitRenewal", Map("nino" -> nino.value)) {
       ntcConnector.submitRenewal(TaxCreditsNino(nino.value), tcrRenewal)
+    }
+  }
+
+  override def getRenewalSummary(nino:Nino)(implicit hc:HeaderCarrier): Future[RenewalSummary] = {
+    withAudit("submitRenewal", Map("nino" -> nino.value)) {
+      for {
+        children <- taxCreditBrokerConnector.getChildren(TaxCreditsNino(nino.value))
+        parterDetails <- taxCreditBrokerConnector.getPartnerDetails(TaxCreditsNino(nino.value))
+        paymentSummary <- taxCreditBrokerConnector.getPaymentSummary(TaxCreditsNino(nino.value))
+        personalDetails <- taxCreditBrokerConnector.getPersonalDetails(TaxCreditsNino(nino.value))
+      } yield(RenewalSummary(paymentSummary, personalDetails, parterDetails, children))
     }
   }
 
@@ -136,6 +142,11 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
     Future.successful(uk.gov.hmrc.apigateway.personalincome.connectors.Success(200))
   }
 
+  override def getRenewalSummary(nino:Nino)(implicit hc:HeaderCarrier): Future[RenewalSummary] = {
+    val resource :String = findResource(s"/resources/renewalsummary/${nino.value}.json").getOrElse(throw new IllegalArgumentException("Resource not found!"))
+    Future.successful(Json.parse(resource).as[RenewalSummary])
+  }
+
 }
 
 object LivePersonalIncomeService extends LivePersonalIncomeService {
@@ -144,4 +155,8 @@ object LivePersonalIncomeService extends LivePersonalIncomeService {
   override val taiConnector = TaiConnector
 
   override val ntcConnector = NtcConnector
+
+  override val taxCreditBrokerConnector = TaxCreditsBrokerConnector
+
+  override val auditConnector: AuditConnector = MicroserviceAuditConnector
 }
