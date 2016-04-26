@@ -10,6 +10,7 @@
     "name":"personal-income",
     "description":"The API is used to retrieve tax-summary information.",
     "context":"personal-income",
+    "requiresTrust" : true,
     "versions":[
       {
         "version":"1.0",
