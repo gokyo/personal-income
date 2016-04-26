@@ -39,7 +39,7 @@ trait AccountAccessControl extends ActionBuilder[Request] with Results {
   def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
     implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
 
-    authConnector.hasNino().flatMap {
+    authConnector.grantAccess().flatMap {
       _ =>
         block(request)
     }.recover {

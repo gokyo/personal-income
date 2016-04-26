@@ -61,19 +61,21 @@ trait AuthConnector {
     }
   }
 
-  def hasNino()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+  def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     http.GET(s"$serviceUrl/auth/authority") map {
-      resp =>
-        confirmConfiendenceLevel(resp.json)
-        if((resp.json \ "accounts" \ "paye" \ "nino").asOpt[String].isEmpty)
+      resp => {
+        val json = resp.json
+        confirmConfiendenceLevel(json)
+
+        if((json \ "accounts" \ "paye" \ "nino").asOpt[String].isEmpty)
           throw new UnauthorizedException("The user must have a National Insurance Number to access this service")
+      }
     }
   }
 
   private def confirmConfiendenceLevel(jsValue : JsValue) = {
     val usersCL = (jsValue \ "confidenceLevel").as[Int]
-
-    if (usersCL < serviceConfidenceLevel.level) {
+    if (serviceConfidenceLevel.level > usersCL) {
       throw new ForbiddenException("The user does not have sufficient permissions to access this service")
     }
   }
