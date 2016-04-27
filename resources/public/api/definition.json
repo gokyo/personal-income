@@ -49,8 +49,8 @@
             "scope":"read:personal-income"
           },
           {
-            "uriPattern":"/income/:nino/tax-credits/renewal-summary",
-            "endpointName":"Get Renewal Summary",
+            "uriPattern":"/income/:nino/tax-credits/tax-credits-summary",
+            "endpointName":"Get Tax Credits Summary",
             "method":"GET",
             "authType":"USER",
             "throttlingTier":"UNLIMITED",

@@ -21,7 +21,7 @@ API
 | ```/income/:nino/tax-credits/:renewalReference/auth``` | GET | Validate and retrieve the TCR auth-token assoicated with the NINO and renewal reference. [More...](docs/authenticate.md)|
 | ```/income/:nino/tax-credits/claimant-details``` | GET | Retrieve the claiment-details associated with the nino. Note the header tcrAuthToken must be supplied. [More...](docs/claimentDetails.md) |
 | ```/income/:nino/tax-credits/renewal``` | POST | Post a renewal to the NTC micro-service for off-line processing. Note the header tcrAuthToken must be supplied. [More...](docs/renewal.md)|
-| ```/income/:nino/renewal-summary/``` | GET | Fetch the Tax Credits Summary object for a given NINO. [More...](docs/renewal-summary.md)|
+| ```/income/:nino/tax-credits/tax-credits-summary``` | GET | Fetch the Tax Credits Summary object for a given NINO. [More...](docs/tax-credits-summary.md)|
 
 
 # Sandbox

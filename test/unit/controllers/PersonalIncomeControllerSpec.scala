@@ -250,10 +250,10 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
 
   override lazy val fakeApplication = FakeApplication(additionalConfiguration = config)
 
-  "renewal summary live" should {
+  "tax credits summary live" should {
 
-    "process the renewal successfully" in new Success {
-      val result = await(controller.renewalSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader))
+    "process the request successfully" in new Success {
+      val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader))
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(taxRenewalSummary)
@@ -261,14 +261,14 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
     }
 
     "return unauthorized when authority record does not contain a NINO" in new AuthWithoutNino {
-      val result = await(controller.renewalSummary(nino)(emptyRequestWithAcceptHeader))
+      val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 401
       testPersonalIncomeService.saveDetails shouldBe Map.empty
     }
 
     "return status code 406 when the headers are invalid" in new Success {
-      val result = await(controller.renewalSummary(nino)(emptyRequest))
+      val result = await(controller.taxCreditsSummary(nino)(emptyRequest))
 
       status(result) shouldBe 406
       testPersonalIncomeService.saveDetails shouldBe Map.empty
@@ -276,8 +276,8 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
 
     // TODO...add to all actions! This must be defined in an IT:test. Here as a reminder only to add!
     "return the sandbox result when the X-MOBILE-USER-ID is supplied" in new Success {
-      val resource = findResource(s"/resources/renewalsummary/${nino.value}.json")
-      val result = await(controller.renewalSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader))
+      val resource = findResource(s"/resources/taxcreditsummary/${nino.value}.json")
+      val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader))
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.parse(resource.get)
@@ -285,14 +285,14 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
     }
   }
 
-  "renewal summary Sandbox" should {
+  "tax credits summary Sandbox" should {
 
     "return the summary response from a resource" in new SandboxSuccess {
-      val result = await(controller.renewalSummary(nino)(emptyRequestWithAcceptHeader))
+      val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 200
 
-      val resource = findResource(s"/resources/renewalsummary/${nino.value}.json")
+      val resource = findResource(s"/resources/taxcreditsummary/${nino.value}.json")
       contentAsJson(result) shouldBe Json.parse(resource.get)
 
       testPersonalIncomeService.saveDetails shouldBe Map.empty

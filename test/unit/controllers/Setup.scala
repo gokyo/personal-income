@@ -173,7 +173,7 @@ trait Setup {
     None)
 
   val children = Children(Seq(SarahSmith, JosephSmith, MarySmith))
-  val taxRenewalSummary = RenewalSummary(paymentSummary, personalDetails, Some(partnerDetails), children)
+  val taxRenewalSummary = TaxCreditSummary(paymentSummary, personalDetails, Some(partnerDetails), children)
 
   val acceptHeader = "Accept" -> "application/vnd.hmrc.1.0+json"
   val emptyRequest = FakeRequest()

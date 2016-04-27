@@ -21,7 +21,7 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.apigateway.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.apigateway.personalincome.connectors._
 import uk.gov.hmrc.apigateway.personalincome.domain._
-import uk.gov.hmrc.apigateway.personalincome.domain.userdata.RenewalSummary
+import uk.gov.hmrc.apigateway.personalincome.domain.userdata.TaxCreditSummary
 import uk.gov.hmrc.apigateway.personalincome.utils.TaxSummaryHelper
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -43,7 +43,7 @@ trait PersonalIncomeService {
 
   def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier): Future[Response]
 
-  def getRenewalSummary(nino:Nino)(implicit hc:HeaderCarrier): Future[RenewalSummary]
+  def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier): Future[TaxCreditSummary]
 }
 
 trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
@@ -107,14 +107,14 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
     }
   }
 
-  override def getRenewalSummary(nino:Nino)(implicit hc:HeaderCarrier): Future[RenewalSummary] = {
-    withAudit("submitRenewal", Map("nino" -> nino.value)) {
+  override def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier): Future[TaxCreditSummary] = {
+    withAudit("getTaxCreditSummary", Map("nino" -> nino.value)) {
       for {
         children <- taxCreditBrokerConnector.getChildren(TaxCreditsNino(nino.value))
         parterDetails <- taxCreditBrokerConnector.getPartnerDetails(TaxCreditsNino(nino.value))
         paymentSummary <- taxCreditBrokerConnector.getPaymentSummary(TaxCreditsNino(nino.value))
         personalDetails <- taxCreditBrokerConnector.getPersonalDetails(TaxCreditsNino(nino.value))
-      } yield(RenewalSummary(paymentSummary, personalDetails, parterDetails, children))
+      } yield(TaxCreditSummary(paymentSummary, personalDetails, parterDetails, children))
     }
   }
 
@@ -142,9 +142,9 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
     Future.successful(uk.gov.hmrc.apigateway.personalincome.connectors.Success(200))
   }
 
-  override def getRenewalSummary(nino:Nino)(implicit hc:HeaderCarrier): Future[RenewalSummary] = {
-    val resource :String = findResource(s"/resources/renewalsummary/${nino.value}.json").getOrElse(throw new IllegalArgumentException("Resource not found!"))
-    Future.successful(Json.parse(resource).as[RenewalSummary])
+  override def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier): Future[TaxCreditSummary] = {
+    val resource :String = findResource(s"/resources/taxcreditsummary/${nino.value}.json").getOrElse(throw new IllegalArgumentException("Resource not found!"))
+    Future.successful(Json.parse(resource).as[TaxCreditSummary])
   }
 
 }

@@ -18,11 +18,11 @@ package uk.gov.hmrc.apigateway.personalincome.domain.userdata
 
 import play.api.libs.json.Json
 
-case class RenewalSummary(paymentSummary: PaymentSummary,
+case class TaxCreditSummary(paymentSummary: PaymentSummary,
                           personalDetails: PersonalDetails,
                           partnerDetails:Option[PartnerDetails],
                           children: Children)
 
-object RenewalSummary {
-  implicit val format = Json.format[RenewalSummary]
+object TaxCreditSummary {
+  implicit val format = Json.format[TaxCreditSummary]
 }

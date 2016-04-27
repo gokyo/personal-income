@@ -7,4 +7,4 @@ GET     /income/:nino/tax-credits/claimant-details           uk.gov.hmrc.apigate
 
 POST    /income/:nino/tax-credits/renewal                    uk.gov.hmrc.apigateway.personalincome.controllers.SandboxPersonalIncomeController.submitRenewal(nino: uk.gov.hmrc.domain.Nino)
 
-GET     /income/:nino/tax-credits/renewal-summary            uk.gov.hmrc.apigateway.personalincome.controllers.SandboxPersonalIncomeController.renewalSummary(nino: uk.gov.hmrc.domain.Nino)
+GET     /income/:nino/tax-credits/tax-credits-summary        uk.gov.hmrc.apigateway.personalincome.controllers.SandboxPersonalIncomeController.taxCreditsSummary(nino: uk.gov.hmrc.domain.Nino)

@@ -1,10 +1,10 @@
-The Renewal Summary object
+The Tax Credits Summary object
 ----
-  Fetch the Renewal Summary object for a given nino.
+  Fetch the Tax Credits Summary object for a given nino.
   
 * **URL**
 
-  `/income/:nino/renewal-summary/`
+  `/income/:nino/tax-credits-summary`
 
 * **Method:**
   

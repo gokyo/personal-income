@@ -1,9 +1,9 @@
 <endpoint>
   <name>Get Renewal Summary</name>
-  <description>This endpoint retrieves the renewal summary.</description>
+  <description>This endpoint retrieves the tax credits summary.</description>
   <section id="resource">
     <title>Resource</title>
-    <resource>GET /income/:nino/tax-credits/renewal-summary</resource>
+    <resource>GET /income/:nino/tax-credits/tax-credits-summary</resource>
   </section>
   <section id="path-parameters">
     <title>Path Parameters</title>
