@@ -22,9 +22,10 @@ import org.scalatest.BeforeAndAfter
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import play.api.test.FakeRequest
-import uk.gov.hmrc.apigateway.personalincome.controllers.{PersonalIncomeController, DocumentationController}
-import uk.gov.hmrc.apigateway.personalincome.controllers.action.AccountAccessControlWithHeaderCheck
-import uk.gov.hmrc.apigateway.personalincome.services.LivePersonalIncomeService
+import uk.gov.hmrc.api.controllers.DocumentationController
+import uk.gov.hmrc.personalincome.controllers.PersonalIncomeController
+import uk.gov.hmrc.personalincome.controllers.action.AccountAccessControlWithHeaderCheck
+import uk.gov.hmrc.personalincome.services.LivePersonalIncomeService
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.test.UnitSpec
 
