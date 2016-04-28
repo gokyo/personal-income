@@ -7,7 +7,7 @@
     }
   ],
   "api":{
-    "name":"personal-income",
+    "name":"Personal Income",
     "description":"The API is used to retrieve tax-summary information.",
     "context":"personal-income",
     "requiresTrust": true,
@@ -17,7 +17,7 @@
         "status":"PROTOTYPED",
         "endpoints":[
           {
-            "uriPattern":"/income/:nino/tax-summary/:year",
+            "uriPattern":"/income/{nino}/tax-summary/{year}",
             "endpointName":"Get Summary",
             "method":"GET",
             "authType":"USER",
@@ -25,7 +25,7 @@
             "scope":"read:personal-income"
           },
           {
-            "uriPattern":"/income/:nino/tax-credits/:renewalReference/auth",
+            "uriPattern":"/income/{nino}/tax-credits/{renewalReference}/auth",
             "endpointName":"Get Auth Token",
             "method":"GET",
             "authType":"USER",
@@ -33,7 +33,7 @@
             "scope":"read:personal-income"
           },
           {
-            "uriPattern":"/income/:nino/tax-credits/claimant-details",
+            "uriPattern":"/income/{nino}/tax-credits/claimant-details",
             "endpointName":"Get Claiment Details",
             "method":"GET",
             "authType":"USER",
@@ -41,7 +41,7 @@
             "scope":"read:personal-income"
           },
           {
-            "uriPattern":"/income/:nino/tax-credits/renewal",
+            "uriPattern":"/income/{nino}/tax-credits/renewal",
             "endpointName":"Submit Renewal",
             "method":"POST",
             "authType":"USER",
@@ -49,7 +49,7 @@
             "scope":"read:personal-income"
           },
           {
-            "uriPattern":"/income/:nino/tax-credits/tax-credits-summary",
+            "uriPattern":"/income/{nino}/tax-credits/tax-credits-summary",
             "endpointName":"Get Tax Credits Summary",
             "method":"GET",
             "authType":"USER",
