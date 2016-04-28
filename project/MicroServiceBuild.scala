@@ -15,7 +15,7 @@ object MicroServiceBuild extends Build with MicroService {
   )
 
   override lazy val appDependencies: Seq[ModuleID] = AppDependencies()
-  override lazy val playSettings : Seq[Setting[_]] = Seq(routesImport ++= Seq("uk.gov.hmrc.apigateway.personalincome.binders.Binders._"))
+  override lazy val playSettings : Seq[Setting[_]] = Seq(routesImport ++= Seq("uk.gov.hmrc.personalincome.binders.Binders._"))
 
 }
 
@@ -25,8 +25,7 @@ private object AppDependencies {
 
   private val wireMockVersion = "1.57"
   private val scalaJVersion = "1.1.5"
-  private val scalaTestVersion = "2.2.5"
-  private val hmrcPlayJsonLoggerVersion = "2.1.1"
+  private val scalaTestVersion = "2.2.6"
   private val pegdownVersion = "1.6.0"
   private val cucumberVersion = "1.2.4"
 
@@ -81,8 +80,8 @@ private object AppDependencies {
 
       override lazy val test = Seq(
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
-        "org.scalatest" %% "scalatest" % "2.2.6" % scope,
-        "org.pegdown" % "pegdown" % "1.5.0" % scope,
+        "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
+        "org.pegdown" % "pegdown" % pegdownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
       )
     }.test
