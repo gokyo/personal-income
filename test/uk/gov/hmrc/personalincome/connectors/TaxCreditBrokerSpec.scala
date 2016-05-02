@@ -17,7 +17,6 @@
 package uk.gov.hmrc.personalincome.connectors
 
 import org.scalatest.concurrent.ScalaFutures
-import uk.gov.hmrc.personalincome.connectors.TaxCreditsBrokerConnector
 import uk.gov.hmrc.personalincome.domain.userdata._
 import uk.gov.hmrc.personalincome.domain.TaxCreditsNino
 import uk.gov.hmrc.domain.Nino

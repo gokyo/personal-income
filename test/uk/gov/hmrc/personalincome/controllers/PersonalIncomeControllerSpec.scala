@@ -21,7 +21,6 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
-import uk.gov.hmrc.personalincome.controllers.ErrorNoAuthToken
 import uk.gov.hmrc.personalincome.domain.{BaseViewModel, TaxSummaryContainer, TaxSummaryDetails}
 import uk.gov.hmrc.personalincome.services.SandboxPersonalIncomeService._
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
