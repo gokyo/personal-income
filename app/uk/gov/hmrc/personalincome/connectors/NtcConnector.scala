@@ -16,10 +16,12 @@
 
 package uk.gov.hmrc.personalincome.connectors
 
+import org.joda.time.{DateTime, DateTimeZone}
 import uk.gov.hmrc.personalincome.config.WSHttp
 import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -54,10 +56,46 @@ trait NtcConnector {
       }
     })
   }
+
 }
 
 object NtcConnector extends NtcConnector with ServicesConfig {
   override val http = WSHttp
 
   override lazy val serviceUrl = baseUrl("ntc")
+}
+
+
+
+trait LoadConfig {
+
+  import com.typesafe.config.Config
+
+  def config: Config
+}
+
+trait TaxCreditsSubmissionControlConfig extends LoadConfig {
+  import net.ceedubs.ficus.readers.ValueReader
+  import net.ceedubs.ficus.Ficus._
+
+  private val submission = "microservice.services.ntc.submission"
+
+  private implicit val nativeVersionReader: ValueReader[TaxCreditsSubmissionControl] = ValueReader.relative { nativeVersion =>
+    TaxCreditsSubmissionControl(
+      config.as[Boolean](s"$submission.shutter"),
+      DateTime.parse(config.as[String](s"$submission.startDate")).toDateTime(DateTimeZone.UTC).withTimeAtStartOfDay(),
+      DateTime.parse(config.as[String](s"$submission.endDate")).toDateTime(DateTimeZone.UTC)
+    )
+  }
+
+  val submissionControl: TaxCreditsSubmissionControl = config.as[TaxCreditsSubmissionControl](submission)
+}
+
+
+sealed case class TaxCreditsSubmissionControl(shutter : Boolean, startDate : DateTime, endDate : DateTime)
+
+object TaxCreditsSubmissionControl extends TaxCreditsSubmissionControlConfig{
+  import com.typesafe.config.{Config, ConfigFactory}
+
+  lazy val config: Config = ConfigFactory.load()
 }
