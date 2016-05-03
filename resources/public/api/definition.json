@@ -55,6 +55,14 @@
             "authType":"USER",
             "throttlingTier":"UNLIMITED",
             "scope":"read:personal-income"
+          },
+          {
+            "uriPattern":"/income/tax-credits/renewals/active",
+            "endpointName":"Get Tax Credits Renewal State",
+            "method":"GET",
+            "authType":"USER",
+            "throttlingTier":"UNLIMITED",
+            "scope":"read:personal-income"
           }
         ]
       }
