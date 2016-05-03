@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.personalincome.connectors
+package uk.gov.hmrc.personalincome.domain
 
 import com.typesafe.config.{Config, ConfigFactory}
+import org.joda.time.DateTime
 import play.api.test.FakeApplication
-import uk.gov.hmrc.personalincome.domain.{TaxCreditsSubmissionControl, TaxCreditsSubmissionControlConfig}
 import uk.gov.hmrc.play.test.UnitSpec
+import uk.gov.hmrc.time.DateTimeUtils
 
 class TaxCreditsSubmissionControlSpec extends UnitSpec {
 
@@ -37,13 +38,15 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
       |}
       | """.stripMargin)
 
-  lazy val taxCreditsSubmissionControlConfig = new TaxCreditsSubmissionControlConfig {
+  def taxCreditsSubmissionControlConfig(dt : DateTime = DateTimeUtils.now) = new TaxCreditsSubmissionControlConfig {
+    override def now: DateTime = dt
+
     override lazy val config: Config = specConfig
   }
 
   "TaxCreditsSubmissionControl" should {
     "test config initialise" in {
-      val sc = taxCreditsSubmissionControlConfig.submissionControl
+      val sc = taxCreditsSubmissionControlConfig().submissionControl
       sc.shutter shouldBe false
 
       val start = sc.startDate
@@ -75,6 +78,46 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
       end.getMonthOfYear shouldBe 7
       end.getHourOfDay shouldBe 23
       end.getSecondOfMinute shouldBe 59
+    }
+
+    "expose unshuttered and active submission period" in {
+
+      val withinSubmissionPeriod = new DateTime("2016-04-10T00:00:00.000Z")
+      val tcs = taxCreditsSubmissionControlConfig(withinSubmissionPeriod).toTaxCreditsSubmissions
+      tcs.shuttered shouldBe false
+      tcs.inSubmissionPeriod shouldBe true
+    }
+
+    "be within active submission period for exact START date" in {
+
+      val exactStartDate = new DateTime("2016-04-01T00:00:00.000Z")
+      val tcs = taxCreditsSubmissionControlConfig(exactStartDate).toTaxCreditsSubmissions
+
+      tcs.inSubmissionPeriod shouldBe true
+    }
+
+    "be within active submission period for exact END date" in {
+
+      val exactStartDate = new DateTime("2016-07-31T23:59:59.999Z")
+      val tcs = taxCreditsSubmissionControlConfig(exactStartDate).toTaxCreditsSubmissions
+
+      tcs.inSubmissionPeriod shouldBe true
+    }
+
+    "be BEFORE active submission period" in {
+
+      val beforeSubmissionPeriod = new DateTime("2016-03-30T23:59:59.999Z")
+      val tcs = taxCreditsSubmissionControlConfig(beforeSubmissionPeriod).toTaxCreditsSubmissions
+
+      tcs.inSubmissionPeriod shouldBe false
+    }
+
+    "be AFTER active submission period" in {
+
+      val beforeSubmissionPeriod = new DateTime("2016-08-01T00:00:00.000Z")
+      val tcs = taxCreditsSubmissionControlConfig(beforeSubmissionPeriod).toTaxCreditsSubmissions
+
+      tcs.inSubmissionPeriod shouldBe false
     }
   }
 

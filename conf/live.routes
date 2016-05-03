@@ -8,3 +8,5 @@ GET     /income/:nino/tax-credits/claimant-details           uk.gov.hmrc.persona
 POST    /income/:nino/tax-credits/renewal                    uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.submitRenewal(nino: uk.gov.hmrc.domain.Nino)
 
 GET     /income/:nino/tax-credits/tax-credits-summary        uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.taxCreditsSummary(nino: uk.gov.hmrc.domain.Nino)
+
+GET     /income/tax-credits/renewals/active                  uk.gov.hmrc.personalincome.controllers.LiveServiceStateController.taxCreditsRenewals()
