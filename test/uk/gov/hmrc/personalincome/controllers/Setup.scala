@@ -22,7 +22,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
-import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlForSandbox, AccountAccessControlWithHeaderCheck, AccountAccessControl}
+import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckAccessOff, AccountAccessControlWithHeaderCheck, AccountAccessControl}
 import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.domain.userdata._
 import uk.gov.hmrc.personalincome.services.{PersonalIncomeService, SandboxPersonalIncomeService, LivePersonalIncomeService}
@@ -40,7 +40,7 @@ class TestTaiConnector(taxSummaryDetails:TaxSummaryDetails) extends TaiConnector
 
   override def serviceUrl: String = ???
 
-  override def taxSummary(nino: Nino, year: Int)(implicit hc: HeaderCarrier): Future[TaxSummaryDetails] = {
+  override def taxSummary(nino: Nino, year: Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[TaxSummaryDetails] = {
     Future.successful(taxSummaryDetails)
   }
 }
@@ -51,16 +51,16 @@ class TestNtcConnector(response:Response, tcrAuthToken:Option[TcrAuthenticationT
   override def serviceUrl: String = ???
 
   override def submitRenewal(nino: TaxCreditsNino,
-                             renewalData: TcrRenewal)(implicit headerCarrier: HeaderCarrier): Future[Response] = {
+                             renewalData: TcrRenewal)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Response] = {
     Future.successful(response)
   }
 
   override def authenticateRenewal(nino: TaxCreditsNino,
-                          renewalReference: RenewalReference)(implicit headerCarrier: HeaderCarrier): Future[Option[TcrAuthenticationToken]] = {
+                          renewalReference: RenewalReference)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]] = {
     Future.successful(tcrAuthToken)
   }
 
-  override def claimantDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails] = {
+  override def claimantDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimantDetails] = {
     Future.successful(claimantDetails)
   }
 }
@@ -83,10 +83,10 @@ class TestTaxCreditBrokerConnector(payment: PaymentSummary, personal: PersonalDe
 
   def serviceUrl: String = ???
 
-  def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier) = Future(payment)
-  def getPersonalDetails(nino:TaxCreditsNino)(implicit headerCarrier: HeaderCarrier) = Future(personal)
-  def getPartnerDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier) = Future(Some(partner))
-  def getChildren(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier) = Future(children)
+  def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(payment)
+  def getPersonalDetails(nino:TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(personal)
+  def getPartnerDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(Some(partner))
+  def getChildren(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(children)
 }
 
 
@@ -209,7 +209,7 @@ trait Setup {
   val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
 
   val testSandboxPersonalIncomeService = SandboxPersonalIncomeService
-  val sandboxCompositeAction = AccountAccessControlForSandbox
+  val sandboxCompositeAction = AccountAccessControlCheckAccessOff
 }
 
 trait Success extends Setup {
