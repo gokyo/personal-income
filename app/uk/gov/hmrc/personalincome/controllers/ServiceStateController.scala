@@ -36,7 +36,7 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
   val taxCreditsSubmissionControlConfig : TaxCreditsSubmissionControlConfig
   val accessControl:AccountAccessControlWithHeaderCheck
 
-  final def taxCreditsRenewals() = accessControl.validateAccept(acceptHeaderValidationRules).async {
+  final def taxCreditsSubmissionState() = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
       errorWrapper(
