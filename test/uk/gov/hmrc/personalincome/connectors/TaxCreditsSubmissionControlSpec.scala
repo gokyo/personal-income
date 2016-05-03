@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.personalincome.connectors
 
-import java.io.File
-
 import com.typesafe.config.{Config, ConfigFactory}
 import play.api.test.FakeApplication
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
+import uk.gov.hmrc.personalincome.domain.{TaxCreditsSubmissionControl, TaxCreditsSubmissionControlConfig}
+import uk.gov.hmrc.play.test.UnitSpec
 
 class TaxCreditsSubmissionControlSpec extends UnitSpec {
 

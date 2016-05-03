@@ -23,7 +23,7 @@ import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 
 trait TaiConnector {
@@ -33,7 +33,7 @@ trait TaiConnector {
 
   def url(path: String) = s"$serviceUrl$path"
 
-  def taxSummary(nino : Nino, year : Int)(implicit hc: HeaderCarrier): Future[TaxSummaryDetails] = {
+  def taxSummary(nino : Nino, year : Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[TaxSummaryDetails] = {
     Logger.debug(s"TaxForCitizens:Frontend - connect to /$nino/tax-summary-full/$year ")
     http.GET[TaxSummaryDetails](url = url(s"/tai/$nino/tax-summary-full/$year"))
   }

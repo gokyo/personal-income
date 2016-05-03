@@ -24,9 +24,11 @@ import uk.gov.hmrc.play.http.{HeaderCarrier, _}
 import uk.gov.hmrc.play.test.UnitSpec
 import org.joda.time.DateTime
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class TaxCreditBrokerSpec extends UnitSpec with ScalaFutures {
+
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   private trait Setup {
     implicit lazy val hc = HeaderCarrier()
@@ -67,15 +69,15 @@ class TaxCreditBrokerSpec extends UnitSpec with ScalaFutures {
     val connector = new TaxCreditsBrokerConnector {
       override def http: HttpGet = ???
 
-      override def getPersonalDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier): Future[PersonalDetails] = Future.successful(personalDetails)
+      override def getPersonalDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[PersonalDetails] = Future.successful(personalDetails)
 
-      override def getPartnerDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier): Future[Option[PartnerDetails]] = Future.successful(Some(partnerDetails))
+      override def getPartnerDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Option[PartnerDetails]] = Future.successful(Some(partnerDetails))
 
-      override def getChildren(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier): Future[Children] = Future.successful(children)
+      override def getChildren(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Children] = Future.successful(children)
 
       override def serviceUrl: String = ???
 
-      override def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier): Future[PaymentSummary]  = paymentSummary
+      override def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[PaymentSummary]  = paymentSummary
     }
   }
 

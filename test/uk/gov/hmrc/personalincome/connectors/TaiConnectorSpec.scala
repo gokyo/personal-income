@@ -30,6 +30,8 @@ class TaiConnectorSpec
   extends UnitSpec
           with ScalaFutures {
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   private trait Setup {
 
     implicit lazy val hc = HeaderCarrier()
