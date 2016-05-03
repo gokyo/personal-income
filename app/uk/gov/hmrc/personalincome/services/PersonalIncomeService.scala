@@ -29,21 +29,20 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.api.service._
 import uk.gov.hmrc.api.sandbox._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.util.{Success, Failure, Try}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 trait PersonalIncomeService {
-  def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryContainer]
+  def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[TaxSummaryContainer]
 
   // Renewal specific - authenticateRenewal must be called first to retrieve the authToken before calling claimantDetails, submitRenewal.
-  def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier): Future[Option[TcrAuthenticationToken]]
+  def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]]
 
-  def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails]
+  def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimantDetails]
 
-  def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier): Future[Response]
+  def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Response]
 
-  def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier): Future[TaxCreditSummary]
+  def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier, ex: ExecutionContext): Future[TaxCreditSummary]
 }
 
 trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
@@ -59,7 +58,7 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
     taxSummary.gateKeeper.exists(_.gateKeepered)
   }
 
-  override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryContainer] = {
+  override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[TaxSummaryContainer] = {
     withAudit("getSummary", Map("nino" -> nino.value, "year" -> year.toString)) {
 
       taiConnector.taxSummary(nino, year).map(summary =>
@@ -89,25 +88,25 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
   }
 
   // Note: The TcrAuthenticationToken must be supplied to claimantDetails and submitRenewal.
-  override def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier): Future[Option[TcrAuthenticationToken]] = {
+  override def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]] = {
     withAudit("authenticateRenewal", Map("nino" -> nino.value)) {
       ntcConnector.authenticateRenewal(TaxCreditsNino(nino.value), tcrRenewalReference)
     }
   }
 
-  override def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails] = {
+  override def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimantDetails] = {
     withAudit("claimantDetails", Map("nino" -> nino.value)) {
       ntcConnector.claimantDetails(TaxCreditsNino(nino.value))
     }
   }
 
-  override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier): Future[Response] = {
+  override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Response] = {
     withAudit("submitRenewal", Map("nino" -> nino.value)) {
       ntcConnector.submitRenewal(TaxCreditsNino(nino.value), tcrRenewal)
     }
   }
 
-  override def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier): Future[TaxCreditSummary] = {
+  override def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier, ex: ExecutionContext): Future[TaxCreditSummary] = {
     withAudit("getTaxCreditSummary", Map("nino" -> nino.value)) {
       for {
         children <- taxCreditBrokerConnector.getChildren(TaxCreditsNino(nino.value))
@@ -117,12 +116,11 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
       } yield(TaxCreditSummary(paymentSummary, personalDetails, parterDetails, children))
     }
   }
-
 }
 
 object SandboxPersonalIncomeService extends PersonalIncomeService with FileResource {
 
-  override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier): Future[TaxSummaryContainer] = {
+  override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[TaxSummaryContainer] = {
     val resource: Option[String] = findResource(s"/resources/getsummary/${nino.value}_$year.json")
 
     Future.successful(resource.fold(TaxSummaryContainer(TaxSummaryDetails(nino.value, year), BaseViewModel(estimatedIncomeTax=0), None, None, None)) { found =>
@@ -130,19 +128,19 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
     })
   }
 
-  override def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier): Future[Option[TcrAuthenticationToken]] = {
+  override def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]] = {
     Future.successful(Some(TcrAuthenticationToken("some-token")))
   }
 
-  override def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier): Future[ClaimantDetails] = {
+  override def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimantDetails] = {
     Future.successful(ClaimantDetails(hasPartner=false, 1, "renewalForm", nino.value, None, availableForCOCAutomation=false, "some-app-id"))
   }
 
-  override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier): Future[Response] = {
+  override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Response] = {
     Future.successful(uk.gov.hmrc.personalincome.connectors.Success(200))
   }
 
-  override def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier): Future[TaxCreditSummary] = {
+  override def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier, ex: ExecutionContext): Future[TaxCreditSummary] = {
     val resource :String = findResource(s"/resources/taxcreditsummary/${nino.value}.json").getOrElse(throw new IllegalArgumentException("Resource not found!"))
     Future.successful(Json.parse(resource).as[TaxCreditSummary])
   }

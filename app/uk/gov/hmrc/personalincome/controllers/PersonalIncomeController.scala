@@ -18,7 +18,7 @@ package uk.gov.hmrc.personalincome.controllers
 
 import play.api.mvc.{Request, BodyParsers}
 import uk.gov.hmrc.personalincome.connectors.Error
-import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlWithHeaderCheck, AccountAccessControlForSandbox}
+import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlWithHeaderCheck, AccountAccessControlCheckAccessOff}
 import play.api.libs.json.{JsError, Json}
 import uk.gov.hmrc.personalincome.domain.{TcrRenewal, RenewalReference}
 import uk.gov.hmrc.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService, SandboxPersonalIncomeService}
@@ -46,6 +46,7 @@ trait ErrorHandling {
 }
 
 trait PersonalIncomeController extends BaseController with HeaderValidator with ErrorHandling {
+
   val service: PersonalIncomeService
   val accessControl:AccountAccessControlWithHeaderCheck
 
@@ -69,8 +70,9 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
       errorWrapper(validateTcrAuthHeader() {
-        token => hc =>
-          service.claimantDetails(nino)(hc).map(as => Ok(Json.toJson(as)))
+        token =>
+          implicit hc =>
+            service.claimantDetails(nino).map(as => Ok(Json.toJson(as)))
       })
   }
 
@@ -85,8 +87,9 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
         },
         renewal => {
           errorWrapper(validateTcrAuthHeader() {
-            token => hc =>
-              service.submitRenewal(nino,renewal)(hc).map {
+            token =>
+                implicit hc =>
+              service.submitRenewal(nino,renewal).map {
                 case Error(status) => Status(status)(Json.toJson(ErrorwithNtcRenewal))
                 case _ => Ok
               }
@@ -116,7 +119,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
 
 object SandboxPersonalIncomeController extends PersonalIncomeController {
   override val service = SandboxPersonalIncomeService
-  override val accessControl = AccountAccessControlForSandbox
+  override val accessControl = AccountAccessControlCheckAccessOff
 }
 
 object LivePersonalIncomeController extends PersonalIncomeController {
