@@ -22,7 +22,7 @@ API
 | ```/income/:nino/tax-credits/claimant-details``` | GET | Retrieve the claiment-details associated with the nino. Note the header tcrAuthToken must be supplied. [More...](docs/claimentDetails.md) |
 | ```/income/:nino/tax-credits/renewal``` | POST | Post a renewal to the NTC micro-service for off-line processing. Note the header tcrAuthToken must be supplied. [More...](docs/renewal.md)|
 | ```/income/:nino/tax-credits/tax-credits-summary``` | GET | Fetch the Tax Credits Summary object for a given NINO. [More...](docs/tax-credits-summary.md)|
-
+| ```/income/tax-credits/submission/state``` | GET | This endpoint retrieves the current state of tax credit submissions. [More...](docs/tax-credits-renewal-state.md)|
 
 # Sandbox
 All the above endpoints are accessible on sandbox with `/sandbox` prefix on each endpoint,e.g.

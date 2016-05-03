@@ -1,6 +1,6 @@
 <endpoint>
-  <name>Get Tax Credits Renewal State</name>
-  <description>This endpoint retrieves the active state of tax credit submissions</description>
+  <name>Get Tax Credits Submission State</name>
+  <description>This endpoint retrieves the current state of tax credit submissions</description>
   <section id="resource">
     <title>Resource</title>
     <resource>GET /income/tax-credits/renewals/active</resource>
