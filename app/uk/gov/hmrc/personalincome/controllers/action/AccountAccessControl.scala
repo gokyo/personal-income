@@ -92,7 +92,7 @@ object AccountAccessControlSandbox extends AccountAccessControl {
     }
 }
 
-object AccountAccessControlForSandbox extends AccountAccessControlWithHeaderCheck {
+object AccountAccessControlCheckAccessOff extends AccountAccessControlWithHeaderCheck {
   override val checkAccess=false
 
   val accessControl: AccountAccessControl = AccountAccessControlSandbox
