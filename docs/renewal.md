@@ -64,7 +64,7 @@ Submit renewal
 
    **Required:**
  
-   `tcrAuthToken=[TCRAuthToken]`
+   `tcrAuthToken: Basic [TCRAuthToken]`
 
 
 * **Success Response:**

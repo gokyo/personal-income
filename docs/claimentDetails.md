@@ -22,7 +22,7 @@ Return Claiment Details object
 
    **Required:**
  
-   `tcrAuthToken=[TCRAuthToken]`
+   `tcrAuthToken: Basic [TCRAuthToken]`
 
 * **Success Response:**
 
