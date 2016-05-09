@@ -19,7 +19,7 @@ package uk.gov.hmrc.personalincome.controllers
 
 import uk.gov.hmrc.api.controllers.HeaderValidator
 import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckAccessOff, AccountAccessControlWithHeaderCheck}
-import uk.gov.hmrc.personalincome.domain.{TaxCreditsSubmissionControl, TaxCreditsSubmissionControlConfig}
+import uk.gov.hmrc.personalincome.domain.{TaxCreditsSubmissions, TaxCreditsControl, TaxCreditsSubmissionControl, TaxCreditsSubmissionControlConfig}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.time.DateTimeUtils
 
@@ -33,14 +33,14 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val taxCreditsSubmissionControlConfig : TaxCreditsSubmissionControlConfig
+  val taxCreditsSubmissionControlConfig : TaxCreditsControl
   val accessControl:AccountAccessControlWithHeaderCheck
 
   final def taxCreditsSubmissionState() = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
       errorWrapper(
-        Future{
+        Future {
           taxCreditsSubmissionControlConfig.toTaxCreditsSubmissions
         }.map{
           as => Ok(Json.toJson(as))
@@ -50,13 +50,9 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
 
 
 object SandboxServiceStateController extends ServiceStateController with DateTimeUtils {
-  import com.github.nscala_time.time.Imports._
-  import com.typesafe.config.Config
-  import uk.gov.hmrc.personalincome.domain.TaxCreditsSubmissionControl
 
-  override val taxCreditsSubmissionControlConfig = new TaxCreditsSubmissionControlConfig{
-    lazy val config: Config = ???
-    override val submissionControl = new TaxCreditsSubmissionControl(false, now - 1.day, now + 1.day)
+  override val taxCreditsSubmissionControlConfig = new TaxCreditsControl {
+    override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true)
   }
   override val accessControl = AccountAccessControlCheckAccessOff
 }

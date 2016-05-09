@@ -33,7 +33,11 @@ trait LoadConfig {
   def config: Config
 }
 
-trait TaxCreditsSubmissionControlConfig extends LoadConfig with DateTimeUtils {
+trait TaxCreditsControl {
+  def toTaxCreditsSubmissions: TaxCreditsSubmissions
+}
+
+trait TaxCreditsSubmissionControlConfig extends TaxCreditsControl with LoadConfig with DateTimeUtils {
   import net.ceedubs.ficus.readers.ValueReader
   import net.ceedubs.ficus.Ficus._
 
