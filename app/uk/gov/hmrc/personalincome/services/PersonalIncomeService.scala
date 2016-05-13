@@ -147,11 +147,11 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
   override def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimantDetails] = {
     getTcrAuthHeader { header =>
       try {
-        val resource: String = findResource(s"/resources/claimantDetails/${nino.value}-${header.extractRenewalReference.get}.json").getOrElse(throw new IllegalArgumentException("Resource not found!"))
+        val resource: String = findResource(s"/resources/claimantdetails/${nino.value}-${header.extractRenewalReference.get}.json").getOrElse(throw new IllegalArgumentException("Resource not found!"))
         val resp = Json.parse(resource).as[ClaimantDetails]
         Future.successful(resp)
       } catch {
-        case ex:Exception => Future.successful(ClaimantDetails(hasPartner = false, 1, "r", nino.value, None, availableForCOCAutomation = false, "some-app-id"))
+        case ex:Throwable => Future.successful(ClaimantDetails(hasPartner = false, 1, "r", nino.value, None, availableForCOCAutomation = false, "some-app-id"))
       }
     }
   }
