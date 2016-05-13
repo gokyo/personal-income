@@ -66,7 +66,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       })
   }
 
-  final def claimentDetails(nino: Nino) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+  final def claimantDetails(nino: Nino) = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
       errorWrapper(validateTcrAuthHeader() {

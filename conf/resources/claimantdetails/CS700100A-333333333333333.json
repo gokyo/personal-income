@@ -1,0 +1,8 @@
+{
+  "hasPartner": false,
+  "claimantNumber": 1,
+  "renewalFormType": "d2",
+  "mainApplicantNino": "CS700100A",
+  "availableForCOCAutomation": false,
+  "applicationId": "some-app-id"
+}

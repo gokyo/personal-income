@@ -16,10 +16,12 @@
 
 package uk.gov.hmrc.personalincome.services
 
+import com.ning.http.util.Base64
 import play.api.Logger
 import play.api.libs.json.Json
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
+import uk.gov.hmrc.personalincome.controllers.HeaderKeys
 import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.domain.userdata.TaxCreditSummary
 import uk.gov.hmrc.personalincome.utils.TaxSummaryHelper
@@ -28,6 +30,7 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.api.service._
 import uk.gov.hmrc.api.sandbox._
+import uk.gov.hmrc.personalincome.domain.TcrAuthCheck
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -128,12 +131,29 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
     })
   }
 
+  private def basicAuthString(encodedAuth:String): String = "Basic " + encodedAuth
+  private def encodedAuth(nino: Nino, tcrRenewalReference:RenewalReference): String = new String(Base64.encode(s"${nino.value}:${tcrRenewalReference.value}".getBytes))
+  private def getTcrAuthHeader[T](func: TcrAuthenticationToken => T)(implicit headerCarrier: HeaderCarrier): T = {
+    headerCarrier.extraHeaders.headOption match {
+      case Some((HeaderKeys.tcrAuthToken , t@TcrAuthCheck(_))) => func(TcrAuthenticationToken(t))
+      case _ => throw new IllegalArgumentException("Failed to locate tcrAuthToken")
+    }
+  }
+
   override def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]] = {
-    Future.successful(Some(TcrAuthenticationToken("some-token")))
+    Future.successful(Some(TcrAuthenticationToken(basicAuthString(encodedAuth(nino, tcrRenewalReference)))))
   }
 
   override def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimantDetails] = {
-    Future.successful(ClaimantDetails(hasPartner=false, 1, "renewalForm", nino.value, None, availableForCOCAutomation=false, "some-app-id"))
+    getTcrAuthHeader { header =>
+      try {
+        val resource: String = findResource(s"/resources/claimantDetails/${nino.value}-${header.extractRenewalReference.get}.json").getOrElse(throw new IllegalArgumentException("Resource not found!"))
+        val resp = Json.parse(resource).as[ClaimantDetails]
+        Future.successful(resp)
+      } catch {
+        case ex:Exception => Future.successful(ClaimantDetails(hasPartner = false, 1, "r", nino.value, None, availableForCOCAutomation = false, "some-app-id"))
+      }
+    }
   }
 
   override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Response] = {

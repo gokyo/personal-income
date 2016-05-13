@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.personalincome.controllers
 
+import com.ning.http.util.Base64
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, JsValue}
 import play.api.test.FakeRequest
@@ -138,7 +139,8 @@ trait Setup {
   val certainBenefits = CertainBenefits(false, false, false, false, false)
   val otherIncome = OtherIncome(Some(100), Some(false))
   val renewal = TcrRenewal(RenewalData(Some(incomeDetails), Some(incomeDetails), Some(certainBenefits)), None, Some(otherIncome), Some(otherIncome), false)
-  val renewalReference = RenewalReference("some-reference")
+  val renewalReferenceUnknown = RenewalReference("some-reference")
+  val renewalReference = RenewalReference("111111111111111")
   val weekly = "WEEKLY"
   val expectedNextDueDate = DateTime.parse("2015-07-16")
   val expectedPaymentCTC = Payment(140.12, expectedNextDueDate, Some(weekly))
@@ -183,9 +185,12 @@ trait Setup {
 
   val emptyRequestWithAcceptHeader = FakeRequest().withHeaders(acceptHeader)
 
-  val emptyRequestWithAcceptHeaderAndAuthHeader = FakeRequest().withHeaders(
+  def basicAuthString(encodedAuth:String): String = "Basic " + encodedAuth
+  def encodedAuth(nino: Nino, tcrRenewalReference:RenewalReference): String = new String(Base64.encode(s"${nino.value}:${tcrRenewalReference.value}".getBytes))
+
+  def emptyRequestWithAcceptHeaderAndAuthHeader(renewalsRef:RenewalReference) = FakeRequest().withHeaders(
     acceptHeader,
-    HeaderKeys.tcrAuthToken -> "some-auth-token")
+    HeaderKeys.tcrAuthToken -> basicAuthString(encodedAuth(nino, renewalsRef)))
 
   lazy val renewalBadRequest = fakeRequest(Json.toJson("Something Incorrect")).withHeaders(acceptHeader)
 
@@ -200,7 +205,7 @@ trait Setup {
   val authConnector = new TestAuthConnector(Some(nino))
   val taiConnector = new TestTaiConnector(taxSummaryDetails)
   val tcrAuthToken = TcrAuthenticationToken("some-auth-token")
-  val claimentDetails = ClaimantDetails(false, 1, "renewalForm", nino.value, None, false, "some-app-id")
+  val claimentDetails = ClaimantDetails(false, 1, "r", nino.value, None, false, "some-app-id")
   val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails)
   val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, children)
 

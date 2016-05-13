@@ -22,7 +22,7 @@ Return Claiment Details object
 
    **Required:**
  
-   `tcrAuthToken: Basic [TCRAuthToken]`
+   `tcrAuthToken: [TCRAuthToken]`
 
 * **Success Response:**
 
@@ -35,7 +35,7 @@ Return Claiment Details object
 {
   "hasPartner": false,
   "claimantNumber": 1,
-  "renewalFormType": "renewalForm",
+  "renewalFormType": "r",
   "mainApplicantNino": "CS700100A",
   "availableForCOCAutomation": false,
   "applicationId": "some-app-id"

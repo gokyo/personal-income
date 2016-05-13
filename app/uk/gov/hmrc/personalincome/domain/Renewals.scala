@@ -52,6 +52,17 @@ object TcrAuthenticationToken {
   implicit val formats = Json.format[TcrAuthenticationToken]
 }
 
+object TcrAuthCheck {
+  def unapply(token: String): Option[TcrAuthenticationToken] = {
+    val tcrToken = TcrAuthenticationToken(token)
+    if (tcrToken.extractNino.isDefined&&tcrToken.extractRenewalReference.isDefined) {
+      Some(tcrToken)
+    } else {
+      None
+    }
+  }
+}
+
 case class ClaimantDetails(hasPartner: Boolean,
                            claimantNumber: Int,
                            renewalFormType: String,

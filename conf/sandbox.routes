@@ -3,7 +3,7 @@ GET         /income/:nino/tax-summary/:year                         uk.gov.hmrc.
 
 GET         /income/:nino/tax-credits/:renewalReference/auth        uk.gov.hmrc.personalincome.controllers.SandboxPersonalIncomeController.getRenewalAuthentication(nino:uk.gov.hmrc.domain.Nino, renewalReference:uk.gov.hmrc.personalincome.domain.RenewalReference)
 
-GET         /income/:nino/tax-credits/claimant-details              uk.gov.hmrc.personalincome.controllers.SandboxPersonalIncomeController.claimentDetails(nino: uk.gov.hmrc.domain.Nino)
+GET         /income/:nino/tax-credits/claimant-details              uk.gov.hmrc.personalincome.controllers.SandboxPersonalIncomeController.claimantDetails(nino: uk.gov.hmrc.domain.Nino)
 
 POST        /income/:nino/tax-credits/renewal                       uk.gov.hmrc.personalincome.controllers.SandboxPersonalIncomeController.submitRenewal(nino: uk.gov.hmrc.domain.Nino)
 

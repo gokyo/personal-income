@@ -21,12 +21,11 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
-import uk.gov.hmrc.personalincome.domain.{BaseViewModel, TaxSummaryContainer, TaxSummaryDetails}
+import uk.gov.hmrc.personalincome.domain.{RenewalReference, BaseViewModel, TaxSummaryContainer, TaxSummaryDetails}
 import uk.gov.hmrc.personalincome.services.SandboxPersonalIncomeService._
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
 
-// TODO...add common functions to test result + json messages
 class TestPersonalIncomeSummarySpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {
 
   override lazy val fakeApplication = FakeApplication(additionalConfiguration = config)
@@ -132,52 +131,65 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
   "claimentDetails Live" should {
 
     "return claimentDetails successfully" in new Success {
-      val result = await(controller.claimentDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader))
+      val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(claimentDetails)
     }
 
     "Return unauthorized when authority record does not contain a NINO" in new AuthWithoutNino {
-      val result = await(controller.claimentDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader))
+      val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 401
     }
 
     "return 403 response when the tcr auth header is not supplied in the request" in new Success {
-      val result = await(controller.claimentDetails(nino)(emptyRequestWithAcceptHeader))
+      val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 403
       contentAsJson(result) shouldBe Json.toJson(ErrorNoAuthToken)
     }
 
     "return status code 406 when the Accept header is invalid" in new Success {
-      val  result = await(controller.claimentDetails(nino)(emptyRequest))
+      val  result = await(controller.claimantDetails(nino)(emptyRequest))
 
       status(result) shouldBe 406
     }
 
   }
 
-  "claimentDetails Sandbox" should {
+  "claimantDetails Sandbox" should {
 
-    "return claimentDetails successfully" in new Success {
-      val result = await(controller.claimentDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader))
+    "return claimantDetails successfully when an unknown bar code reference is supplied" in new SandboxSuccess {
+      val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReferenceUnknown)))
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(claimentDetails)
     }
 
-    "return 403 response when the tcr auth header is not supplied in the request" in new Success {
-      val result = await(controller.claimentDetails(nino)(emptyRequestWithAcceptHeader))
+    "return claimantDetails successfully when a known bar code reference is supplied" in new SandboxSuccess {
+
+      case class TestData(barcode:String, renewalFormType:String, hasPartner:Boolean=false)
+      val testData = Seq(TestData("111111111111111", "r"),TestData("222222222222222", "d"),TestData("333333333333333", "d2"),TestData("444444444444444", "d", true),TestData("555555555555555", "d2", true))
+
+      testData.map( item => {
+        val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(RenewalReference(item.barcode))))
+        status(result) shouldBe 200
+        contentAsJson(result) shouldBe Json.toJson(claimentDetails.copy(hasPartner=item.hasPartner, renewalFormType=item.renewalFormType))
+      })
+
+    }
+
+    "return 403 response when the tcr auth header is not supplied in the request" in new SandboxSuccess {
+      val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 403
 
       contentAsJson(result) shouldBe Json.toJson(ErrorNoAuthToken)
     }
 
-    "return status code 406 when the Accept header is invalid" in new Success {
-      val  result = await(controller.claimentDetails(nino)(emptyRequest))
+    "return status code 406 when the Accept header is invalid" in new SandboxSuccess {
+      val  result = await(controller.claimantDetails(nino)(emptyRequest))
 
       status(result) shouldBe 406
     }
@@ -252,7 +264,7 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
   "tax credits summary live" should {
 
     "process the request successfully" in new Success {
-      val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader))
+      val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(taxRenewalSummary)
@@ -276,7 +288,7 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
     // TODO...add to all actions! This must be defined in an IT:test. Here as a reminder only to add!
     "return the sandbox result when the X-MOBILE-USER-ID is supplied" in new Success {
       val resource = findResource(s"/resources/taxcreditsummary/${nino.value}.json")
-      val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader))
+      val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.parse(resource.get)
