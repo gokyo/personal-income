@@ -390,3 +390,6 @@ tai.iabdSummary.employmentBenefit.type-53=Travel and subsistence for {0}
 tai.iabdSummary.employmentBenefit.type-54=Vouchers and credit cards for {0}
 tai.iabdSummary.employmentBenefit.type-117=Non-Cash benefit for {0}
 tai.yourTaxableIncome.taxYear={0} to {1}
+
+tai.income.statePension.title=State Pension or other state benefits
+tai.iabdSummary.description-state-pension=The amount of State Pension or other State Benefits you receive.

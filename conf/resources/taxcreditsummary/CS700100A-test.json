@@ -12,28 +12,28 @@
     }
   },
   "personalDetails": {
-    "forename": "Nuala",
-    "surname": "O'Shea",
+    "forename": "firstname",
+    "surname": "surname",
     "nino": "CS700100A",
     "address": {
-      "addressLine1": "19 Bushey Hall Road",
-      "addressLine2": "Bushey",
-      "addressLine3": "Watford",
-      "addressLine4": "Hertfordshire",
-      "postCode": "WD23 2EE"
+      "addressLine1": "addressLine1",
+      "addressLine2": "addressLine2",
+      "addressLine3": "addressLine3",
+      "addressLine4": "addressLine4",
+      "postCode": "postcode"
     }
   },
   "partnerDetails": {
-    "forename": "Frederick",
-    "otherForenames": "Tarquin",
-    "surname": "Hunter-Smith",
+    "forename": "forename",
+    "otherForenames": "othernames",
+    "surname": "surname",
     "nino": "CS700100A",
     "address": {
-      "addressLine1": "19 Bushey Hall Road",
-      "addressLine2": "Bushey",
-      "addressLine3": "Watford",
-      "addressLine4": "Hertfordshire",
-      "postCode": "WD23 2EE"
+      "addressLine1": "addressLine1",
+      "addressLine2": "addressLine2",
+      "addressLine3": "addressLine3",
+      "addressLine4": "addressLine4",
+      "postCode": "postcode"
     }
   },
   "children": {

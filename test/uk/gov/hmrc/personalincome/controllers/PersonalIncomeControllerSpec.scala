@@ -287,7 +287,7 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
 
     // TODO...add to all actions! This must be defined in an IT:test. Here as a reminder only to add!
     "return the sandbox result when the X-MOBILE-USER-ID is supplied" in new Success {
-      val resource = findResource(s"/resources/taxcreditsummary/${nino.value}.json")
+      val resource = findResource(s"/resources/taxcreditsummary/${nino.value}-test.json")
       val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 200

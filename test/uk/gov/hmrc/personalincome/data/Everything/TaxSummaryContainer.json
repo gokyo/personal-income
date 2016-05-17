@@ -1823,9 +1823,9 @@
         "c": "The amount of Incapacity Benefit you received."
       },
       {
-        "a": "tai.income.statePension.title",
+        "a": "State Pension or other state benefits",
         "b": "100",
-        "c": "tai.iabdSummary.description-state-pension"
+        "c": "The amount of State Pension or other State Benefits you receive."
       }
     ],
     "taxableBenefitsTotal": 400,

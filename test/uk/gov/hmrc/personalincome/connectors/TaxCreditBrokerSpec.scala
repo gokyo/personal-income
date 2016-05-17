@@ -49,14 +49,14 @@ class TaxCreditBrokerSpec extends UnitSpec with ScalaFutures {
 
     val nino = Nino( "KM569110B")
     val address = Address("addressLine1", "addressLine2", Some("addressLine3"), Some("addressLine4"), "postcode")
-    val personalDetails = PersonalDetails("firstname",
-                                          "surname",
+    val personalDetails = PersonalDetails("Nuala",
+                                          "O'Shea",
                                           TaxCreditsNino(nino.value),
                                           address,
                                           None, None, None, None)
-    val partnerDetails = PartnerDetails("forename",
-                                        Some("othernames"),
-                                        "surname",
+    val partnerDetails = PartnerDetails("Frederick",
+                                        Some("Tarquin"),
+                                        "Hunter-Smith",
                                         TaxCreditsNino(nino.value),
                                         address,
                                         None,

@@ -151,7 +151,7 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
         val resp = Json.parse(resource).as[ClaimantDetails]
         Future.successful(resp)
       } catch {
-        case ex:Throwable => Future.successful(ClaimantDetails(hasPartner = false, 1, "r", nino.value, None, availableForCOCAutomation = false, "some-app-id"))
+        case ex:Exception => Future.successful(ClaimantDetails(hasPartner = false, 1, "r", nino.value, None, availableForCOCAutomation = false, "some-app-id"))
       }
     }
   }
