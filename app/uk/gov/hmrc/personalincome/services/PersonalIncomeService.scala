@@ -18,7 +18,7 @@ package uk.gov.hmrc.personalincome.services
 
 import com.ning.http.util.Base64
 import play.api.Logger
-import play.api.libs.json.Json
+import play.api.libs.json.{JsResult, JsError, Json}
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.HeaderKeys
@@ -127,7 +127,15 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
     val resource: Option[String] = findResource(s"/resources/getsummary/${nino.value}_$year.json")
 
     Future.successful(resource.fold(TaxSummaryContainer(TaxSummaryDetails(nino.value, year), BaseViewModel(estimatedIncomeTax=0), None, None, None)) { found =>
-      Json.parse(found).as[TaxSummaryContainer]
+      Json.parse(found).validate[TaxSummaryContainer].fold(
+        error => {
+          Logger.error("Failed to parse summary " + JsError.toFlatJson(error))
+          throw new Exception("Failed to validate JSON data for summary!")
+        },
+        result => {
+          result
+        }
+      )
     })
   }
 

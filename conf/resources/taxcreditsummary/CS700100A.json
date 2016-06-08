@@ -1,12 +1,12 @@
 {
   "paymentSummary": {
     "workingTaxCredit": {
-      "amount": 160.34,
+      "amount": 86.63,
       "paymentDate": 1437004800000,
       "paymentFrequency": "WEEKLY"
     },
     "childTaxCredit": {
-      "amount": 140.12,
+      "amount": 51.76,
       "paymentDate": 1437004800000,
       "paymentFrequency": "WEEKLY"
     }
