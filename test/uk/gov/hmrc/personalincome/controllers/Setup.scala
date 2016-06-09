@@ -23,20 +23,20 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
-import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckAccessOff, AccountAccessControlWithHeaderCheck, AccountAccessControl}
+import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck, AccountAccessControl}
 import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.domain.userdata._
 import uk.gov.hmrc.personalincome.services.{PersonalIncomeService, SandboxPersonalIncomeService, LivePersonalIncomeService}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.audit.http.connector.{AuditResult, AuditConnector}
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
-import uk.gov.hmrc.play.http.{Upstream4xxResponse, HeaderCarrier, HttpPost, HttpGet}
+import uk.gov.hmrc.play.http._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
-class TestTaiConnector(taxSummaryDetails:TaxSummaryDetails) extends TaiConnector {
+class TestTaiConnector(taxSummaryDetails:TaxSummaryDetails) extends TaiTestConnector {
   override def http: HttpGet with HttpPost = ???
 
   override def serviceUrl: String = ???
@@ -46,7 +46,7 @@ class TestTaiConnector(taxSummaryDetails:TaxSummaryDetails) extends TaiConnector
   }
 }
 
-class TestNtcConnector(response:Response, tcrAuthToken:Option[TcrAuthenticationToken], claimantDetails:ClaimantDetails) extends NtcConnector {
+class TestNtcConnector(response:Response, tcrAuthToken:Option[TcrAuthenticationToken], claimantDetails:ClaimantDetails) extends NtcTestConnector {
   override def http: HttpGet with HttpPost = ???
 
   override def serviceUrl: String = ???
@@ -73,28 +73,29 @@ class TestAuthConnector(nino: Option[Nino]) extends AuthConnector {
 
   override def http: HttpGet = ???
 
-  override def accounts()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Accounts] = Future(Accounts(nino, None))
+  override def accounts()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Accounts] = Future(Accounts(nino, None, false, false))
 
   override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future(Unit)
 }
 
 class TestTaxCreditBrokerConnector(payment: PaymentSummary, personal: PersonalDetails, partner: PartnerDetails,
-                                    children: Children) extends TaxCreditsBrokerConnector {
-  def http: HttpGet = ???
-
-  def serviceUrl: String = ???
-
-  def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(payment)
-  def getPersonalDetails(nino:TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(personal)
-  def getPartnerDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(Some(partner))
-  def getChildren(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(children)
+                                     children: Children) extends TaxCreditsBrokerTestConnector {
+  override def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(payment)
+  override def getPersonalDetails(nino:TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(personal)
+  override def getPartnerDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(Some(partner))
+  override def getChildren(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(children)
 }
 
-
-class TestPersonalIncomeService(testTaiConnector:TestTaiConnector, testAuthConnector:TestAuthConnector, testNtcConnector:NtcConnector, testTaxCreditBrokerConnector:TaxCreditsBrokerConnector, testAuditConnector: AuditConnector) extends LivePersonalIncomeService {
+class TestPersonalIncomeService(testTaiConnector:TestTaiConnector,
+                                testAuthConnector:TestAuthConnector,
+                                testNtcConnector:NtcConnector,
+                                testTaxCreditBrokerConnector:TaxCreditsBrokerConnector,
+                                testAuditConnector: uk.gov.hmrc.play.audit.http.connector.AuditConnector) extends LivePersonalIncomeService {
   var saveDetails:Map[String, String]=Map.empty
 
-  override def audit(service: String, details: Map[String, String])(implicit hc: HeaderCarrier, ec : ExecutionContext) = {
+
+
+  override protected def audit(service: String, details: Map[String, String])(implicit hc: HeaderCarrier, ec : ExecutionContext) = {
     saveDetails=details
     Future.successful(AuditResult.Success)
   }
@@ -131,6 +132,9 @@ trait Setup {
                         benefitsTotal = 0,
                         taxableBenefitsTotal=0
                         )
+
+  val lowCl = Json.parse("""{"code":"LOW_CONFIDENCE_LEVEL","message":"Confidence Level on account does not allow access"}""")
+  val noNinoOnAccont = Json.parse("""{"code":"UNAUTHORIZED","message":"NINO does not exist on account"}""")
 
   val taxSummaryContainer = TaxSummaryContainer(TaxSummaryDetails(nino.value, 1), BaseViewModel(estimatedIncomeTax=0), None, Some(taxableIncome), None)
   val taxSummaryContainerGK = TaxSummaryContainer(TaxSummaryDetails(nino.value, 1, gateKeeper=Some(GateKeeper(gateKeepered=true, gateKeeperResults=List.empty))), BaseViewModel(estimatedIncomeTax=0), None, None, Some(GateKeeperDetails(TotalLiability(totalTax=0), DecreasesTax(total=0), increasesTax=IncreasesTax(total=0))))
@@ -214,7 +218,7 @@ trait Setup {
   val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
 
   val testSandboxPersonalIncomeService = SandboxPersonalIncomeService
-  val sandboxCompositeAction = AccountAccessControlCheckAccessOff
+  val sandboxCompositeAction = AccountAccessControlCheckOff
 }
 
 trait Success extends Setup {
@@ -234,10 +238,34 @@ trait GateKeeper extends Setup {
   }
 }
 
+trait AuthWithLowCL extends Setup {
+  val routeToIv = true
+  val routeToTwoFactor = false
+
+  override val authConnector = new TestAuthConnector(None) {
+    lazy val exception = new AccountWithLowCL("Forbidden to access since low CL")
+
+    override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(exception)
+  }
+
+  override val testAccess = new TestAccessCheck(authConnector)
+  override val taiConnector = new TestTaiConnector(taxSummaryDetails)
+  override val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
+  override val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+  }
+
+}
+
 trait AuthWithoutNino extends Setup {
 
   override val authConnector =  new TestAuthConnector(None) {
-    override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(new Upstream4xxResponse("Error", 401, 401))
+    lazy val exception = new NinoNotFoundOnAccount("NINO not found!")
+
+    override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(exception)
   }
 
   override val testAccess = new TestAccessCheck(authConnector)

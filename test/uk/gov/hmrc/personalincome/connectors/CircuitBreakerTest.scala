@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.personalincome.domain
+package uk.gov.hmrc.personalincome.connectors
 
-import play.api.libs.json.Json
-import uk.gov.hmrc.domain.{Nino, SaUtr}
+import uk.gov.hmrc.play.test.UnitSpec
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
+import org.scalatest.concurrent.ScalaFutures
 
-case class CustomerProfile(accounts: Accounts, personalDetails: PersonDetails)
+trait CircuitBreakerTest {
 
-object CustomerProfile {
-  implicit val formats = {
+  self: UnitSpec with ScalaFutures  =>
 
-    Json.format[CustomerProfile]
-  }
-
-  def create(accounts: () => Future[Accounts], personalDetails: (Option[Nino]) => Future[PersonDetails])(implicit ec : ExecutionContext) : Future[CustomerProfile] = {
-    for {
-      acc <- accounts()
-      pd <- personalDetails(acc.nino)
-    } yield CustomerProfile(acc, pd)
+  def executeCB(func: => Future[Any]) = {
+    1 to 5 foreach { _ =>
+      func.failed.futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream5xxResponse]
+    }
+    func.failed.futureValue shouldBe an[uk.gov.hmrc.circuitbreaker.UnhealthyServiceException]
   }
 }

@@ -18,8 +18,8 @@ package uk.gov.hmrc.personalincome.controllers
 
 
 import uk.gov.hmrc.api.controllers.HeaderValidator
-import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckAccessOff, AccountAccessControlWithHeaderCheck}
-import uk.gov.hmrc.personalincome.domain.{TaxCreditsSubmissions, TaxCreditsControl, TaxCreditsSubmissionControl, TaxCreditsSubmissionControlConfig}
+import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
+import uk.gov.hmrc.personalincome.domain.{TaxCreditsSubmissions, TaxCreditsControl, TaxCreditsSubmissionControl}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.time.DateTimeUtils
 
@@ -54,7 +54,7 @@ object SandboxServiceStateController extends ServiceStateController with DateTim
   override val taxCreditsSubmissionControlConfig = new TaxCreditsControl {
     override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true)
   }
-  override val accessControl = AccountAccessControlCheckAccessOff
+  override val accessControl = AccountAccessControlCheckOff
 }
 
 object LiveServiceStateController extends ServiceStateController {

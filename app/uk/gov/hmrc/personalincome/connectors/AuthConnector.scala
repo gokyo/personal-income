@@ -18,18 +18,21 @@ package uk.gov.hmrc.personalincome.connectors
 
 import uk.gov.hmrc.personalincome.config.WSHttp
 import uk.gov.hmrc.personalincome.domain.Accounts
-import play.api.{Logger, Play}
+import play.api.Play
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{ForbiddenException, HeaderCarrier, HttpGet, UnauthorizedException}
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet}
 
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.domain.{Nino, SaUtr}
+import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
+
+
+class NinoNotFoundOnAccount(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
+class AccountWithLowCL(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
+class AccountWithWeakCredStrength(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
 
 trait AuthConnector {
-
-  import uk.gov.hmrc.domain.{Nino, SaUtr}
-  import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
 
   val serviceUrl: String
 
@@ -37,27 +40,17 @@ trait AuthConnector {
 
   def serviceConfidenceLevel: ConfidenceLevel
 
+  val credStrengthStrong = "strong"
+
   def accounts()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Accounts] = {
     http.GET(s"$serviceUrl/auth/authority") map {
       resp =>
         val json = resp.json
-        confirmConfiendenceLevel(json)
-
         val accounts = json \ "accounts"
-
         val utr = (accounts \ "sa" \ "utr").asOpt[String]
-
         val nino = (accounts \ "paye" \ "nino").asOpt[String]
 
-        val acc = Accounts(nino.map(Nino(_)), utr.map(SaUtr(_)))
-        acc match {
-          case Accounts(None, _) => {
-            //TODO add a metric for this ????
-            Logger.warn("User without a NINO has accessed the service this should not be possible")
-            throw new UnauthorizedException("The user must have a National Insurance Number")
-          }
-          case _ => acc
-        }
+        Accounts(nino.map(Nino(_)), utr.map(SaUtr(_)), upliftRequired(json), twoFactorRequired(json))
     }
   }
 
@@ -68,17 +61,31 @@ trait AuthConnector {
         confirmConfiendenceLevel(json)
 
         if((json \ "accounts" \ "paye" \ "nino").asOpt[String].isEmpty)
-          throw new UnauthorizedException("The user must have a National Insurance Number to access this service")
+          throw new NinoNotFoundOnAccount("The user must have a National Insurance Number")
       }
     }
   }
 
-  private def confirmConfiendenceLevel(jsValue : JsValue) = {
-    val usersCL = (jsValue \ "confidenceLevel").as[Int]
-    if (serviceConfidenceLevel.level > usersCL) {
-      throw new ForbiddenException("The user does not have sufficient permissions to access this service")
+  private def confirmConfiendenceLevel(jsValue : JsValue) =
+    if (upliftRequired(jsValue)) {
+      throw new AccountWithLowCL("The user does not have sufficient CL permissions to access this service")
     }
+
+  private def upliftRequired(jsValue : JsValue) = {
+    val usersCL = (jsValue \ "confidenceLevel").as[Int]
+    serviceConfidenceLevel.level > usersCL
   }
+
+  private def confirmCredStrength(jsValue : JsValue) =
+    if (twoFactorRequired(jsValue)) {
+      throw new AccountWithWeakCredStrength("The user does not have sufficient credential strength permissions to access this service")
+    }
+
+  private def twoFactorRequired(jsValue : JsValue) = {
+    val credStrength = (jsValue \ "credentialStrength").as[String]
+    credStrength != credStrengthStrong
+  }
+
 }
 
 object AuthConnector extends AuthConnector with ServicesConfig {
