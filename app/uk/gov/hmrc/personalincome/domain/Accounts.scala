@@ -19,20 +19,11 @@ package uk.gov.hmrc.personalincome.domain
 import play.api.libs.json.Json
 import uk.gov.hmrc.domain.{Nino, SaUtr}
 
-import scala.concurrent.{ExecutionContext, Future}
+case class Accounts(nino: Option[Nino], saUtr: Option[SaUtr], routeToIV : Boolean, routeToTwoFactor: Boolean)
 
-case class CustomerProfile(accounts: Accounts, personalDetails: PersonDetails)
+object Accounts {
+  implicit val accountsFmt = {
 
-object CustomerProfile {
-  implicit val formats = {
-
-    Json.format[CustomerProfile]
-  }
-
-  def create(accounts: () => Future[Accounts], personalDetails: (Option[Nino]) => Future[PersonDetails])(implicit ec : ExecutionContext) : Future[CustomerProfile] = {
-    for {
-      acc <- accounts()
-      pd <- personalDetails(acc.nino)
-    } yield CustomerProfile(acc, pd)
+    Json.format[Accounts]
   }
 }

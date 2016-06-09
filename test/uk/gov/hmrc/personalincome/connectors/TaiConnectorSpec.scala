@@ -16,21 +16,30 @@
 
 package uk.gov.hmrc.personalincome.connectors
 
+import play.api.test.FakeApplication
+import uk.gov.hmrc.personalincome.config.ServicesCircuitBreaker
+import uk.gov.hmrc.personalincome.controllers.StubApplicationConfiguration
 import uk.gov.hmrc.personalincome.domain.TaxSummaryDetails
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.hooks.HttpHook
 import uk.gov.hmrc.play.http.{HeaderCarrier, _}
-import uk.gov.hmrc.play.test.UnitSpec
-
+import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class TaiConnectorSpec
-  extends UnitSpec
-          with ScalaFutures {
+class TaiTestConnector extends TaiConnector with ServicesConfig with ServicesCircuitBreaker {
+  override def http: HttpGet with HttpPost = ???
 
-  import scala.concurrent.ExecutionContext.Implicits.global
+  override def serviceUrl: String = "some-service-url"
+}
+
+class TaiConnectorSpec
+  extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration with CircuitBreakerTest {
+
+  override lazy val fakeApplication = FakeApplication(additionalConfiguration = config)
 
   private trait Setup {
 
@@ -42,10 +51,9 @@ class TaiConnectorSpec
     lazy val http500Response = Future.failed(new Upstream5xxResponse("Error", 500, 500))
     lazy val http400Response = Future.failed(new BadRequestException("bad request"))
     lazy val http200Response = Future.successful(HttpResponse(200, Some(Json.toJson(taxSummary))))
-
     lazy val response: Future[HttpResponse] = http400Response
 
-    val connector = new TaiConnector {
+    val connector = new TaiTestConnector {
       override lazy val serviceUrl = "someUrl"
       override lazy val http: HttpGet with HttpPost = new HttpGet with HttpPost {
         override val hooks: Seq[HttpHook] = NoneRequired
@@ -82,6 +90,12 @@ class TaiConnectorSpec
       override lazy val response = http200Response
       await(connector.taxSummary(nino, 1)) shouldBe taxSummary
     }
+
+    "circuit breaker configuration should be applied and unhealthy service exception will kick in after 5th failed call" in new Setup {
+      override lazy val response = http500Response
+      executeCB(connector.taxSummary(nino, 1))
+    }
+
   }
 
 }

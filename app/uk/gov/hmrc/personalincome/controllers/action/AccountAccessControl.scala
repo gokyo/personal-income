@@ -16,18 +16,19 @@
 
 package uk.gov.hmrc.personalincome.controllers.action
 
+import uk.gov.hmrc.api.controllers._
+import uk.gov.hmrc.personalincome.connectors.{AccountWithWeakCredStrength, AccountWithLowCL, NinoNotFoundOnAccount, AuthConnector}
+import uk.gov.hmrc.personalincome.controllers.ErrorUnauthorizedNoNino
+import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ActionBuilder, Request, Result, Results}
-import uk.gov.hmrc.api.controllers.{ErrorAcceptHeaderInvalid, HeaderValidator}
-import uk.gov.hmrc.api.controllers.{HeaderValidator, ErrorAcceptHeaderInvalid}
-import uk.gov.hmrc.personalincome.connectors.AuthConnector
-import uk.gov.hmrc.personalincome.controllers.ErrorUnauthorizedNoNino
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
 import uk.gov.hmrc.play.http._
 import uk.gov.hmrc.play.http.hooks.HttpHook
-import uk.gov.hmrc.api.controllers._
-
 import scala.concurrent.Future
+
+case object ErrorUnauthorizedMicroService extends ErrorResponse(401, "UNAUTHORIZED", "Unauthorized to access resource")
+case object ErrorUnauthorizedWeakCredStrength extends ErrorResponse(401, "WEAK_CRED_STRENGTH", "Credential Strength on account does not allow access")
 
 
 trait AccountAccessControl extends ActionBuilder[Request] with Results {
@@ -43,12 +44,23 @@ trait AccountAccessControl extends ActionBuilder[Request] with Results {
       _ =>
         block(request)
     }.recover {
-      case ex:uk.gov.hmrc.play.http.Upstream4xxResponse => Unauthorized(Json.toJson(ErrorUnauthorizedNoNino))
+      case ex: uk.gov.hmrc.play.http.Upstream4xxResponse =>
+        Logger.info("Unauthorized! Failed to grant access since 4xx response!")
+        Unauthorized(Json.toJson(ErrorUnauthorizedMicroService))
 
-      case ex:ForbiddenException => Unauthorized(Json.toJson(ErrorUnauthorizedLowCL))
+      case ex: NinoNotFoundOnAccount =>
+        Logger.info("Unauthorized! NINO not found on account!")
+        Unauthorized(Json.toJson(ErrorUnauthorizedNoNino))
+
+      case ex: AccountWithLowCL =>
+        Logger.info("Unauthorized! Account with low CL!")
+        Unauthorized(Json.toJson(ErrorUnauthorizedLowCL))
+
+      case ex: AccountWithWeakCredStrength =>
+        Logger.info("Unauthorized! Account with weak cred strength!")
+        Unauthorized(Json.toJson(ErrorUnauthorizedWeakCredStrength))
     }
   }
-
 }
 
 trait AccountAccessControlWithHeaderCheck extends HeaderValidator {
@@ -79,22 +91,23 @@ object AccountAccessControlWithHeaderCheck extends AccountAccessControlWithHeade
   val accessControl: AccountAccessControl = AccountAccessControl
 }
 
-object AccountAccessControlSandbox extends AccountAccessControl {
-    val authConnector: AuthConnector = new AuthConnector {
-      override val serviceUrl: String = "NO SERVICE"
+object AccountAccessControlOff extends AccountAccessControl {
+  val authConnector: AuthConnector = new AuthConnector {
+    override val serviceUrl: String = "NO SERVICE"
 
-      override def serviceConfidenceLevel: ConfidenceLevel = ConfidenceLevel.L0
+    override def serviceConfidenceLevel: ConfidenceLevel = ConfidenceLevel.L0
 
-      override def http: HttpGet = new HttpGet {
-        override protected def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = Future.failed(new IllegalArgumentException("Sandbox mode!"))
-        override val hooks: Seq[HttpHook] = NoneRequired
-      }
+    override def http: HttpGet = new HttpGet {
+      override protected def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = Future.failed(new IllegalArgumentException("Sandbox mode!"))
+      override val hooks: Seq[HttpHook] = NoneRequired
     }
+  }
 }
 
-object AccountAccessControlCheckAccessOff extends AccountAccessControlWithHeaderCheck {
+object AccountAccessControlCheckOff extends AccountAccessControlWithHeaderCheck {
   override val checkAccess=false
 
-  val accessControl: AccountAccessControl = AccountAccessControlSandbox
+  val accessControl: AccountAccessControl = AccountAccessControlOff
 }
+
 

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.personalincome.connectors
 
-import uk.gov.hmrc.personalincome.config.WSHttp
+import uk.gov.hmrc.personalincome.config.{ServicesCircuitBreaker, WSHttp}
 import uk.gov.hmrc.personalincome.domain.TaxSummaryDetails
 import play.api.Logger
 import uk.gov.hmrc.domain.Nino
@@ -27,6 +27,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 trait TaiConnector {
+  this: ServicesCircuitBreaker =>
+
+  val externalServiceName = "tai"
+
   def http: HttpGet with HttpPost
 
   def serviceUrl: String
@@ -35,11 +39,11 @@ trait TaiConnector {
 
   def taxSummary(nino : Nino, year : Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[TaxSummaryDetails] = {
     Logger.debug(s"TaxForCitizens:Frontend - connect to /$nino/tax-summary-full/$year ")
-    http.GET[TaxSummaryDetails](url = url(s"/tai/$nino/tax-summary-full/$year"))
+    withCircuitBreaker(http.GET[TaxSummaryDetails](url = url(s"/tai/$nino/tax-summary-full/$year")))
   }
 }
 
-object TaiConnector extends TaiConnector with ServicesConfig {
+object TaiConnector extends TaiConnector with ServicesConfig with ServicesCircuitBreaker {
   lazy val serviceUrl = baseUrl("tai")
   override def http = WSHttp
 }

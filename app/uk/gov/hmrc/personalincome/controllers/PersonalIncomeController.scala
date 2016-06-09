@@ -18,7 +18,7 @@ package uk.gov.hmrc.personalincome.controllers
 
 import play.api.mvc.{Request, BodyParsers}
 import uk.gov.hmrc.personalincome.connectors.Error
-import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlWithHeaderCheck, AccountAccessControlCheckAccessOff}
+import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlWithHeaderCheck, AccountAccessControlCheckOff}
 import play.api.libs.json.{JsError, Json}
 import uk.gov.hmrc.personalincome.domain.{TcrRenewal, RenewalReference}
 import uk.gov.hmrc.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService, SandboxPersonalIncomeService}
@@ -119,7 +119,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
 
 object SandboxPersonalIncomeController extends PersonalIncomeController {
   override val service = SandboxPersonalIncomeService
-  override val accessControl = AccountAccessControlCheckAccessOff
+  override val accessControl = AccountAccessControlCheckOff
 }
 
 object LivePersonalIncomeController extends PersonalIncomeController {

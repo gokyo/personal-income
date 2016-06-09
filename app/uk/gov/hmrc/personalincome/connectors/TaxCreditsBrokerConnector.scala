@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.personalincome.connectors
 
-import uk.gov.hmrc.personalincome.config.WSHttp
+import uk.gov.hmrc.personalincome.config.{ServicesCircuitBreaker, WSHttp}
 import uk.gov.hmrc.personalincome.domain.TaxCreditsNino
 import uk.gov.hmrc.personalincome.domain.userdata.{Children, PartnerDetails, PaymentSummary, PersonalDetails}
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -26,37 +26,36 @@ import uk.gov.hmrc.play.http.HttpGet
 import scala.concurrent.{ExecutionContext, Future}
 
 trait TaxCreditsBrokerConnector {
+  this: ServicesCircuitBreaker =>
+
+  val externalServiceName = "tax-credits-broker"
+
   def http: HttpGet
 
   def serviceUrl: String
 
-  def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[PaymentSummary]
-  def getPersonalDetails(nino:TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[PersonalDetails]
-  def getPartnerDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Option[PartnerDetails]]
-  def getChildren(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Children]
+  def url(nino:TaxCreditsNino, route:String) = s"$serviceUrl/tcs/${nino.value}/$route"
+
+  def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[PaymentSummary] = {
+    withCircuitBreaker((http.GET[PaymentSummary](url(nino, "payment-summary"))))
+  }
+
+  def getPersonalDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[PersonalDetails] = {
+    withCircuitBreaker(http.GET[PersonalDetails](url(nino, "personal-details")))
+  }
+
+  def getPartnerDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Option[PartnerDetails]] = {
+    withCircuitBreaker(http.GET[Option[PartnerDetails]](url(nino, "partner-details")))
+  }
+
+  def getChildren(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Children] = {
+    withCircuitBreaker(http.GET[Children](url(nino, "children")))
+  }
+
 }
 
-object TaxCreditsBrokerConnector extends TaxCreditsBrokerConnector with ServicesConfig {
+object TaxCreditsBrokerConnector extends TaxCreditsBrokerConnector with ServicesConfig with ServicesCircuitBreaker {
   override def http:  WSHttp.type = WSHttp
 
   lazy val serviceUrl = baseUrl("tax-credits-broker")
-
-  def url(nino:TaxCreditsNino, route:String) = s"$serviceUrl/tcs/${nino.value}/$route"
-
-  override def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[PaymentSummary] = {
-    http.GET[PaymentSummary](url(nino, "payment-summary"))
-  }
-
-  override def getPersonalDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[PersonalDetails] = {
-    http.GET[PersonalDetails](url(nino, "personal-details"))
-  }
-
-  override def getPartnerDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Option[PartnerDetails]] = {
-    http.GET[Option[PartnerDetails]](url(nino, "partner-details"))
-  }
-
-  override def getChildren(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Children] = {
-    http.GET[Children](url(nino, "children"))
-  }
-
 }

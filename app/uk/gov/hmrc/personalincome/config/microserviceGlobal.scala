@@ -56,18 +56,6 @@ object MicroserviceLoggingFilter extends LoggingFilter {
 }
 
 object MicroserviceAuthFilter extends AuthorisationFilter {
-  override def apply(next: (RequestHeader) => Future[Result])(rh: RequestHeader): Future[Result] = {
-    super.apply(next)(rh) map { res =>
-      res.header.status
-      match {
-
-        case 401 => Status(ErrorUnauthorized.httpStatusCode)(Json.toJson(ErrorUnauthorized))
-
-        case _ => res
-      }
-    }
-  }
-
   override lazy val authParamsConfig = AuthParamsControllerConfiguration
   override lazy val authConnector = MicroserviceAuthConnector
 
