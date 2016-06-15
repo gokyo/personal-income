@@ -62,7 +62,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       errorWrapper(
         service.authenticateRenewal(nino, renewalReference).map {
           case Some(authToken) => Ok(Json.toJson(authToken))
-          case _ => InternalServerError(Json.toJson(ErrorwithNtcRenewalAuthentication))
+          case _ => NotFound("Renewal not found!")
       })
   }
 

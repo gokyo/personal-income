@@ -56,6 +56,7 @@ class NtcConnectorSpec
 
       lazy val http500Response = Future.failed(new Upstream5xxResponse("Error", 500, 500))
       lazy val http400Response = Future.failed(new BadRequestException("bad request"))
+      lazy val http404Response = Future.successful(HttpResponse(404))
       lazy val http204Response = Future.successful(HttpResponse(204))
       lazy val http200AuthenticateResponse = Future.successful(HttpResponse(200, Some(Json.toJson(tcrAuthToken))))
       lazy val http200ClaimantDetailsResponse = Future.successful(HttpResponse(200, Some(Json.toJson(claimentDetails))))
@@ -82,11 +83,16 @@ class NtcConnectorSpec
 
     "authenticate tcsConnector" should {
 
-      "throw BadRequestException when a 400 response is returned" in new Setup {
+      "return None when 404 returned" in new Setup {
+        override lazy val response = http404Response
+        val result: Option[TcrAuthenticationToken] = await(connector.authenticateRenewal(taxCreditNino, renewalReference))
+        result shouldBe None
+      }
+
+      "return None when 400 returned" in new Setup {
         override lazy val response = http400Response
-        intercept[BadRequestException] {
-          await(connector.authenticateRenewal(taxCreditNino, renewalReference))
-        }
+        val result: Option[TcrAuthenticationToken] = await(connector.authenticateRenewal(taxCreditNino, renewalReference))
+        result shouldBe None
       }
 
       "throw Upstream5xxResponse when a 500 response is returned" in new Setup {

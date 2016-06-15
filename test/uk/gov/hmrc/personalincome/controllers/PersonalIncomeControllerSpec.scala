@@ -119,7 +119,13 @@ class TestPersonalIncomeRenewalAuthenticateSpec extends UnitSpec with WithFakeAp
       contentAsJson(result) shouldBe Json.toJson(tcrAuthToken)
     }
 
-    "Return unauthorized when authority record does not contain a NINO" in new AuthWithoutNino {
+    "return 404 response when hod returns 4xx status" in new Ntc400Result {
+      val  result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 404
+    }
+
+    "return unauthorized when authority record does not contain a NINO" in new AuthWithoutNino {
       val  result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 401

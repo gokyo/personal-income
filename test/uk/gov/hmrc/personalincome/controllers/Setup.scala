@@ -28,7 +28,7 @@ import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.domain.userdata._
 import uk.gov.hmrc.personalincome.services.{PersonalIncomeService, SandboxPersonalIncomeService, LivePersonalIncomeService}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.play.audit.http.connector.{AuditResult, AuditConnector}
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
 import uk.gov.hmrc.play.http._
 
@@ -211,6 +211,7 @@ trait Setup {
   val tcrAuthToken = TcrAuthenticationToken("some-auth-token")
   val claimentDetails = ClaimantDetails(false, 1, "r", nino.value, None, false, "some-app-id")
   val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails)
+  val ntcConnector400 = new TestNtcConnector(Success(200), None, claimentDetails)
   val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, children)
 
   val testAccess = new TestAccessCheck(authConnector)
@@ -278,6 +279,17 @@ trait AuthWithoutNino extends Setup {
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
   }
 }
+
+trait Ntc400Result extends Success {
+
+  override val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector400, taxCreditBrokerConnector, MicroserviceAuditConnector)
+
+  override val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+  }
+}
+
 
 trait SandboxSuccess extends Setup {
   val controller = new PersonalIncomeController {

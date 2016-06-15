@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.personalincome.connectors
 
+import play.Logger
 import uk.gov.hmrc.personalincome.config.{ServicesCircuitBreaker, WSHttp}
 import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.play.config.ServicesConfig
@@ -40,7 +41,21 @@ trait NtcConnector {
 
   def authenticateRenewal(nino: TaxCreditsNino,
                           renewalReference: RenewalReference)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]] = {
-    withCircuitBreaker(http.GET[Option[TcrAuthenticationToken]](s"$serviceUrl/tcs/${nino.value}/${renewalReference.value}/auth"))
+
+    def logResult(status:Int, message:String): Unit = {
+      Logger.info(s"Response from tcs auth service $status and message $message.")
+    }
+
+    withCircuitBreaker(
+      http.GET[Option[TcrAuthenticationToken]](s"$serviceUrl/tcs/${nino.value}/${renewalReference.value}/auth").recover {
+        case ex@uk.gov.hmrc.play.http.Upstream4xxResponse(message, status, _, _) =>
+          logResult(status, message)
+          None
+
+        case ex : BadRequestException =>
+          logResult(400, "BadRequest")
+          None
+      })
   }
 
   def claimantDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimantDetails] = {
