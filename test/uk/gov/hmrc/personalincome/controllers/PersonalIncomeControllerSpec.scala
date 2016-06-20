@@ -42,6 +42,15 @@ class TestPersonalIncomeSummarySpec extends UnitSpec with WithFakeApplication wi
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
     }
 
+    "return 404 when summary returned is None" in new NotFound {
+
+      val result: Result = await(controller.getSummary(nino,90)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 404
+
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
+    }
+
     "return the gateKeeper summary successfully" in new GateKeeper {
 
       val result: Result = await(controller.getSummary(nino,90)(emptyRequestWithAcceptHeader))
@@ -117,6 +126,12 @@ class TestPersonalIncomeRenewalAuthenticateSpec extends UnitSpec with WithFakeAp
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(tcrAuthToken)
+    }
+
+    "return 404 response when excluded" in new SuccessExcluded {
+      val  result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 404
     }
 
     "return 404 response when hod returns 4xx status" in new Ntc400Result {
@@ -318,11 +333,11 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
 
   "tax credits summary live" should {
 
-    "process the request successfully" in new Success {
+    "process the request successfully and filter children older than 16" in new Success {
       val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxRenewalSummary)
+      contentAsJson(result) shouldBe Json.toJson(taxRenewalSummaryWithoutChildrenOver16)
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
     }
 
@@ -350,15 +365,6 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
       testPersonalIncomeService.saveDetails shouldBe Map.empty
     }
 
-    // TODO...add to all actions! This must be defined in an IT:test. Here as a reminder only to add!
-    "return the sandbox result when the X-MOBILE-USER-ID is supplied" in new Success {
-      val resource = findResource(s"/resources/taxcreditsummary/${nino.value}-test.json")
-      val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.parse(resource.get)
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
-    }
   }
 
   "tax credits summary Sandbox" should {

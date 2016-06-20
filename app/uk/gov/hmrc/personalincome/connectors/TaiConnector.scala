@@ -37,9 +37,15 @@ trait TaiConnector {
 
   def url(path: String) = s"$serviceUrl$path"
 
-  def taxSummary(nino : Nino, year : Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[TaxSummaryDetails] = {
+  def taxSummary(nino : Nino, year : Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryDetails]] = {
     Logger.debug(s"TaxForCitizens:Frontend - connect to /$nino/tax-summary-full/$year ")
-    withCircuitBreaker(http.GET[TaxSummaryDetails](url = url(s"/tai/$nino/tax-summary-full/$year")))
+    withCircuitBreaker(
+      http.GET[Option[TaxSummaryDetails]](url = url(s"/tai/$nino/tax-summary-full/$year")).recover {
+        case ex: NotFoundException => None
+
+        case ex: BadRequestException => None
+      }
+    )
   }
 }
 

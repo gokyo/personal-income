@@ -31,17 +31,18 @@ import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
 import uk.gov.hmrc.play.http._
+import uk.gov.hmrc.time.DateTimeUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
-class TestTaiConnector(taxSummaryDetails:TaxSummaryDetails) extends TaiTestConnector {
+class TestTaiConnector(taxSummaryDetails:Option[TaxSummaryDetails]) extends TaiTestConnector {
   override def http: HttpGet with HttpPost = ???
 
   override def serviceUrl: String = ???
 
-  override def taxSummary(nino: Nino, year: Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[TaxSummaryDetails] = {
+  override def taxSummary(nino: Nino, year: Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryDetails]] = {
     Future.successful(taxSummaryDetails)
   }
 }
@@ -79,11 +80,12 @@ class TestAuthConnector(nino: Option[Nino]) extends AuthConnector {
 }
 
 class TestTaxCreditBrokerConnector(payment: PaymentSummary, personal: PersonalDetails, partner: PartnerDetails,
-                                     children: Children) extends TaxCreditsBrokerTestConnector {
+                                     children: Children, exclusion:Exclusion) extends TaxCreditsBrokerTestConnector {
   override def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(payment)
   override def getPersonalDetails(nino:TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(personal)
   override def getPartnerDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(Some(partner))
   override def getChildren(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(children)
+  override def getExclusion(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(exclusion)
 }
 
 class TestPersonalIncomeService(testTaiConnector:TestTaiConnector,
@@ -151,13 +153,15 @@ trait Setup {
   val expectedPaymentWTC = Payment(160.34, expectedNextDueDate, Some(weekly))
   val paymentSummary = PaymentSummary(Some(expectedPaymentWTC), Some(expectedPaymentCTC))
 
-  val AGE17="1999-08-31"
-  val AGE18="1998-01-09"
-  val AGE19="1997-01-09"
+  val AGE16=DateTimeUtils.now.minusYears(16)
+  val AGE15=DateTimeUtils.now.minusYears(15)
+  val AGE13=DateTimeUtils.now.minusYears(13)
+  val AGE17=DateTimeUtils.now.minusYears(17)
 
-  val SarahSmith = Child("Sarah", "Smith",new DateTime(AGE17),false,false,true)
-  val JosephSmith = Child("Joseph", "Smith",new DateTime(AGE18),false,false,true)
-  val MarySmith = Child("Mary", "Smith", new DateTime(AGE19),false,false,true)
+  val SarahSmith = Child("Sarah", "Smith",new DateTime(AGE16),false,false,true)
+  val JosephSmith = Child("Joseph", "Smith",new DateTime(AGE15),false,false,true)
+  val MarySmith = Child("Mary", "Smith", new DateTime(AGE13),false,false,true)
+  val JennySmith = Child("Jenny", "Smith", new DateTime(AGE17),false,false,true)
 
   val address =  uk.gov.hmrc.personalincome.domain.userdata.Address("addressLine1", "addressLine2", Some("addressLine3"), Some("addressLine4"), "postcode")
 
@@ -178,7 +182,8 @@ trait Setup {
     None)
 
   val children = Children(Seq(SarahSmith, JosephSmith, MarySmith))
-  val taxRenewalSummary = TaxCreditSummary(paymentSummary, personalDetails, Some(partnerDetails), children)
+  val taxRenewalSummary = TaxCreditSummary(paymentSummary, personalDetails, Some(partnerDetails), Children(Seq(SarahSmith, JosephSmith, MarySmith, JennySmith)))
+  val taxRenewalSummaryWithoutChildrenOver16 = TaxCreditSummary(paymentSummary, personalDetails, Some(partnerDetails), children)
 
   val acceptHeader = "Accept" -> "application/vnd.hmrc.1.0+json"
   val emptyRequest = FakeRequest()
@@ -207,12 +212,13 @@ trait Setup {
   lazy val jsonRenewalRequestNoAcceptHeader = fakeRequest(renewalJsonBody)
 
   val authConnector = new TestAuthConnector(Some(nino))
-  val taiConnector = new TestTaiConnector(taxSummaryDetails)
+  val taiConnector = new TestTaiConnector(Some(taxSummaryDetails))
   val tcrAuthToken = TcrAuthenticationToken("some-auth-token")
   val claimentDetails = ClaimantDetails(false, 1, "r", nino.value, None, false, "some-app-id")
   val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails)
   val ntcConnector400 = new TestNtcConnector(Success(200), None, claimentDetails)
-  val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, children)
+  val exclusion = Exclusion(false)
+  val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, children, exclusion)
 
   val testAccess = new TestAccessCheck(authConnector)
   val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
@@ -229,8 +235,28 @@ trait Success extends Setup {
   }
 }
 
+trait NotFound extends Setup {
+  override val taiConnector = new TestTaiConnector(None)
+  override val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+  }
+}
+
+trait SuccessExcluded extends Setup {
+  override val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, children, Exclusion(true))
+
+  override val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+  }
+}
+
 trait GateKeeper extends Setup {
-  override val taiConnector = new TestTaiConnector(taxSummaryDetails.copy(gateKeeper=Some(GateKeeper(true, List.empty))))
+  override val taiConnector = new TestTaiConnector(Some(taxSummaryDetails.copy(gateKeeper=Some(GateKeeper(true, List.empty)))))
   override val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
 
   val controller = new PersonalIncomeController {
@@ -250,7 +276,7 @@ trait AuthWithLowCL extends Setup {
   }
 
   override val testAccess = new TestAccessCheck(authConnector)
-  override val taiConnector = new TestTaiConnector(taxSummaryDetails)
+  override val taiConnector = new TestTaiConnector(Some(taxSummaryDetails))
   override val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
   override val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
 
@@ -270,7 +296,7 @@ trait AuthWithoutNino extends Setup {
   }
 
   override val testAccess = new TestAccessCheck(authConnector)
-  override val taiConnector = new TestTaiConnector(taxSummaryDetails)
+  override val taiConnector = new TestTaiConnector(Some(taxSummaryDetails))
   override val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
   override val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
 

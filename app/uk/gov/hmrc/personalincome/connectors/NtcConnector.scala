@@ -48,8 +48,8 @@ trait NtcConnector {
 
     withCircuitBreaker(
       http.GET[Option[TcrAuthenticationToken]](s"$serviceUrl/tcs/${nino.value}/${renewalReference.value}/auth").recover {
-        case ex@uk.gov.hmrc.play.http.Upstream4xxResponse(message, status, _, _) =>
-          logResult(status, message)
+        case ex : NotFoundException =>
+          logResult(404, "Not found")
           None
 
         case ex : BadRequestException =>

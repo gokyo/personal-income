@@ -23,7 +23,7 @@ import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.HeaderKeys
 import uk.gov.hmrc.personalincome.domain._
-import uk.gov.hmrc.personalincome.domain.userdata.TaxCreditSummary
+import uk.gov.hmrc.personalincome.domain.userdata.{Exclusion, Children, Child, TaxCreditSummary}
 import uk.gov.hmrc.personalincome.utils.TaxSummaryHelper
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -36,7 +36,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait PersonalIncomeService {
-  def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[TaxSummaryContainer]
+  def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryContainer]]
 
   // Renewal specific - authenticateRenewal must be called first to retrieve the authToken before calling claimantDetails, submitRenewal.
   def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]]
@@ -61,39 +61,49 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
     taxSummary.gateKeeper.exists(_.gateKeepered)
   }
 
-  override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[TaxSummaryContainer] = {
+  override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryContainer]] = {
     withAudit("getSummary", Map("nino" -> nino.value, "year" -> year.toString)) {
 
-      taiConnector.taxSummary(nino, year).map(summary =>
-        gateKeepered(summary) match {
-          case false =>
-            val estimatedIncomeWrapper = Try(EstimatedIncomePageVM.createObject(nino, summary)) match {
-              case Success(value) => Some(EstimatedIncomeWrapper(value, TaxSummaryHelper.getPotentialUnderpayment(summary)))
-              case Failure(failure) =>
-                Logger.error(s"Failed to create EstimatedIncome! Failure is $failure")
-                None
-            }
+      taiConnector.taxSummary(nino, year).map {
+        case Some(summary) =>
+          gateKeepered(summary) match {
+            case false =>
+              val estimatedIncomeWrapper = Try(EstimatedIncomePageVM.createObject(nino, summary)) match {
+                case Success(value) => Some(EstimatedIncomeWrapper(value, TaxSummaryHelper.getPotentialUnderpayment(summary)))
+                case Failure(failure) =>
+                  Logger.error(s"Failed to create EstimatedIncome! Failure is $failure")
+                  None
+              }
 
-            TaxSummaryContainer(summary,
-              BaseViewModelVM.createObject(nino, summary),
-              estimatedIncomeWrapper,
-              Some(YourTaxableIncomePageVM.createObject(nino, summary)),
-              None)
+              Some(TaxSummaryContainer(summary,
+                BaseViewModelVM.createObject(nino, summary),
+                estimatedIncomeWrapper,
+                Some(YourTaxableIncomePageVM.createObject(nino, summary)),
+                None))
 
-          case true =>
-            TaxSummaryContainer(summary,
-              BaseViewModelVM.createObject(nino, summary),
-              None,
-              None,
-              Some(GateKeeperPageVM.createObject(nino, summary)))
-        })
+            case true =>
+              Some(TaxSummaryContainer(summary,
+                BaseViewModelVM.createObject(nino, summary),
+                None,
+                None,
+                Some(GateKeeperPageVM.createObject(nino, summary))))
+        }
+        case _ => None
+      }
     }
   }
 
   // Note: The TcrAuthenticationToken must be supplied to claimantDetails and submitRenewal.
   override def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]] = {
     withAudit("authenticateRenewal", Map("nino" -> nino.value)) {
-      ntcConnector.authenticateRenewal(TaxCreditsNino(nino.value), tcrRenewalReference)
+
+      val taxCreditNino = TaxCreditsNino(nino.value)
+      def getDecision(exclusion: Exclusion): Future[Option[TcrAuthenticationToken]] = if (!exclusion.excluded) ntcConnector.authenticateRenewal(taxCreditNino, tcrRenewalReference) else Future.successful(None)
+
+      for {
+        excluded <- taxCreditBrokerConnector.getExclusion(taxCreditNino)
+        decison <- getDecision(excluded)
+      } yield decison
     }
   }
 
@@ -111,8 +121,14 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
 
   override def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier, ex: ExecutionContext): Future[TaxCreditSummary] = {
     withAudit("getTaxCreditSummary", Map("nino" -> nino.value)) {
+
+      def getChildrenAge16AndUnder(): Future[Children] = {
+        taxCreditBrokerConnector.getChildren(TaxCreditsNino(nino.value)).map(children =>
+          Children(children.child.filter(child => Child.getAge(child) <= 16)))
+      }
+
       for {
-        children <- taxCreditBrokerConnector.getChildren(TaxCreditsNino(nino.value))
+        children <- getChildrenAge16AndUnder
         parterDetails <- taxCreditBrokerConnector.getPartnerDetails(TaxCreditsNino(nino.value))
         paymentSummary <- taxCreditBrokerConnector.getPaymentSummary(TaxCreditsNino(nino.value))
         personalDetails <- taxCreditBrokerConnector.getPersonalDetails(TaxCreditsNino(nino.value))
@@ -123,10 +139,10 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
 
 object SandboxPersonalIncomeService extends PersonalIncomeService with FileResource {
 
-  override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[TaxSummaryContainer] = {
+  override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryContainer]] = {
     val resource: Option[String] = findResource(s"/resources/getsummary/${nino.value}_$year.json")
 
-    Future.successful(resource.fold(TaxSummaryContainer(TaxSummaryDetails(nino.value, year), BaseViewModel(estimatedIncomeTax=0), None, None, None)) { found =>
+    val summary = resource.fold(TaxSummaryContainer(TaxSummaryDetails(nino.value, year), BaseViewModel(estimatedIncomeTax=0), None, None, None)) { found =>
       Json.parse(found).validate[TaxSummaryContainer].fold(
         error => {
           Logger.error("Failed to parse summary " + JsError.toFlatJson(error))
@@ -136,7 +152,8 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
           result
         }
       )
-    })
+    }
+    Future.successful(Some(summary))
   }
 
   private def basicAuthString(encodedAuth:String): String = "Basic " + encodedAuth
