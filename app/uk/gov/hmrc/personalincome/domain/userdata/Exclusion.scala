@@ -16,23 +16,12 @@
 
 package uk.gov.hmrc.personalincome.domain.userdata
 
-import org.joda.time.{LocalDate, Years, DateTime}
 import play.api.libs.json.Json
 
-case class Child(firstNames:String,
-                 surname:String,
-                 dateOfBirth:DateTime,
-                 hasFTNAE:Boolean,
-                 hasConnexions: Boolean,
-                 isActive:Boolean)
+case class Exclusion(excluded: Boolean)
 
+object Exclusion {
+  val key = "exclusion"
 
-object Child {
-  implicit val formats = Json.format[Child]
-
-  def getAge(child:Child) = {
-    val years = Years.yearsBetween(new LocalDate(child.dateOfBirth), new LocalDate())
-    years.getYears();
-  }
-
+  implicit val formats = Json.format[Exclusion]
 }

@@ -68,6 +68,7 @@ override lazy val fakeApplication = FakeApplication(additionalConfiguration = co
     lazy val http200Partner = Future.successful(HttpResponse(200, Some(Json.toJson(partnerDetails))))
     lazy val http200Children = Future.successful(HttpResponse(200, Some(Json.toJson(children))))
     lazy val http200Payment = Future.successful(HttpResponse(200, Some(Json.toJson(paymentSummary))))
+    lazy val http200Exclusion = Future.successful(HttpResponse(200, Some(Json.toJson(exclusion))))
 
 
     val AGE17="1999-08-31"
@@ -97,6 +98,7 @@ override lazy val fakeApplication = FakeApplication(additionalConfiguration = co
 
     val children = Children(Seq(SarahSmith, JosephSmith, MarySmith))
 
+    val exclusion = Exclusion(true)
 
     val connector = new TaxCreditsBrokerTestConnector(Some(response))
   }
@@ -120,6 +122,13 @@ override lazy val fakeApplication = FakeApplication(additionalConfiguration = co
 
       await(connector.getChildren(TaxCreditsNino(nino.value))) shouldBe children
     }
+
+    "return exclusion when 200 response is received with a valid json payload" in new Setup {
+      override lazy  val response = http200Exclusion
+
+      await(connector.getExclusion(TaxCreditsNino(nino.value))) shouldBe exclusion
+    }
+
 
     "return a valid response for getPaymentSummary when a 200 response is received with a valid json payload" in new Setup {
       override lazy val response = http200Payment

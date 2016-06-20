@@ -41,6 +41,8 @@ First step in Renewal process
   * **Code:** 401 UNAUTHORIZED <br />
     **Content:** `{"code":"UNAUTHORIZED","message":"Bearer token is missing or not authorized for access"}`
 
+  * **Code:** 404 NOT_FOUND <br />
+
   * **Code:** 406 NOT ACCEPTABLE <br />
     **Content:** `{"code":"ACCEPT_HEADER_INVALID","message":"The accept header is missing or invalid"}`
 

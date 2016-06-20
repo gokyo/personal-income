@@ -53,7 +53,10 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
   final def getSummary(nino: Nino, year: Int) = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
-      errorWrapper(service.getSummary(nino, year).map(as => Ok(Json.toJson(as))))
+      errorWrapper(service.getSummary(nino, year).map {
+        case Some(summary) => Ok(Json.toJson(summary))
+        case _ => NotFound
+      })
   }
 
   final def getRenewalAuthentication(nino: Nino, renewalReference:RenewalReference) = accessControl.validateAccept(acceptHeaderValidationRules).async {
@@ -62,7 +65,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       errorWrapper(
         service.authenticateRenewal(nino, renewalReference).map {
           case Some(authToken) => Ok(Json.toJson(authToken))
-          case _ => NotFound("Renewal not found!")
+          case _ => NotFound
       })
   }
 

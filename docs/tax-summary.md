@@ -125,7 +125,6 @@ The Tax Summary object
     **Content:** `{"code":"UNAUTHORIZED","message":"Bearer token is missing or not authorized for access"}`
 
   * **Code:** 404 NOTFOUND <br/>
-    **Content:** `{ "code" : "MATCHING_RESOURCE_NOT_FOUND", "message" : "A resource with the name in the request can not be found in the API" }`
 
   * **Code:** 406 NOT ACCEPTABLE <br />
     **Content:** `{"code":"ACCEPT_HEADER_INVALID","message":"The accept header is missing or invalid"}`

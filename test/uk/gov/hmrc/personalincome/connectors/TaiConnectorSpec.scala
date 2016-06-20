@@ -50,6 +50,7 @@ class TaiConnectorSpec
 
     lazy val http500Response = Future.failed(new Upstream5xxResponse("Error", 500, 500))
     lazy val http400Response = Future.failed(new BadRequestException("bad request"))
+    lazy val http404Response = Future.failed(new NotFoundException("not found"))
     lazy val http200Response = Future.successful(HttpResponse(200, Some(Json.toJson(taxSummary))))
     lazy val response: Future[HttpResponse] = http400Response
 
@@ -72,11 +73,14 @@ class TaiConnectorSpec
 
   "taiConnector" should {
 
-    "throw BadRequestException when a 400 response is returned" in new Setup {
+    "return None when a BadRequestException is thrown" in new Setup {
       override lazy val response = http400Response
-        intercept[BadRequestException] {
-          await(connector.taxSummary(nino, 1))
-      }
+      await(connector.taxSummary(nino, 1)) shouldBe None
+    }
+
+    "return None when a NotFoundException is thrown" in new Setup {
+      override lazy val response = http404Response
+      await(connector.taxSummary(nino, 1)) shouldBe None
     }
 
     "throw Upstream5xxResponse when a 500 response is returned" in new Setup {
@@ -86,9 +90,9 @@ class TaiConnectorSpec
       }
     }
 
-    "return a valid resoonse when a 200 response is received with a valid json payload" in new Setup {
+    "return a valid response when a 200 response is received with a valid json payload" in new Setup {
       override lazy val response = http200Response
-      await(connector.taxSummary(nino, 1)) shouldBe taxSummary
+      await(connector.taxSummary(nino, 1)) shouldBe Some(taxSummary)
     }
 
     "circuit breaker configuration should be applied and unhealthy service exception will kick in after 5th failed call" in new Setup {
