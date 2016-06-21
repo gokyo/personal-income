@@ -42,6 +42,17 @@ class TestPersonalIncomeSummarySpec extends UnitSpec with WithFakeApplication wi
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
     }
 
+    "return the summary successfully when journeyId is supplied" in new Success {
+
+      val result: Result = await(controller.getSummary(nino,90,Some(journeyId))(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainer)
+
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
+    }
+
+
     "return 404 when summary returned is None" in new NotFound {
 
       val result: Result = await(controller.getSummary(nino,90)(emptyRequestWithAcceptHeader))
@@ -122,7 +133,14 @@ class TestPersonalIncomeRenewalAuthenticateSpec extends UnitSpec with WithFakeAp
   "authenticate Live" should {
 
     "process the authentication successfully" in new Success {
-      val  result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequestWithAcceptHeader))
+      val result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(tcrAuthToken)
+    }
+
+    "return the summary successfully when journeyId is supplied" in new Success {
+      val result = await(controller.getRenewalAuthentication(nino, renewalReference, Some(journeyId))(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(tcrAuthToken)
@@ -182,7 +200,14 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
       contentAsJson(result) shouldBe Json.toJson(claimentDetails)
     }
 
-    "Return unauthorized when authority record does not contain a NINO" in new AuthWithoutNino {
+    "return the summary successfully when journeyId is supplied" in new Success {
+      val result = await(controller.claimantDetails(nino, Some(journeyId))(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(claimentDetails)
+    }
+
+    "return unauthorized when authority record does not contain a NINO" in new AuthWithoutNino {
       val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 401
@@ -267,6 +292,12 @@ class TestPersonalIncomeRenewalSpec extends UnitSpec with WithFakeApplication wi
       status(result) shouldBe 200
     }
 
+    "return the summary successfully when journeyId is supplied" in new Success {
+      val result = await(controller.submitRenewal(nino, Some(journeyId))(jsonRenewalRequestWithAuthHeader))
+
+      status(result) shouldBe 200
+    }
+
     "return 403 result when no tcr auth header has been supplied" in new Success {
       val result = await(controller.submitRenewal(nino)(jsonRenewalRequestWithNoAuthHeader))
 
@@ -335,6 +366,14 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
 
     "process the request successfully and filter children older than 16" in new Success {
       val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(taxRenewalSummaryWithoutChildrenOver16)
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
+    }
+
+    "return the summary successfully when journeyId is supplied" in new Success {
+      val result = await(controller.taxCreditsSummary(nino, Some(journeyId))(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(taxRenewalSummaryWithoutChildrenOver16)

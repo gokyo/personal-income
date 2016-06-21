@@ -50,7 +50,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
   val service: PersonalIncomeService
   val accessControl:AccountAccessControlWithHeaderCheck
 
-  final def getSummary(nino: Nino, year: Int) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+  final def getSummary(nino: Nino, year: Int, journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
       errorWrapper(service.getSummary(nino, year).map {
@@ -59,7 +59,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       })
   }
 
-  final def getRenewalAuthentication(nino: Nino, renewalReference:RenewalReference) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+  final def getRenewalAuthentication(nino: Nino, renewalReference:RenewalReference, journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
       errorWrapper(
@@ -69,7 +69,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       })
   }
 
-  final def claimantDetails(nino: Nino) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+  final def claimantDetails(nino: Nino, journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
       errorWrapper(validateTcrAuthHeader() {
@@ -79,7 +79,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       })
   }
 
-  final def submitRenewal(nino: Nino) = accessControl.validateAccept(acceptHeaderValidationRules).async(BodyParsers.parse.json) {
+  final def submitRenewal(nino: Nino, journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async(BodyParsers.parse.json) {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
 
@@ -102,7 +102,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       )
   }
 
-  final def taxCreditsSummary(nino: Nino) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+  final def taxCreditsSummary(nino: Nino, journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
       errorWrapper(service.getTaxCreditSummary(nino).map(as => Ok(Json.toJson(as))))
