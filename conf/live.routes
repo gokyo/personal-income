@@ -1,12 +1,12 @@
 
-GET     /income/:nino/tax-summary/:year                      uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.getSummary(nino: uk.gov.hmrc.domain.Nino, year: Int)
+GET     /income/:nino/tax-summary/:year                      uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.getSummary(nino: uk.gov.hmrc.domain.Nino, year: Int, journeyId: Option[String])
 
-GET     /income/:nino/tax-credits/:renewalReference/auth     uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.getRenewalAuthentication(nino:uk.gov.hmrc.domain.Nino, renewalReference:uk.gov.hmrc.personalincome.domain.RenewalReference)
+GET     /income/:nino/tax-credits/:renewalReference/auth     uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.getRenewalAuthentication(nino:uk.gov.hmrc.domain.Nino, renewalReference:uk.gov.hmrc.personalincome.domain.RenewalReference, journeyId: Option[String])
 
-GET     /income/:nino/tax-credits/claimant-details           uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.claimantDetails(nino: uk.gov.hmrc.domain.Nino)
+GET     /income/:nino/tax-credits/claimant-details           uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.claimantDetails(nino: uk.gov.hmrc.domain.Nino, journeyId: Option[String])
 
-POST    /income/:nino/tax-credits/renewal                    uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.submitRenewal(nino: uk.gov.hmrc.domain.Nino)
+POST    /income/:nino/tax-credits/renewal                    uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.submitRenewal(nino: uk.gov.hmrc.domain.Nino, journeyId: Option[String])
 
-GET     /income/:nino/tax-credits/tax-credits-summary        uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.taxCreditsSummary(nino: uk.gov.hmrc.domain.Nino)
+GET     /income/:nino/tax-credits/tax-credits-summary        uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.taxCreditsSummary(nino: uk.gov.hmrc.domain.Nino, journeyId: Option[String])
 
-GET     /income/tax-credits/submission/state                  uk.gov.hmrc.personalincome.controllers.LiveServiceStateController.taxCreditsSubmissionState()
+GET     /income/tax-credits/submission/state                  uk.gov.hmrc.personalincome.controllers.LiveServiceStateController.taxCreditsSubmissionState(journeyId: Option[String])
