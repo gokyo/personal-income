@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.personalincome.controllers
 
+import java.util.UUID
+
 import com.ning.http.util.Base64
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, JsValue}
@@ -121,6 +123,7 @@ class TestAccountAccessControlWithAccept(testAccessCheck:AccountAccessControl) e
 trait Setup {
   implicit val hc = HeaderCarrier()
 
+  val journeyId = UUID.randomUUID().toString
   val nino = Nino("CS700100A")
   val taxSummaryDetails = TaxSummaryDetails(nino.value,1)
 
