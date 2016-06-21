@@ -22,13 +22,7 @@
             "method":"GET",
             "authType":"USER",
             "throttlingTier":"UNLIMITED",
-            "scope":"read:personal-income",
-            "queryParameters": [
-              {
-                "name": "journeyId",
-                "required": false
-              }
-            ]
+            "scope":"read:personal-income"
           },
           {
             "uriPattern":"/income/{nino}/tax-credits/{renewalReference}/auth",
@@ -36,13 +30,7 @@
             "method":"GET",
             "authType":"USER",
             "throttlingTier":"UNLIMITED",
-            "scope":"read:personal-income",
-            "queryParameters": [
-              {
-                "name": "journeyId",
-                "required": false
-              }
-            ]
+            "scope":"read:personal-income"
           },
           {
             "uriPattern":"/income/{nino}/tax-credits/claimant-details",
@@ -50,13 +38,7 @@
             "method":"GET",
             "authType":"USER",
             "throttlingTier":"UNLIMITED",
-            "scope":"read:personal-income",
-            "queryParameters": [
-              {
-                "name": "journeyId",
-                "required": false
-              }
-            ]
+            "scope":"read:personal-income"
           },
           {
             "uriPattern":"/income/{nino}/tax-credits/renewal",
@@ -64,13 +46,7 @@
             "method":"POST",
             "authType":"USER",
             "throttlingTier":"UNLIMITED",
-            "scope":"read:personal-income",
-            "queryParameters": [
-              {
-                "name": "journeyId",
-                "required": false
-              }
-            ]
+            "scope":"read:personal-income"
           },
           {
             "uriPattern":"/income/{nino}/tax-credits/tax-credits-summary",
@@ -78,13 +54,7 @@
             "method":"GET",
             "authType":"USER",
             "throttlingTier":"UNLIMITED",
-            "scope":"read:personal-income",
-            "queryParameters": [
-              {
-                "name": "journeyId",
-                "required": false
-              }
-            ]
+            "scope":"read:personal-income"
           },
           {
             "uriPattern":"/income/tax-credits/submission/state",
@@ -92,13 +62,7 @@
             "method":"GET",
             "authType":"USER",
             "throttlingTier":"UNLIMITED",
-            "scope":"read:personal-income",
-            "queryParameters": [
-              {
-                "name": "journeyId",
-                "required": false
-              }
-            ]
+            "scope":"read:personal-income"
           }
         ]
       }
