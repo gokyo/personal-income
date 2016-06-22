@@ -205,10 +205,6 @@
         }
       }
     },
-    "workingTaxableTotal": 7900,
-    "actualTaxableTotal": 7900,
-    "remainingTaxFree": 0,
-    "adjustedNetIncome": 7900,
     "extensionReliefs": {
       "giftAid": {
         "sourceAmount": 0,
@@ -243,7 +239,9 @@
           ]
         }
       ],
-      "deductions": [],
+      "deductions": [
+
+      ],
       "allowances": [
         {
           "description": "Tax Free Amount",
@@ -253,32 +251,6 @@
       ],
       "splitAllowances": false,
       "total": 0
-    },
-    "incomeData": {
-      "incomeExplanations": [
-        {
-          "employerName": "Sainsburys",
-          "inYear": false,
-          "incomeId": 2,
-          "isCeased": false,
-          "isPension": false,
-          "isJSA": false,
-          "isRtiCalc": false,
-          "isUpdatedOnline": false,
-          "isUpdatedTelephone": false,
-          "isDefaultPrimary": false,
-          "isDefaultSecondary": false,
-          "isIrregularPrimary": false,
-          "isIrregularSecondary": false,
-          "payToDate": 0,
-          "isMonthly": false,
-          "amount": 7900,
-          "editableDetails": {
-            "isEditable": true,
-            "payRollingBiks": false
-          }
-        }
-      ]
     }
   },
   "baseViewModel": {
@@ -303,9 +275,13 @@
         "1100L"
       ],
       "potentialUnderpayment": false,
-      "additionalTaxTable": [],
+      "additionalTaxTable": [
+
+      ],
       "additionalTaxTableTotal": "0.00",
-      "reductionsTable": [],
+      "reductionsTable": [
+
+      ],
       "reductionsTableTotal": "-0.00",
       "graph": {
         "id": "taxGraph",
@@ -477,13 +453,21 @@
       "hasEmployment": true,
       "isOccupationalPension": false
     },
-    "investmentIncomeData": [],
+    "investmentIncomeData": [
+
+    ],
     "investmentIncomeTotal": 0,
-    "otherIncomeData": [],
+    "otherIncomeData": [
+
+    ],
     "otherIncomeTotal": 0,
-    "benefitsData": [],
+    "benefitsData": [
+
+    ],
     "benefitsTotal": 0,
-    "taxableBenefitsData": [],
+    "taxableBenefitsData": [
+
+    ],
     "taxableBenefitsTotal": 0,
     "hasChanges": false
   }

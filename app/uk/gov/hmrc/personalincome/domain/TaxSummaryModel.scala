@@ -18,6 +18,8 @@ package uk.gov.hmrc.personalincome.domain
 
 import org.joda.time.LocalDate
 import play.api.libs.json._
+import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax._
 
 case class TaxBand(income: Option[BigDecimal]=None, tax: Option[BigDecimal]=None,
                     lowerBand: Option[BigDecimal]=None, upperBand: Option[BigDecimal]=None,
@@ -32,32 +34,6 @@ case class EditableDetails(isEditable : Boolean = false,
 
 object EditableDetails {
    implicit val formats = Json.format[EditableDetails]
- }
-
-case class IncomeExplanation(employerName : String,
-                              inYear : Boolean = false,
-                              incomeId : Int = 0,
-                              paymentDate : Option[LocalDate] = None,
-                              notificationDate : Option[LocalDate] = None,
-                              startDate :  Option[LocalDate] = None,
-                              endDate :  Option[LocalDate] = None,
-                              isCeased : Boolean = false,
-                              isPension : Boolean = false,
-                              isJSA : Boolean = false,
-                              isRtiCalc : Boolean = false,
-                              isUpdatedOnline : Boolean = false,
-                              isUpdatedTelephone : Boolean = false,
-                              isDefaultPrimary : Boolean = false,
-                              isDefaultSecondary : Boolean = false,
-                              isIrregularPrimary : Boolean = false,
-                              isIrregularSecondary : Boolean = false,
-                              payToDate : BigDecimal = BigDecimal(0),
-                              isMonthly : Boolean = false,
-                              amount : BigDecimal = BigDecimal(0),
-                              editableDetails : EditableDetails = EditableDetails())
-
-object IncomeExplanation {
-   implicit val formats = Json.format[IncomeExplanation]
  }
 
 case class RtiCalc(employmentType : Int,
@@ -79,13 +55,6 @@ case class RtiData(rtiCalcs : List[RtiCalc])
 
 object RtiData {
    implicit val format = Json.format[RtiData]
- }
-
-
-case class IncomeData(incomeExplanations: List[IncomeExplanation])
-
-object IncomeData {
-   implicit val format = Json.format[IncomeData]
  }
 
 case class TaxCodeComponent(
@@ -390,20 +359,42 @@ case class TaxSummaryDetails( nino: String,
                                version: Int,
                                increasesTax: Option[IncreasesTax] = None,
                                decreasesTax: Option[DecreasesTax] = None,
-                               other : Option[TaxComponent] = None,
                                totalLiability : Option[TotalLiability] = None,
-                               workingTaxableTotal : BigDecimal = BigDecimal(0),
-                               actualTaxableTotal : BigDecimal = BigDecimal(0),
-                               remainingTaxFree : BigDecimal = BigDecimal(0),
-                               adjustedNetIncome: BigDecimal = BigDecimal(0),
                                extensionReliefs: Option[ExtensionReliefs] = None,
-                               incomeGateKeeper : Option[GateKeeper]=None,
                                gateKeeper:Option[GateKeeper]=None,
                                taxCodeDetails : Option[TaxCodeDetails] = None,
-                               incomeData : Option[IncomeData] = None,
-                               cyPlusOneChange:Option[CYPlusOneChange] = None,
-                               cyPlusOneSummary:Option[TaxSummaryDetails] = None)
+                               cyPlusOneChange:Option[CYPlusOneChange] = None)
 
 object TaxSummaryDetails {
-   implicit val formats = Json.format[TaxSummaryDetails]
- }
+
+  implicit val reads: Reads[TaxSummaryDetails] =
+    (
+      (JsPath \ "nino").read[String] and
+      (JsPath \ "version").read[Int] and
+      (JsPath \ "increasesTax").readNullable[IncreasesTax] and
+      (JsPath \ "decreasesTax").readNullable[DecreasesTax] and
+      (JsPath \ "totalLiability").readNullable[TotalLiability] and
+      (JsPath \ "extensionReliefs").readNullable[ExtensionReliefs] and
+      (JsPath \ "gateKeeper").readNullable[GateKeeper] and
+      (JsPath \ "taxCodeDetails").readNullable[TaxCodeDetails] and
+      (JsPath \ "cyPlusOneChange").readNullable[CYPlusOneChange]
+    )(TaxSummaryDetails.apply _)
+
+  implicit val writes: Writes[TaxSummaryDetails] =
+    (
+      (JsPath \ "nino").write[String] and
+      (JsPath \ "version").write[Int] and
+      (JsPath \ "increasesTax").writeNullable[IncreasesTax] and
+      (JsPath \ "decreasesTax").writeNullable[DecreasesTax] and
+      (JsPath \ "totalLiability").writeNullable[TotalLiability] and
+      (JsPath \ "extensionReliefs").writeNullable[ExtensionReliefs] and
+      (JsPath \ "gateKeeper").writeNullable[GateKeeper] and
+      (JsPath \ "taxCodeDetails").writeNullable[TaxCodeDetails] and
+      (JsPath \ "cyPlusOneChange").writeNullable[CYPlusOneChange]
+    )(unlift(TaxSummaryDetails.unapply))
+
+}
+
+
+
+
