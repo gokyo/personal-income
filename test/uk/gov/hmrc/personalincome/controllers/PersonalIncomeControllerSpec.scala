@@ -146,6 +146,12 @@ class TestPersonalIncomeRenewalAuthenticateSpec extends UnitSpec with WithFakeAp
       contentAsJson(result) shouldBe Json.toJson(tcrAuthToken)
     }
 
+    "return 429 when isExcluded returns 503" in new Generate_503 {
+      val result = await(controller.getRenewalAuthentication(nino, renewalReference, Some(journeyId))(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 429
+    }
+
     "return 404 response when excluded" in new SuccessExcluded {
       val  result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequestWithAcceptHeader))
 
@@ -369,6 +375,13 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(taxRenewalSummaryWithoutChildrenOver16)
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
+    }
+
+    "return 429 HTTP status when retrieval of children returns 503" in new Generate_503 {
+      val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
+
+      status(result) shouldBe 429
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
     }
 

@@ -24,3 +24,4 @@ case object ErrorUnauthorizedNoNino extends ErrorResponse(401, "UNAUTHORIZED", "
 case object ErrorwithNtcRenewal extends ErrorResponse(500, "NTC_RENEWAL_ERROR", "Failed to process renewal")
 case object ErrorwithNtcRenewalAuthentication extends ErrorResponse(500, "NTC_RENEWAL_AUTH_ERROR", "Failed to obtain renewal auth token")
 case object ErrorNoAuthToken extends ErrorResponse(500, "NTC_RENEWAL_AUTH_ERROR", "No auth header supplied in http request")
+case object ClientRetryRequest extends ErrorResponse(429, "NTC_RETRY", "Client must retry the request.")
