@@ -122,16 +122,23 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
   override def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier, ex: ExecutionContext): Future[TaxCreditSummary] = {
     withAudit("getTaxCreditSummary", Map("nino" -> nino.value)) {
 
+      val tcNino = TaxCreditsNino(nino.value)
+
       def getChildrenAge16AndUnder(): Future[Children] = {
-        taxCreditBrokerConnector.getChildren(TaxCreditsNino(nino.value)).map(children =>
+        taxCreditBrokerConnector.getChildren(tcNino).map(children =>
           Children(children.child.filter(child => Child.getAge(child) <= 16)))
       }
 
+      val childrenFuture = getChildrenAge16AndUnder
+      val parterDetailsFuture = taxCreditBrokerConnector.getPartnerDetails(tcNino)
+      val paymentSummaryFuture = taxCreditBrokerConnector.getPaymentSummary(tcNino)
+      val personalDetailsFuture = taxCreditBrokerConnector.getPersonalDetails(tcNino)
+
       for {
-        children <- getChildrenAge16AndUnder
-        parterDetails <- taxCreditBrokerConnector.getPartnerDetails(TaxCreditsNino(nino.value))
-        paymentSummary <- taxCreditBrokerConnector.getPaymentSummary(TaxCreditsNino(nino.value))
-        personalDetails <- taxCreditBrokerConnector.getPersonalDetails(TaxCreditsNino(nino.value))
+        children <- childrenFuture
+        parterDetails <- parterDetailsFuture
+        paymentSummary <- paymentSummaryFuture
+        personalDetails <- personalDetailsFuture
       } yield(TaxCreditSummary(paymentSummary, personalDetails, parterDetails, children))
     }
   }

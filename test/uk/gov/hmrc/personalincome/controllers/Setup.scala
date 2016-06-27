@@ -82,12 +82,14 @@ class TestAuthConnector(nino: Option[Nino]) extends AuthConnector {
 }
 
 class TestTaxCreditBrokerConnector(payment: PaymentSummary, personal: PersonalDetails, partner: PartnerDetails,
-                                     children: Children, exclusion:Exclusion) extends TaxCreditsBrokerTestConnector {
+                                     children: Option[Children], exclusion:Option[Exclusion]) extends TaxCreditsBrokerTestConnector {
+  private def serviceUnavailable = throw new ServiceUnavailableException("controlled error")
+
   override def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(payment)
   override def getPersonalDetails(nino:TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(personal)
   override def getPartnerDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(Some(partner))
-  override def getChildren(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(children)
-  override def getExclusion(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(exclusion)
+  override def getChildren(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(children.getOrElse(serviceUnavailable))
+  override def getExclusion(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) = Future(exclusion.getOrElse(serviceUnavailable))
 }
 
 class TestPersonalIncomeService(testTaiConnector:TestTaiConnector,
@@ -221,7 +223,7 @@ trait Setup {
   val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails)
   val ntcConnector400 = new TestNtcConnector(Success(200), None, claimentDetails)
   val exclusion = Exclusion(false)
-  val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, children, exclusion)
+  val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, Some(children), Some(exclusion))
 
   val testAccess = new TestAccessCheck(authConnector)
   val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
@@ -238,6 +240,18 @@ trait Success extends Setup {
   }
 }
 
+trait Generate_503 extends Setup {
+  override val taiConnector = new TestTaiConnector(None)
+
+  override val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, None, None)
+
+  override val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+  }
+}
+
 trait NotFound extends Setup {
   override val taiConnector = new TestTaiConnector(None)
   override val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
@@ -248,7 +262,7 @@ trait NotFound extends Setup {
 }
 
 trait SuccessExcluded extends Setup {
-  override val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, children, Exclusion(true))
+  override val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, Some(children), Some(Exclusion(true)))
 
   override val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
 

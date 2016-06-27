@@ -24,7 +24,7 @@ import uk.gov.hmrc.personalincome.domain.{TcrRenewal, RenewalReference}
 import uk.gov.hmrc.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService, SandboxPersonalIncomeService}
 import uk.gov.hmrc.domain.Nino
 import play.api.{mvc, Logger}
-import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
+import uk.gov.hmrc.play.http.{ServiceUnavailableException, HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.api.controllers._
 
@@ -37,6 +37,12 @@ trait ErrorHandling {
   def errorWrapper(func: => Future[mvc.Result])(implicit hc: HeaderCarrier) = {
     func.recover {
       case ex: NotFoundException => Status(ErrorNotFound.httpStatusCode)(Json.toJson(ErrorNotFound))
+
+      case ex: ServiceUnavailableException =>
+        // The hod can return a 503 HTTP status which is translated to a 429 response code.
+        // The 503 HTTP status code must only be returned from the API gateway and not from downstream API's.
+        Logger.error(s"ServiceUnavailableException reported: ${ex.getMessage}", ex)
+        Status(ClientRetryRequest.httpStatusCode)(Json.toJson(ClientRetryRequest))
 
       case e: Throwable =>
         Logger.error(s"Internal server error: ${e.getMessage}", e)
