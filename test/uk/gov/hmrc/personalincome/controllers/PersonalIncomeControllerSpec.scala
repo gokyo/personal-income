@@ -433,5 +433,59 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
     }
 
   }
+}
 
+
+
+class TestExclusionsServiceSpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {
+
+  "tax exclusions service" should {
+
+    "process the request for get tax credit exclusion successfully" in new Success {
+      val result = await(controller.getTaxCreditExclusion(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(exclusion) //check the value here
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
+    }
+
+    "return 429 HTTP status when get tax credit exclusion returns 503" in new Generate_503 {
+      val result = await(controller.getTaxCreditExclusion(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
+
+      status(result) shouldBe 429
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
+    }
+
+    "return the tax credit exclusion successfully when journeyId is supplied" in new Success {
+      val result = await(controller.getTaxCreditExclusion(nino, Some(journeyId))(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(exclusion)
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
+    }
+
+    "return unauthorized when authority record does not contain a NINO" in new AuthWithoutNino {
+      val result = await(controller.getTaxCreditExclusion(nino)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 401
+      contentAsJson(result) shouldBe noNinoOnAccont
+      testPersonalIncomeService.saveDetails shouldBe Map.empty
+    }
+
+    "return unauthorized when authority record has a low Confidence Level" in new AuthWithLowCL {
+      val result = await(controller.getTaxCreditExclusion(nino)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 401
+      contentAsJson(result) shouldBe lowCl
+
+      testPersonalIncomeService.saveDetails shouldBe Map.empty
+    }
+
+    "return status code 406 when the headers are invalid" in new Success {
+      val result = await(controller.getTaxCreditExclusion(nino)(emptyRequest))
+
+      status(result) shouldBe 406
+      testPersonalIncomeService.saveDetails shouldBe Map.empty
+    }
+  }
 }

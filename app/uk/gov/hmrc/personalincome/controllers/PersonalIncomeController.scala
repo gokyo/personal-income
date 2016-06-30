@@ -16,17 +16,18 @@
 
 package uk.gov.hmrc.personalincome.controllers
 
-import play.api.mvc.{Request, BodyParsers}
+import play.api.mvc.{BodyParsers, Request}
 import uk.gov.hmrc.personalincome.connectors.Error
-import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlWithHeaderCheck, AccountAccessControlCheckOff}
+import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
 import play.api.libs.json.{JsError, Json}
-import uk.gov.hmrc.personalincome.domain.{TcrRenewal, RenewalReference}
+import uk.gov.hmrc.personalincome.domain.{RenewalReference, TcrRenewal}
 import uk.gov.hmrc.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService, SandboxPersonalIncomeService}
 import uk.gov.hmrc.domain.Nino
-import play.api.{mvc, Logger}
-import uk.gov.hmrc.play.http.{ServiceUnavailableException, HeaderCarrier, NotFoundException}
+import play.api.{Logger, mvc}
+import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException, ServiceUnavailableException}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.api.controllers._
+import uk.gov.hmrc.personalincome.domain.userdata.Exclusion
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -73,6 +74,16 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
           case Some(authToken) => Ok(Json.toJson(authToken))
           case _ => NotFound
       })
+  }
+
+  final def getTaxCreditExclusion(nino: Nino, journeyId: Option[String] = None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+    implicit request =>
+      implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
+      errorWrapper(
+        service.getTaxCreditExclusion(nino).map {
+          case exclusion => Ok(Json.toJson(exclusion))
+          case _ => NotFound
+        })
   }
 
   final def claimantDetails(nino: Nino, journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {

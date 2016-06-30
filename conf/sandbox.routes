@@ -10,3 +10,5 @@ POST        /income/:nino/tax-credits/renewal                       uk.gov.hmrc.
 GET         /income/:nino/tax-credits/tax-credits-summary           uk.gov.hmrc.personalincome.controllers.SandboxPersonalIncomeController.taxCreditsSummary(nino: uk.gov.hmrc.domain.Nino, journeyId: Option[String])
 
 GET         /income/tax-credits/submission/state                    uk.gov.hmrc.personalincome.controllers.SandboxServiceStateController.taxCreditsSubmissionState(journeyId: Option[String])
+
+GET         /income/:nino/tax-credits/tax-credits-decision          uk.gov.hmrc.personalincome.controllers.SandboxPersonalIncomeController.getTaxCreditExclusion(nino: uk.gov.hmrc.domain.Nino, journeyId: Option[String])

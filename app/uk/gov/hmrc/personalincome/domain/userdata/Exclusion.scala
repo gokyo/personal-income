@@ -18,7 +18,7 @@ package uk.gov.hmrc.personalincome.domain.userdata
 
 import play.api.libs.json.Json
 
-case class Exclusion(excluded: Boolean)
+case class Exclusion(showData: Boolean)
 
 object Exclusion {
   val key = "exclusion"

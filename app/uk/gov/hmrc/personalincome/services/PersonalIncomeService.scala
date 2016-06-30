@@ -41,6 +41,8 @@ trait PersonalIncomeService {
   // Renewal specific - authenticateRenewal must be called first to retrieve the authToken before calling claimantDetails, submitRenewal.
   def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]]
 
+  def getTaxCreditExclusion(nino: Nino)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Exclusion]
+
   def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimantDetails]
 
   def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Response]
@@ -98,12 +100,18 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
     withAudit("authenticateRenewal", Map("nino" -> nino.value)) {
 
       val taxCreditNino = TaxCreditsNino(nino.value)
-      def getDecision(exclusion: Exclusion): Future[Option[TcrAuthenticationToken]] = if (!exclusion.excluded) ntcConnector.authenticateRenewal(taxCreditNino, tcrRenewalReference) else Future.successful(None)
+      def getDecision(exclusion: Exclusion): Future[Option[TcrAuthenticationToken]] = if (!exclusion.showData) ntcConnector.authenticateRenewal(taxCreditNino, tcrRenewalReference) else Future.successful(None)
 
       for {
         excluded <- taxCreditBrokerConnector.getExclusion(taxCreditNino)
         decison <- getDecision(excluded)
       } yield decison
+    }
+  }
+
+  override def getTaxCreditExclusion(nino: Nino)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Exclusion] = {
+    withAudit("getTaxCreditExclusion", Map("nino" -> nino.value)) {
+      taxCreditBrokerConnector.getExclusion(TaxCreditsNino(nino.value))
     }
   }
 
@@ -197,6 +205,7 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
     Future.successful(Json.parse(resource).as[TaxCreditSummary])
   }
 
+  override def getTaxCreditExclusion(nino: Nino)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Exclusion] = Future.successful(Exclusion(false))
 }
 
 object LivePersonalIncomeService extends LivePersonalIncomeService {

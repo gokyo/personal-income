@@ -63,6 +63,14 @@
             "authType":"USER",
             "throttlingTier":"UNLIMITED",
             "scope":"read:personal-income"
+          },
+          {
+            "uriPattern":"/income/{nino}/tax-credits/tax-credits-decision",
+            "endpointName":"Get Tax Credits Decision",
+            "method":"GET",
+            "authType":"USER",
+            "throttlingTier":"UNLIMITED",
+            "scope":"read:personal-income"
           }
         ]
       }

@@ -9,4 +9,6 @@ POST    /income/:nino/tax-credits/renewal                    uk.gov.hmrc.persona
 
 GET     /income/:nino/tax-credits/tax-credits-summary        uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.taxCreditsSummary(nino: uk.gov.hmrc.domain.Nino, journeyId: Option[String])
 
-GET     /income/tax-credits/submission/state                  uk.gov.hmrc.personalincome.controllers.LiveServiceStateController.taxCreditsSubmissionState(journeyId: Option[String])
+GET     /income/tax-credits/submission/state                 uk.gov.hmrc.personalincome.controllers.LiveServiceStateController.taxCreditsSubmissionState(journeyId: Option[String])
+
+GET     /income/:nino/tax-credits/tax-credits-decision      uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.getTaxCreditExclusion(nino: uk.gov.hmrc.domain.Nino, journeyId: Option[String])
