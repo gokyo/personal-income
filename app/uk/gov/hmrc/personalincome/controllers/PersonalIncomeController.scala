@@ -81,7 +81,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
       errorWrapper(
         service.getTaxCreditExclusion(nino).map {
-          case exclusion => Ok(Json.toJson(exclusion))
+          case exclusion => Ok(Json.parse(s"""{"showData":${exclusion.excluded}}"""))
           case _ => NotFound
         })
   }
