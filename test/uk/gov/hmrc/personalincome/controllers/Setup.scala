@@ -152,6 +152,7 @@ trait Setup {
   val renewal = TcrRenewal(RenewalData(Some(incomeDetails), Some(incomeDetails), Some(certainBenefits)), None, Some(otherIncome), Some(otherIncome), false)
   val renewalReferenceUnknown = RenewalReference("some-reference")
   val renewalReference = RenewalReference("111111111111111")
+  val renewalReferenceNines = RenewalReference("999999999999999")
   val weekly = "WEEKLY"
   val expectedNextDueDate = DateTime.parse("2015-07-16")
   val expectedPaymentCTC = Payment(140.12, expectedNextDueDate, Some(weekly))
@@ -223,6 +224,7 @@ trait Setup {
   val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails)
   val ntcConnector400 = new TestNtcConnector(Success(200), None, claimentDetails)
   val exclusion = Exclusion(false)
+  val exclusionResult = Json.parse("""{"showData":false}""")
   val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, Some(children), Some(exclusion))
 
   val testAccess = new TestAccessCheck(authConnector)
@@ -333,6 +335,17 @@ trait Ntc400Result extends Success {
   }
 }
 
+trait Ntc400ResultExclusionTrue extends Success {
+
+  override val exclusion = Exclusion(true)
+
+  override val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector400, taxCreditBrokerConnector, MicroserviceAuditConnector)
+
+  override val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+  }
+}
 
 trait SandboxSuccess extends Setup {
   val controller = new PersonalIncomeController {

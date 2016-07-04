@@ -80,10 +80,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
       errorWrapper(
-        service.getTaxCreditExclusion(nino).map {
-          case exclusion => Ok(Json.toJson(exclusion))
-          case _ => NotFound
-        })
+        service.getTaxCreditExclusion(nino).map { res => Ok(Json.parse(s"""{"showData":${res.excluded}}""")) })
   }
 
   final def claimantDetails(nino: Nino, journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
