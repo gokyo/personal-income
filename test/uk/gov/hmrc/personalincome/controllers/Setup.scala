@@ -224,7 +224,7 @@ trait Setup {
   val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails)
   val ntcConnector400 = new TestNtcConnector(Success(200), None, claimentDetails)
   val exclusion = Exclusion(false)
-  val exclusionResult = Json.parse("""{"showData":false}""")
+  val exclusionResult = Json.parse("""{"showData":true}""")
   val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, Some(children), Some(exclusion))
 
   val testAccess = new TestAccessCheck(authConnector)
