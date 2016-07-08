@@ -4,7 +4,7 @@ The Tax Credits Summary object
   
 * **URL**
 
-  `/income/:nino/tax-credits-decision`
+  `/income/:nino/tax-credits/tax-credits-decision`
 
 * **Method:**
   
