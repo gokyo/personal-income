@@ -97,6 +97,8 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
 
+      val disable=true
+
       request.body.validate[TcrRenewal].fold (
         errors => {
           Logger.warn("Received error with service submitRenewal: " + errors)
@@ -105,12 +107,16 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
         renewal => {
           errorWrapper(validateTcrAuthHeader() {
             token =>
-                implicit hc =>
-              service.submitRenewal(nino,renewal).map {
-                case Error(status) => Status(status)(Json.toJson(ErrorwithNtcRenewal))
-                case _ => Ok
-              }
-
+              implicit hc =>
+                if (disable) {
+                  Logger.info("Renewals have been disabled.")
+                  Future.successful(Ok)
+                } else {
+                  service.submitRenewal(nino, renewal).map {
+                    case Error(status) => Status(status)(Json.toJson(ErrorwithNtcRenewal))
+                    case _ => Ok
+                  }
+                }
           })
         }
       )

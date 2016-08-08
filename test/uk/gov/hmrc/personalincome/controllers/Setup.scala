@@ -54,8 +54,11 @@ class TestNtcConnector(response:Response, tcrAuthToken:Option[TcrAuthenticationT
 
   override def serviceUrl: String = ???
 
+  var renewalCount = 0
+
   override def submitRenewal(nino: TaxCreditsNino,
                              renewalData: TcrRenewal)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Response] = {
+    renewalCount=renewalCount+1
     Future.successful(response)
   }
 
