@@ -139,40 +139,15 @@ class TestPersonalIncomeRenewalAuthenticateSpec extends UnitSpec with WithFakeAp
       contentAsJson(result) shouldBe Json.toJson(tcrAuthToken)
     }
 
-    "process the authentication successfully and exclusion service is not invoked when renewal reference does not contain 9's " in new Generate_503 {
-      val result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(tcrAuthToken)
-    }
-
-    "return the summary successfully when journeyId is supplied" in new Success {
+    "process the authentication successfully when journeyId is supplied" in new Success {
       val result = await(controller.getRenewalAuthentication(nino, renewalReference, Some(journeyId))(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(tcrAuthToken)
     }
 
-    "return 429 when isExcluded returns 503" in new Generate_503 {
-      val result = await(controller.getRenewalAuthentication(nino, renewalReferenceNines, Some(journeyId))(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 429
-    }
-
-    "return 404 response when excluded" in new SuccessExcluded {
-      val  result = await(controller.getRenewalAuthentication(nino, renewalReferenceNines)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 404
-    }
-
     "return 404 response when hod returns 4xx status" in new Ntc400Result {
       val  result = await(controller.getRenewalAuthentication(nino, renewalReferenceNines)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 404
-    }
-
-    "return 404 response when hod returns Exclusion status of true" in new Ntc400ResultExclusionTrue {
-      val  result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 404
     }

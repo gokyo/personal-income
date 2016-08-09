@@ -98,22 +98,7 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
   // Note: The TcrAuthenticationToken must be supplied to claimantDetails and submitRenewal.
   override def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]] = {
     withAudit("authenticateRenewal", Map("nino" -> nino.value)) {
-
-      val taxCreditNino = TaxCreditsNino(nino.value)
-      def getDecision(exclusion: Exclusion): Future[Option[TcrAuthenticationToken]] = if (!exclusion.excluded) ntcConnector.authenticateRenewal(taxCreditNino, tcrRenewalReference) else Future.successful(None)
-
-      def getExclusion: Future[Exclusion] = {
-        tcrRenewalReference match {
-          case RenewalReference("999999999999999") => taxCreditBrokerConnector.getExclusion(taxCreditNino)
-
-          case _ => Future.successful(Exclusion(false))
-        }
-      }
-
-      for {
-        excluded <- getExclusion
-        decison <- getDecision(excluded)
-      } yield decison
+      ntcConnector.authenticateRenewal(TaxCreditsNino(nino.value), tcrRenewalReference)
     }
   }
 
