@@ -236,6 +236,19 @@ trait Setup {
 
   val testSandboxPersonalIncomeService = SandboxPersonalIncomeService
   val sandboxCompositeAction = AccountAccessControlCheckOff
+
+  val shutteredTaxCreditsSubmission = new TaxCreditsControl {
+    override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(true, true)
+  }
+
+  val unShutteredTaxCreditsSubmission = new TaxCreditsControl {
+    override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true)
+  }
+
+  val unShutteredTaxCreditsSubmissionNotInSubmissionPeriod = new TaxCreditsControl {
+    override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, false)
+  }
+
 }
 
 trait Success extends Setup {
@@ -333,3 +346,28 @@ trait SandboxSuccess extends Setup {
     override val accessControl: AccountAccessControlWithHeaderCheck = sandboxCompositeAction
   }
 }
+
+trait ServiceStateSuccess extends Setup {
+  val controller = new ServiceStateController {
+    override val taxCreditsSubmissionControlConfig = unShutteredTaxCreditsSubmission
+    override val accessControl = AccountAccessControlCheckOff
+  }
+}
+
+trait ServiceStateSuccessShuttered extends Setup {
+  val controller = new ServiceStateController {
+    override val taxCreditsSubmissionControlConfig = shutteredTaxCreditsSubmission
+    override val accessControl = AccountAccessControlCheckOff
+  }
+}
+trait ServiceStateNotInSubmissionPeriod extends Setup {
+  val controller = new ServiceStateController {
+    override val taxCreditsSubmissionControlConfig = unShutteredTaxCreditsSubmissionNotInSubmissionPeriod
+    override val accessControl = AccountAccessControlCheckOff
+  }
+}
+
+trait SandboxServiceStateSuccess extends Setup {
+  val controller = SandboxServiceStateController
+}
+

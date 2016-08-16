@@ -19,7 +19,7 @@ package uk.gov.hmrc.personalincome.controllers
 
 import uk.gov.hmrc.api.controllers.HeaderValidator
 import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
-import uk.gov.hmrc.personalincome.domain.{TaxCreditsSubmissions, TaxCreditsControl, TaxCreditsSubmissionControl}
+import uk.gov.hmrc.personalincome.domain.{SubmissionState, TaxCreditsControl, TaxCreditsSubmissionControl, TaxCreditsSubmissions}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.time.DateTimeUtils
 
@@ -44,6 +44,18 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
           taxCreditsSubmissionControlConfig.toTaxCreditsSubmissions
         }.map{
           as => Ok(Json.toJson(as))
+        })
+  }
+
+  final def taxCreditsSubmissionStateEnabled(journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+    implicit request =>
+      implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
+      errorWrapper(
+        Future {
+          val taxCreditsSubmissions = taxCreditsSubmissionControlConfig.toTaxCreditsSubmissions
+          SubmissionState(!taxCreditsSubmissions.shuttered && taxCreditsSubmissions.inSubmissionPeriod)
+        }.map{
+          submissionState => Ok(Json.toJson(submissionState))
         })
   }
 }

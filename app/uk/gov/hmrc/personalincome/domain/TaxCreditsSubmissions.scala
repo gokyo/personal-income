@@ -22,8 +22,14 @@ import uk.gov.hmrc.time.DateTimeUtils
 
 case class TaxCreditsSubmissions(shuttered : Boolean, inSubmissionPeriod : Boolean)
 
+case class SubmissionState(submissionState: Boolean)
+
 object TaxCreditsSubmissions extends DateTimeUtils {
   implicit val formats = Json.format[TaxCreditsSubmissions]
+}
+
+object SubmissionState {
+  implicit val formats = Json.format[SubmissionState]
 }
 
 trait LoadConfig {

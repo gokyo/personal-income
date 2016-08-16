@@ -101,6 +101,20 @@
             ]
           },
           {
+            "uriPattern":"/income/tax-credits/submission/state/enabled",
+            "endpointName":"Get Tax Credits Submission State Enabled",
+            "method":"GET",
+            "authType":"USER",
+            "throttlingTier":"UNLIMITED",
+            "scope":"read:personal-income",
+            "queryParameters": [
+              {
+                "name": "journeyId",
+                "required": false
+              }
+            ]
+          },
+          {
             "uriPattern":"/income/{nino}/tax-credits/tax-credits-decision",
             "endpointName":"Get Tax Credits Decision",
             "method":"GET",
