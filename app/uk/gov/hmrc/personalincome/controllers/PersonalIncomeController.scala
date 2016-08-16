@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.personalincome.controllers
 
+import com.typesafe.config.Config
 import play.api.mvc.{BodyParsers, Request}
 import uk.gov.hmrc.personalincome.connectors.Error
 import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
 import play.api.libs.json.{JsError, Json}
-import uk.gov.hmrc.personalincome.domain.{RenewalReference, TcrRenewal}
+import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService, SandboxPersonalIncomeService}
 import uk.gov.hmrc.domain.Nino
 import play.api.{Logger, mvc}
@@ -56,6 +57,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
 
   val service: PersonalIncomeService
   val accessControl:AccountAccessControlWithHeaderCheck
+  val taxCreditsSubmissionControlConfig : TaxCreditsControl
 
   final def getSummary(nino: Nino, year: Int, journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
@@ -97,7 +99,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
 
-      val disable=true
+      val enabled= taxCreditsSubmissionControlConfig.toSubmissionState.submissionState
 
       request.body.validate[TcrRenewal].fold (
         errors => {
@@ -108,7 +110,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
           errorWrapper(validateTcrAuthHeader() {
             token =>
               implicit hc =>
-                if (disable) {
+                if (!enabled) {
                   Logger.info("Renewals have been disabled.")
                   Future.successful(Ok)
                 } else {
@@ -143,9 +145,14 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
 object SandboxPersonalIncomeController extends PersonalIncomeController {
   override val service = SandboxPersonalIncomeService
   override val accessControl = AccountAccessControlCheckOff
+  override val taxCreditsSubmissionControlConfig: TaxCreditsControl = new TaxCreditsControl {
+    override def toTaxCreditsSubmissions: TaxCreditsSubmissions = new TaxCreditsSubmissions(false, true)
+    override def toSubmissionState: SubmissionState = SubmissionState(true)
+  }
 }
 
 object LivePersonalIncomeController extends PersonalIncomeController {
   override val service = LivePersonalIncomeService
   override val accessControl = AccountAccessControlWithHeaderCheck
+  override val taxCreditsSubmissionControlConfig: TaxCreditsControl = TaxCreditsSubmissionControl
 }

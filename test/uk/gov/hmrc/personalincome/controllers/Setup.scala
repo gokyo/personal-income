@@ -19,16 +19,17 @@ package uk.gov.hmrc.personalincome.controllers
 import java.util.UUID
 
 import com.ning.http.util.Base64
+import com.typesafe.config.Config
 import org.joda.time.DateTime
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
-import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck, AccountAccessControl}
+import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControl, AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
 import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.domain.userdata._
-import uk.gov.hmrc.personalincome.services.{PersonalIncomeService, SandboxPersonalIncomeService, LivePersonalIncomeService}
+import uk.gov.hmrc.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService, SandboxPersonalIncomeService}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
@@ -122,6 +123,11 @@ class TestAccessCheck(testAuthConnector: TestAuthConnector) extends AccountAcces
 
 class TestAccountAccessControlWithAccept(testAccessCheck:AccountAccessControl) extends AccountAccessControlWithHeaderCheck {
   override val accessControl: AccountAccessControl = testAccessCheck
+}
+
+class TestTaxCreditsSubmission(taxCreditsSubmissions: TaxCreditsSubmissions) extends TaxCreditsControl {
+  override def toTaxCreditsSubmissions = taxCreditsSubmissions
+  override def toSubmissionState = new SubmissionState(!toTaxCreditsSubmissions.shuttered && toTaxCreditsSubmissions.inSubmissionPeriod)
 }
 
 
@@ -236,18 +242,8 @@ trait Setup {
 
   val testSandboxPersonalIncomeService = SandboxPersonalIncomeService
   val sandboxCompositeAction = AccountAccessControlCheckOff
-
-  val shutteredTaxCreditsSubmission = new TaxCreditsControl {
-    override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(true, true)
-  }
-
-  val unShutteredTaxCreditsSubmission = new TaxCreditsControl {
-    override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true)
-  }
-
-  val unShutteredTaxCreditsSubmissionNotInSubmissionPeriod = new TaxCreditsControl {
-    override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, false)
-  }
+  val testTaxCreditsSubmissionControl = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(false, true))
+  val testTaxCreditsSubmissionControlShuttered = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(true, true))
 
 }
 
@@ -255,6 +251,15 @@ trait Success extends Setup {
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+  }
+}
+
+trait SuccessRenewalDisabled extends Setup {
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControlShuttered
   }
 }
 
@@ -267,6 +272,7 @@ trait Generate_503 extends Setup {
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
   }
 }
 
@@ -276,6 +282,7 @@ trait NotFound extends Setup {
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
   }
 }
 
@@ -286,6 +293,7 @@ trait GateKeeper extends Setup {
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
   }
 }
 
@@ -307,6 +315,7 @@ trait AuthWithLowCL extends Setup {
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
   }
 
 }
@@ -327,6 +336,7 @@ trait AuthWithoutNino extends Setup {
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
   }
 }
 
@@ -337,6 +347,7 @@ trait Ntc400Result extends Success {
   override val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
   }
 }
 
@@ -344,25 +355,26 @@ trait SandboxSuccess extends Setup {
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testSandboxPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = sandboxCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
   }
 }
 
 trait ServiceStateSuccess extends Setup {
   val controller = new ServiceStateController {
-    override val taxCreditsSubmissionControlConfig = unShutteredTaxCreditsSubmission
+    override val taxCreditsSubmissionControlConfig = testTaxCreditsSubmissionControl
     override val accessControl = AccountAccessControlCheckOff
   }
 }
 
 trait ServiceStateSuccessShuttered extends Setup {
   val controller = new ServiceStateController {
-    override val taxCreditsSubmissionControlConfig = shutteredTaxCreditsSubmission
+    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(true, true))
     override val accessControl = AccountAccessControlCheckOff
   }
 }
 trait ServiceStateNotInSubmissionPeriod extends Setup {
   val controller = new ServiceStateController {
-    override val taxCreditsSubmissionControlConfig = unShutteredTaxCreditsSubmissionNotInSubmissionPeriod
+    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(false, false))
     override val accessControl = AccountAccessControlCheckOff
   }
 }

@@ -41,6 +41,7 @@ trait LoadConfig {
 
 trait TaxCreditsControl {
   def toTaxCreditsSubmissions: TaxCreditsSubmissions
+  def toSubmissionState: SubmissionState
 }
 
 trait TaxCreditsSubmissionControlConfig extends TaxCreditsControl with LoadConfig with DateTimeUtils {
@@ -63,6 +64,10 @@ trait TaxCreditsSubmissionControlConfig extends TaxCreditsControl with LoadConfi
     val currentTime = now.getMillis
     val allowSubmissions = currentTime >= submissionControl.startMs && currentTime <= submissionControl.endMs
     new TaxCreditsSubmissions(submissionControl.shutter, allowSubmissions)
+  }
+
+  def toSubmissionState : SubmissionState = {
+    new SubmissionState(!toTaxCreditsSubmissions.shuttered && toTaxCreditsSubmissions.inSubmissionPeriod)
   }
 }
 

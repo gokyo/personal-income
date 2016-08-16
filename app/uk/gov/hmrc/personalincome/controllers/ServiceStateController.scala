@@ -52,8 +52,7 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
       errorWrapper(
         Future {
-          val taxCreditsSubmissions = taxCreditsSubmissionControlConfig.toTaxCreditsSubmissions
-          SubmissionState(!taxCreditsSubmissions.shuttered && taxCreditsSubmissions.inSubmissionPeriod)
+          taxCreditsSubmissionControlConfig.toSubmissionState
         }.map{
           submissionState => Ok(Json.toJson(submissionState))
         })
@@ -65,6 +64,7 @@ object SandboxServiceStateController extends ServiceStateController with DateTim
 
   override val taxCreditsSubmissionControlConfig = new TaxCreditsControl {
     override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true)
+    override def toSubmissionState = new SubmissionState(true)
   }
   override val accessControl = AccountAccessControlCheckOff
 }
