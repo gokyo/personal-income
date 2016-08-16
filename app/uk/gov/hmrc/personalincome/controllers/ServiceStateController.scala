@@ -19,7 +19,7 @@ package uk.gov.hmrc.personalincome.controllers
 
 import uk.gov.hmrc.api.controllers.HeaderValidator
 import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
-import uk.gov.hmrc.personalincome.domain.{TaxCreditsSubmissions, TaxCreditsControl, TaxCreditsSubmissionControl}
+import uk.gov.hmrc.personalincome.domain.{SubmissionState, TaxCreditsControl, TaxCreditsSubmissionControl, TaxCreditsSubmissions}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.time.DateTimeUtils
 
@@ -46,6 +46,17 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
           as => Ok(Json.toJson(as))
         })
   }
+
+  final def taxCreditsSubmissionStateEnabled(journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+    implicit request =>
+      implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
+      errorWrapper(
+        Future {
+          taxCreditsSubmissionControlConfig.toSubmissionState
+        }.map{
+          submissionState => Ok(Json.toJson(submissionState))
+        })
+  }
 }
 
 
@@ -53,6 +64,7 @@ object SandboxServiceStateController extends ServiceStateController with DateTim
 
   override val taxCreditsSubmissionControlConfig = new TaxCreditsControl {
     override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true)
+    override def toSubmissionState = new SubmissionState(true)
   }
   override val accessControl = AccountAccessControlCheckOff
 }

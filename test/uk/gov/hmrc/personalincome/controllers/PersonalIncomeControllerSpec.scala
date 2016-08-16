@@ -279,14 +279,28 @@ class TestPersonalIncomeRenewalSpec extends UnitSpec with WithFakeApplication wi
 
   "renewal Live" should {
 
-    "process the renewal successfully" in new Success {
+    "process the renewal successfully if renewals are enabled" in new Success {
+      val result = await(controller.submitRenewal(nino)(jsonRenewalRequestWithAuthHeader))
+
+      ntcConnector.renewalCount shouldBe 1
+      status(result) shouldBe 200
+    }
+
+    "process the renewal successfully if renewals are disabled" in new SuccessRenewalDisabled {
       val result = await(controller.submitRenewal(nino)(jsonRenewalRequestWithAuthHeader))
 
       ntcConnector.renewalCount shouldBe 0
       status(result) shouldBe 200
     }
 
-    "return the summary successfully when journeyId is supplied" in new Success {
+    "process returns a 200 successfully when journeyId is supplied" in new Success {
+      val result = await(controller.submitRenewal(nino, Some(journeyId))(jsonRenewalRequestWithAuthHeader))
+
+      ntcConnector.renewalCount shouldBe 1
+      status(result) shouldBe 200
+    }
+
+    "process returns a 200 when journeyId is supplied and Renewals are disabled" in new SuccessRenewalDisabled {
       val result = await(controller.submitRenewal(nino, Some(journeyId))(jsonRenewalRequestWithAuthHeader))
 
       ntcConnector.renewalCount shouldBe 0

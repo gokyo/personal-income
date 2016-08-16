@@ -11,4 +11,6 @@ GET     /income/:nino/tax-credits/tax-credits-summary        uk.gov.hmrc.persona
 
 GET     /income/tax-credits/submission/state                 uk.gov.hmrc.personalincome.controllers.LiveServiceStateController.taxCreditsSubmissionState(journeyId: Option[String])
 
+GET     /income/tax-credits/submission/state/enabled         uk.gov.hmrc.personalincome.controllers.LiveServiceStateController.taxCreditsSubmissionStateEnabled(journeyId: Option[String])
+
 GET     /income/:nino/tax-credits/tax-credits-decision      uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.getTaxCreditExclusion(nino: uk.gov.hmrc.domain.Nino, journeyId: Option[String])

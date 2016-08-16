@@ -1,5 +1,5 @@
 <endpoint>
-  <name>Get Tax Credits Submission State Enabled</name>
+  <name>Get Tax Credits Submission State</name>
   <description>This endpoint retrieves the current state of tax credit submissions</description>
   <section id="resource">
     <title>Resource</title>
@@ -43,7 +43,8 @@
     <title>Response</title>
     <httpStatus>200 (OK)</httpStatus>
     <json><![CDATA[{
-        "submissionState":true
+        "shuttered":true,
+        "inSubmissionPeriod":true
 }]]></json>
     <table>
       <headings>
@@ -54,7 +55,13 @@
       </headings>
       <rows>
         <row>
-          <cell><code>submissionState</code></cell>
+          <cell><code>shuttered</code></cell>
+          <cell><code>Boolean</code></cell>
+          <cell><code>true</code></cell>
+          <cell>The tax credits service has temporarily been taken down during the submissions period</cell>
+        </row>
+        <row>
+          <cell><code>inSubmissionPeriod</code></cell>
           <cell><code>Boolean</code></cell>
           <cell><code>true</code></cell>
           <cell>The tax credits service in/outside the allowed submission period</cell>
