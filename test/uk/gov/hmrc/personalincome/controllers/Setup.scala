@@ -73,7 +73,7 @@ class TestNtcConnector(response:Response, tcrAuthToken:Option[TcrAuthenticationT
   }
 }
 
-class TestAuthConnector(nino: Option[Nino]) extends AuthConnector {
+class TestAuthConnector(nino: Option[Nino], ex:Option[Exception]=None) extends AuthConnector {
   override val serviceUrl: String = "someUrl"
 
   override def serviceConfidenceLevel: ConfidenceLevel = ???
@@ -82,7 +82,12 @@ class TestAuthConnector(nino: Option[Nino]) extends AuthConnector {
 
   override def accounts()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Accounts] = Future(Accounts(nino, None, false, false))
 
-  override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future(Unit)
+  override def grantAccess(taxId:Option[Nino])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+    ex match {
+      case None => Future(Unit)
+      case Some(failure) => Future.failed(failure)
+    }
+  }
 }
 
 class TestTaxCreditBrokerConnector(payment: PaymentSummary, personal: PersonalDetails, partner: PartnerDetails,
@@ -136,6 +141,7 @@ trait Setup {
 
   val journeyId = UUID.randomUUID().toString
   val nino = Nino("CS700100A")
+  val ninoIncorrect = Nino("CS333100A")
   val taxSummaryDetails = TaxSummaryDetails(nino.value,1)
 
   val taxableIncome = TaxableIncome(taxFreeAmount=0,
@@ -255,6 +261,19 @@ trait Success extends Setup {
   }
 }
 
+trait AccessCheck extends Setup {
+  override val authConnector = new TestAuthConnector(None, Some(new FailToMatchTaxIdOnAuth("controlled explosion")))
+  override val testAccess = new TestAccessCheck(authConnector)
+  override val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
+
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+  }
+}
+
+
 trait SuccessRenewalDisabled extends Setup {
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
@@ -304,7 +323,7 @@ trait AuthWithLowCL extends Setup {
   override val authConnector = new TestAuthConnector(None) {
     lazy val exception = new AccountWithLowCL("Forbidden to access since low CL")
 
-    override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(exception)
+    override def grantAccess(taxId:Option[Nino])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(exception)
   }
 
   override val testAccess = new TestAccessCheck(authConnector)
@@ -325,7 +344,7 @@ trait AuthWithoutNino extends Setup {
   override val authConnector =  new TestAuthConnector(None) {
     lazy val exception = new NinoNotFoundOnAccount("NINO not found!")
 
-    override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(exception)
+    override def grantAccess(taxId:Option[Nino])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(exception)
   }
 
   override val testAccess = new TestAccessCheck(authConnector)

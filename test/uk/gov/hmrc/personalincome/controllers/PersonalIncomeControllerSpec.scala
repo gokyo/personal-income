@@ -42,6 +42,12 @@ class TestPersonalIncomeSummarySpec extends UnitSpec with WithFakeApplication wi
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
     }
 
+    "return 401 when the nino in the request does not match the authority nino" in new AccessCheck {
+      val result = await(controller.getSummary(ninoIncorrect,90)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 401
+    }
+
     "return the summary successfully when journeyId is supplied" in new Success {
 
       val result: Result = await(controller.getSummary(nino,90,Some(journeyId))(emptyRequestWithAcceptHeader))
@@ -139,6 +145,12 @@ class TestPersonalIncomeRenewalAuthenticateSpec extends UnitSpec with WithFakeAp
       contentAsJson(result) shouldBe Json.toJson(tcrAuthToken)
     }
 
+    "return 401 when the nino in the request does not match the authority nino" in new AccessCheck {
+      val result = await(controller.getRenewalAuthentication(ninoIncorrect, renewalReference)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 401
+    }
+
     "process the authentication successfully when journeyId is supplied" in new Success {
       val result = await(controller.getRenewalAuthentication(nino, renewalReference, Some(journeyId))(emptyRequestWithAcceptHeader))
 
@@ -191,6 +203,12 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(claimentDetails)
+    }
+
+    "return 401 when the nino in the request does not match the authority nino" in new AccessCheck {
+      val result = await(controller.claimantDetails(ninoIncorrect)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
+
+      status(result) shouldBe 401
     }
 
     "return the summary successfully when journeyId is supplied" in new Success {
@@ -246,7 +264,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
     "return claimantDetails successfully when a known bar code reference is supplied" in new SandboxSuccess {
 
       case class TestData(barcode:String, renewalFormType:String, hasPartner:Boolean=false)
-      val testData = Seq(TestData("111111111111111", "r"),TestData("222222222222222", "d"),TestData("333333333333333", "d2"),TestData("444444444444444", "d", true),TestData("555555555555555", "d2", true))
+      val testData = Seq(TestData("111111111111111", "r"),TestData("222222222222222", "d"),TestData("333333333333333", "d2"),TestData("444444444444444", "d", hasPartner = true),TestData("555555555555555", "d2", true))
 
       testData.map( item => {
         val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(RenewalReference(item.barcode))))
@@ -284,6 +302,12 @@ class TestPersonalIncomeRenewalSpec extends UnitSpec with WithFakeApplication wi
 
       ntcConnector.renewalCount shouldBe 1
       status(result) shouldBe 200
+    }
+
+    "return 401 when the nino in the request does not match the authority nino" in new AccessCheck {
+      val result = await(controller.submitRenewal(ninoIncorrect)(jsonRenewalRequestWithAuthHeader))
+
+      status(result) shouldBe 401
     }
 
     "process the renewal successfully if renewals are disabled" in new SuccessRenewalDisabled {
@@ -381,6 +405,12 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
     }
 
+    "return 401 when the nino in the request does not match the authority nino" in new AccessCheck {
+      val result = await(controller.taxCreditsSummary(ninoIncorrect)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
+
+      status(result) shouldBe 401
+    }
+
     "return 429 HTTP status when retrieval of children returns 503" in new Generate_503 {
       val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
@@ -450,6 +480,12 @@ class TestExclusionsServiceSpec extends UnitSpec with WithFakeApplication with S
       status(result) shouldBe 200
       contentAsJson(result) shouldBe exclusionResult
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
+    }
+
+    "return 401 when the nino in the request does not match the authority nino" in new AccessCheck {
+      val result = await(controller.getTaxCreditExclusion(ninoIncorrect)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
+
+      status(result) shouldBe 401
     }
 
     "return 429 HTTP status when get tax credit exclusion returns 503" in new Generate_503 {

@@ -28,6 +28,7 @@ import uk.gov.hmrc.domain.{Nino, SaUtr}
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
 
 
+class FailToMatchTaxIdOnAuth(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
 class NinoNotFoundOnAccount(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
 class AccountWithLowCL(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
 class AccountWithWeakCredStrength(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
@@ -54,14 +55,19 @@ trait AuthConnector {
     }
   }
 
-  def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+  def grantAccess(taxId:Option[Nino])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+
     http.GET(s"$serviceUrl/auth/authority") map {
       resp => {
         val json = resp.json
         confirmConfiendenceLevel(json)
+        val nino = (json \ "accounts" \ "paye" \ "nino").asOpt[String]
 
-        if((json \ "accounts" \ "paye" \ "nino").asOpt[String].isEmpty)
+        if (nino.isEmpty)
           throw new NinoNotFoundOnAccount("The user must have a National Insurance Number")
+
+        if (taxId.nonEmpty && !taxId.get.value.equals(nino.get))
+          throw new FailToMatchTaxIdOnAuth("The nino in the URL failed to match auth!")
       }
     }
   }

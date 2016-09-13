@@ -17,7 +17,8 @@
 package uk.gov.hmrc.personalincome.controllers.action
 
 import uk.gov.hmrc.api.controllers._
-import uk.gov.hmrc.personalincome.connectors.{AccountWithWeakCredStrength, AccountWithLowCL, NinoNotFoundOnAccount, AuthConnector}
+import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.ErrorUnauthorizedNoNino
 import play.api.Logger
 import play.api.libs.json.Json
@@ -31,17 +32,18 @@ case object ErrorUnauthorizedMicroService extends ErrorResponse(401, "UNAUTHORIZ
 case object ErrorUnauthorizedWeakCredStrength extends ErrorResponse(401, "WEAK_CRED_STRENGTH", "Credential Strength on account does not allow access")
 
 
-trait AccountAccessControl extends ActionBuilder[Request] with Results {
+trait AccountAccessControl extends Results {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val authConnector: AuthConnector
 
-  def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
+  case object ErrorUnauthorized extends ErrorResponse(401, "UNAUTHORIZED", "Invalid request")
+
+  def invokeAuthBlock[A](request: Request[A], block: (Request[A]) => Future[Result], taxId:Option[Nino]) = {
     implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
 
-    authConnector.grantAccess().flatMap {
-      _ =>
+    authConnector.grantAccess(taxId).flatMap { access =>
         block(request)
     }.recover {
       case ex: uk.gov.hmrc.play.http.Upstream4xxResponse =>
@@ -52,6 +54,10 @@ trait AccountAccessControl extends ActionBuilder[Request] with Results {
         Logger.info("Unauthorized! NINO not found on account!")
         Unauthorized(Json.toJson(ErrorUnauthorizedNoNino))
 
+      case ex: FailToMatchTaxIdOnAuth =>
+        Logger.info("Unauthorized! Failure to match URL NINO against Auth NINO")
+        Status(ErrorUnauthorized.httpStatusCode)(Json.toJson(ErrorUnauthorized))
+
       case ex: AccountWithLowCL =>
         Logger.info("Unauthorized! Account with low CL!")
         Unauthorized(Json.toJson(ErrorUnauthorizedLowCL))
@@ -61,17 +67,18 @@ trait AccountAccessControl extends ActionBuilder[Request] with Results {
         Unauthorized(Json.toJson(ErrorUnauthorizedWeakCredStrength))
     }
   }
+
 }
 
 trait AccountAccessControlWithHeaderCheck extends HeaderValidator {
   val checkAccess=true
   val accessControl:AccountAccessControl
 
-  override def validateAccept(rules: Option[String] => Boolean) = new ActionBuilder[Request] {
+  def validateAcceptWithAuth(rules: Option[String] => Boolean, taxId: Option[Nino]) = new ActionBuilder[Request] {
 
     def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
       if (rules(request.headers.get("Accept"))) {
-        if (checkAccess) accessControl.invokeBlock(request, block)
+        if (checkAccess) accessControl.invokeAuthBlock(request, block, taxId)
         else block(request)
       }
       else Future.successful(Status(ErrorAcceptHeaderInvalid.httpStatusCode)(Json.toJson(ErrorAcceptHeaderInvalid)))
