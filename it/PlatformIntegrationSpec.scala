@@ -55,10 +55,6 @@ class PlatformIntegrationSpec extends UnitSpec with MockitoSugar with ScalaFutur
 
   trait Setup {
     val documentationController = new DocumentationController {}
-//    val liveController = new PersonalIncomeController {
-//      override val service = ???
-//      override val accessControl = ???
-//    }
     val request = FakeRequest()
   }
 
@@ -78,27 +74,6 @@ class PlatformIntegrationSpec extends UnitSpec with MockitoSugar with ScalaFutur
         }
       }
     }
-
-// TODO...
-//    "header..." in new MicroserviceLocalRunSugar with Setup {
-//      override val additionalConfiguration: Map[String, Any] = Map(
-//        "appName" -> "application-name",
-//        "router.regex" -> ".*",
-//        "router.prefix" -> "/sandbox",
-//        "router.regex" -> "X-MOBILE-USER-ID")
-//      run {
-//        () => {
-//          val nino = Nino("CS700100A")
-//          val acceptHeader = "Accept" -> "application/vnd.hmrc.1.0+json"
-//
-//          val emptyRequestWithAcceptHeader = FakeRequest().withHeaders(acceptHeader, "X-MOBILE-USER-ID" -> "some_id" )
-//
-//          val result = liveController.renewalSummary(nino)(request)
-//          status(result) shouldBe 200
-//
-//        }
-//      }
-//    }
 
 
     "provide definition endpoint and documentation endpoints for each api" in new MicroserviceLocalRunSugar with Setup {

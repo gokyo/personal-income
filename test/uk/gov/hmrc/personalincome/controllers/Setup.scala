@@ -232,10 +232,7 @@ trait Setup {
   )
   lazy val jsonRenewalRequestNoAcceptHeader = fakeRequest(renewalJsonBody)
 
-// TODO...
   val authConnector = new TestAuthConnector(Some(nino))
-
-
   val taiConnector = new TestTaiConnector(Some(taxSummaryDetails))
   val tcrAuthToken = TcrAuthenticationToken("some-auth-token")
   val claimentDetails = ClaimantDetails(false, 1, "r", nino.value, None, false, "some-app-id")
@@ -245,11 +242,7 @@ trait Setup {
   val exclusionResult = Json.parse("""{"showData":true}""")
   val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, Some(children), Some(exclusion))
 
-
-// TODO
   val testAccess = new TestAccessCheck(authConnector)
-
-
   val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
   val testPersonalIncomeService = new TestPersonalIncomeService(taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
 
