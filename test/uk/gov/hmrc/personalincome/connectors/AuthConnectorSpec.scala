@@ -135,7 +135,7 @@ class AuthConnectorSpec extends UnitSpec with ScalaFutures {
       val response = HttpResponse(200, Some(authorityJson(authorityConfidenceLevel, credentialStrength, saUtr, nino)))
 
       try {
-        await(authConnector(response, serviceConfidenceLevel).grantAccess())
+        await(authConnector(response, serviceConfidenceLevel).grantAccess(nino))
       } catch {
         case e: AccountWithLowCL =>
           e.message shouldBe "The user does not have sufficient CL permissions to access this service"
@@ -155,7 +155,7 @@ class AuthConnectorSpec extends UnitSpec with ScalaFutures {
       val response = HttpResponse(200, Some(authorityJson(authorityConfidenceLevel, credentialStrength, saUtr, nino)))
 
       try {
-        await(authConnector(response, serviceConfidenceLevel).grantAccess())
+        await(authConnector(response, serviceConfidenceLevel).grantAccess(nino))
       } catch {
         case e: AccountWithWeakCredStrength =>
           e.message shouldBe "The user does not have sufficient credential strength permissions to access this service"
@@ -174,7 +174,7 @@ class AuthConnectorSpec extends UnitSpec with ScalaFutures {
       val nino = Some(Nino("CS100700A"))
       val response = HttpResponse(200, Some(authorityJson(authorityConfidenceLevel, credentialStrength, saUtr, nino)))
 
-      await(authConnector(response, serviceConfidenceLevel).grantAccess())
+      await(authConnector(response, serviceConfidenceLevel).grantAccess(nino))
     }
 
     "find NINO only account when credStrength and CL are correct" in {
@@ -187,7 +187,7 @@ class AuthConnectorSpec extends UnitSpec with ScalaFutures {
 
       val response = HttpResponse(200, Some(authorityJson(authorityConfidenceLevel, credentialStrength, saUtr, nino)))
 
-      await(authConnector(response, serviceConfidenceLevel).grantAccess())
+      await(authConnector(response, serviceConfidenceLevel).grantAccess(nino))
 
     }
 
@@ -202,7 +202,7 @@ class AuthConnectorSpec extends UnitSpec with ScalaFutures {
       val response = HttpResponse(200, Some(authorityJson(authorityConfidenceLevel, credentialStrength, saUtr, nino)))
 
       try {
-        await(authConnector(response, serviceConfidenceLevel).grantAccess())
+        await(authConnector(response, serviceConfidenceLevel).grantAccess(nino))
       } catch {
         case e: NinoNotFoundOnAccount =>
           e.message shouldBe "The user must have a National Insurance Number"
@@ -210,6 +210,28 @@ class AuthConnectorSpec extends UnitSpec with ScalaFutures {
           fail("Unexpected error failure with exception " + t)
       }
     }
+
+    "fail to return authority when auth NINO does not match request NINO" in {
+
+      val serviceConfidenceLevel = ConfidenceLevel.L200
+      val authorityConfidenceLevel = ConfidenceLevel.L200
+      val credentialStrength = CredentialStrength.Strong
+      val saUtr = None
+      val ninoAuth = Some(Nino("CS100700A"))
+      val ninoRequest = Some(Nino("CS333700A"))
+
+      val response = HttpResponse(200, Some(authorityJson(authorityConfidenceLevel, credentialStrength, saUtr, ninoAuth)))
+
+      try {
+        await(authConnector(response, serviceConfidenceLevel).grantAccess(ninoRequest))
+      } catch {
+        case e: FailToMatchTaxIdOnAuth =>
+          e.message shouldBe "The nino in the URL failed to match auth!"
+        case t: Throwable =>
+          fail("Unexpected error failure with exception " + t)
+      }
+    }
+
 
   }
 
