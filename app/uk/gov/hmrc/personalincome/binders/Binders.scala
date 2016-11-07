@@ -16,16 +16,28 @@
 
 package uk.gov.hmrc.personalincome.binders
 
-import uk.gov.hmrc.personalincome.domain.RenewalReference
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.play.binders.SimpleObjectBinder
-
-object NinoBinder extends SimpleObjectBinder[Nino](Nino.apply, _.value)
+import play.api.mvc.PathBindable
+import uk.gov.hmrc.personalincome.domain.RenewalReference
 
 object Binders {
-  implicit val ninoBinder = NinoBinder
-  implicit val renewalReferenceBinder = RenewalReferenceBinder
+
+  implicit def ninoBinder(implicit stringBinder: PathBindable[String]) = new PathBindable[Nino] {
+
+    def unbind(key: String, nino: Nino): String = stringBinder.unbind(key, nino.value)
+
+    def bind(key: String, value: String): Either[String, Nino] = {
+      Nino.isValid(value) match {
+        case true => Right(Nino(value))
+        case false => Left("ERROR_NINO_INVALID")
+      }
+    }
+  }
+
+  implicit def renewalReferenceBinder(implicit stringBinder: PathBindable[String]) = new PathBindable[RenewalReference] {
+
+    def unbind(key: String, renewalReference: RenewalReference): String = stringBinder.unbind(key, renewalReference.value)
+
+    def bind(key: String, value: String): Either[String, RenewalReference] = { Right(RenewalReference(value)) }
+  }
 }
-
-object RenewalReferenceBinder extends SimpleObjectBinder[RenewalReference](RenewalReference.apply, _.value)
-
