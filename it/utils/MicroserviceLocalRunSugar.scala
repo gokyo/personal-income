@@ -28,6 +28,6 @@ trait MicroserviceLocalRunSugar {
   def run(block: () => Unit) = {
     Play.start(fakeApplication)
     block()
-    Play.stop()
+    Play.stop(fakeApplication)
   }
 }

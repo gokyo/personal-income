@@ -16,33 +16,33 @@
 
 package it
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import it.utils.{MicroserviceLocalRunSugar, WiremockServiceLocatorSugar}
 import org.scalatest.BeforeAndAfter
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.mock.MockitoSugar
+import org.scalatest.time.{Millis, Span}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.api.controllers.DocumentationController
-import uk.gov.hmrc.personalincome.controllers.PersonalIncomeController
-import uk.gov.hmrc.personalincome.controllers.action.AccountAccessControlWithHeaderCheck
-import uk.gov.hmrc.personalincome.services.LivePersonalIncomeService
-import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.test.UnitSpec
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
 
 /**
- * Testcase to verify the capability of integration with the API platform.
- *
- * 1, To integrate with API platform the service needs to register itself to the service locator by calling the /registration endpoint and providing
- * - application name
- * - application url
- *
- * 2a, To expose API's to Third Party Developers, the service needs to define the APIs in a definition.json and make it available under api/definition GET endpoint
- * 2b, For all of the endpoints defined in the definition.json a documentation.xml needs to be provided and be available under api/documentation/[version]/[endpoint name] GET endpoint
- *     Example: api/documentation/1.0/Fetch-Some-Data
- *
- * See: ***REMOVED***
- */
-class PlatformIntegrationSpec extends UnitSpec with MockitoSugar with ScalaFutures with WiremockServiceLocatorSugar with BeforeAndAfter {
+  * Testcase to verify the capability of integration with the API platform.
+  *
+  * 1, To integrate with API platform the service needs to register itself to the service locator by calling the /registration endpoint and providing
+  * - application name
+  * - application url
+  *
+  * 2a, To expose API's to Third Party Developers, the service needs to define the APIs in a definition.json and make it available under api/definition GET endpoint
+  * 2b, For all of the endpoints defined in the definition.json a documentation.xml needs to be provided and be available under api/documentation/[version]/[endpoint name] GET endpoint
+  *     Example: api/documentation/1.0/Fetch-Some-Data
+  *
+  * See: ***REMOVED***
+  */
+class PlatformIntegrationSpec extends UnitSpec with MockitoSugar with ScalaFutures with WiremockServiceLocatorSugar with BeforeAndAfter with Eventually {
 
   before {
     startMockServer()
@@ -54,31 +54,37 @@ class PlatformIntegrationSpec extends UnitSpec with MockitoSugar with ScalaFutur
   }
 
   trait Setup {
-    val documentationController = new DocumentationController {}
+    val documentationController = DocumentationController
     val request = FakeRequest()
+
+    implicit val system = ActorSystem()
+    implicit val materializer = ActorMaterializer()
   }
 
   "microservice" should {
 
-    "register itelf to service-locator" in new MicroserviceLocalRunSugar with Setup {
+    "on startup of application register with service-locator" in new MicroserviceLocalRunSugar with Setup {
+
       override val additionalConfiguration: Map[String, Any] = Map(
         "appName" -> "application-name",
         "appUrl" -> "http://microservice-name.service",
         "microservice.services.service-locator.host" -> stubHost,
         "microservice.services.service-locator.port" -> stubPort)
+
       run {
         () => {
-          verify(1,postRequestedFor(urlMatching("/registration")).
-            withHeader("content-type", equalTo("application/json")).
-            withRequestBody(equalTo(regPayloadStringFor("application-name", "http://microservice-name.service"))))
+          eventually(Timeout(Span(1000 * 2, Millis))) {
+            verify(postRequestedFor(urlEqualTo("/registration")).
+              withHeader("content-type", equalTo("application/json")).
+              withRequestBody(equalTo(regPayloadStringFor("application-name", "http://microservice-name.service"))))
+          }
         }
       }
     }
 
-
     "provide definition endpoint and documentation endpoints for each api" in new MicroserviceLocalRunSugar with Setup {
-      override val additionalConfiguration: Map[String, Any] = Map(
 
+      override val additionalConfiguration: Map[String, Any] = Map(
         "appName" -> "application-name",
         "appUrl" -> "http://microservice-name.service",
         "microservice.services.service-locator.host" -> stubHost,
@@ -96,7 +102,6 @@ class PlatformIntegrationSpec extends UnitSpec with MockitoSugar with ScalaFutur
 
           val result = documentationController.definition()(request)
           status(result) shouldBe 200
-
           val jsonResponse = jsonBodyOf(result).futureValue
 
           val versions: Seq[String] = (jsonResponse \\ "version") map (_.as[String])

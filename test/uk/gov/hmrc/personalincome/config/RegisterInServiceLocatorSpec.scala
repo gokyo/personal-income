@@ -19,25 +19,19 @@ package uk.gov.hmrc.personalincome.config
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import play.api.test.FakeApplication
-import play.api.{Application, GlobalSettings}
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.test.UnitSpec
-import uk.gov.hmrc.api.connector._
 import uk.gov.hmrc.api.config._
+import uk.gov.hmrc.api.connector._
+import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
 import scala.concurrent.Future
 
-class RegisterInServiceLocatorSpec extends UnitSpec with MockitoSugar {
+class RegisterInServiceLocatorSpec extends UnitSpec with MockitoSugar with WithFakeApplication {
 
   trait Setup extends ServiceLocatorRegistration with ServiceLocatorConfig {
     val mockConnector = mock[ServiceLocatorConnector]
-//    override lazy val registrationEnabled = true
     override val slConnector = mockConnector
     override implicit val hc: HeaderCarrier = HeaderCarrier()
-    val fakeApplicationWithGlobal = FakeApplication(withGlobal = Some(new GlobalSettings() {
-      override def onStart(app: Application) { super.onStart(app) }
-    }))
   }
 
   "onStart" should {
@@ -45,14 +39,14 @@ class RegisterInServiceLocatorSpec extends UnitSpec with MockitoSugar {
       override lazy val registrationEnabled: Boolean = true
 
       when(mockConnector.register(any())).thenReturn(Future.successful(true))
-      onStart(fakeApplicationWithGlobal)
+      onStart(fakeApplication)
       verify(mockConnector).register(any())
     }
 
 
     "not register the microservice in service locator when registration is disabled" in new Setup {
       override lazy val registrationEnabled: Boolean = false
-      onStart(fakeApplicationWithGlobal)
+      onStart(fakeApplication)
       verify(mockConnector,never()).register(any())
     }
   }
