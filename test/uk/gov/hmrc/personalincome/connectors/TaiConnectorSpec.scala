@@ -16,17 +16,17 @@
 
 package uk.gov.hmrc.personalincome.connectors
 
-import play.api.test.FakeApplication
-import uk.gov.hmrc.personalincome.config.ServicesCircuitBreaker
-import uk.gov.hmrc.personalincome.controllers.StubApplicationConfiguration
-import uk.gov.hmrc.personalincome.domain.TaxSummaryDetails
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.personalincome.config.ServicesCircuitBreaker
+import uk.gov.hmrc.personalincome.controllers.StubApplicationConfiguration
+import uk.gov.hmrc.personalincome.domain.TaxSummaryDetails
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.hooks.HttpHook
 import uk.gov.hmrc.play.http.{HeaderCarrier, _}
-import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
+import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -38,8 +38,6 @@ class TaiTestConnector extends TaiConnector with ServicesConfig with ServicesCir
 
 class TaiConnectorSpec
   extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration with CircuitBreakerTest {
-
-  override lazy val fakeApplication = FakeApplication(additionalConfiguration = config)
 
   private trait Setup {
 

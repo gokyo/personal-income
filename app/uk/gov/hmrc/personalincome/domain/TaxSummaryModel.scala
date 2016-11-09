@@ -311,42 +311,10 @@ object GateKeeper {
 case class Change[A,B](currentYear:A,currentYearPlusOne:B)
 
 object Change {
-   implicit val emp = Employments.format
-
-  implicit def changeReads[A, B](implicit aReads: Reads[A], bReads: Reads[B]): Reads[Change[A, B]] = new Reads[Change[A, B]] {
-    override def reads(json: JsValue): JsResult[Change[A, B]] = {
-      json match {
-        case JsObject(js) =>
-          val currentYear = json \ "currentYear" match {
-            case JsDefined(v) => v
-            case _ => JsNull
-          }
-          val currentYearPlusOne = json \ "currentYearPlusOne" match {
-            case JsDefined(v) => v
-            case _ => JsNull
-          }
-
-          val a = aReads.reads(currentYear).get
-          val b = bReads.reads(currentYearPlusOne).get
-          JsSuccess(Change(a, b))
-
-        case _ => JsError("Failed to read non JsObject!")
-      }
-
-    }
-  }
-
-   implicit def changeWrite[A, B]  (implicit aWrites: Writes[A], bWrites: Writes[B]): Writes[Change[A, B]] =  new Writes[Change[A,B]] {
-     def writes(change: Change[A,B]) = {
-       val currentYearJs = aWrites.writes(change.currentYear)
-       val currentYearPlusOneJs = bWrites.writes(change.currentYearPlusOne)
-       JsObject(Seq(
-         "currentYear" -> currentYearJs,
-         "currentYearPlusOne" -> currentYearPlusOneJs))
-     }
-   }
-
- }
+  implicit val emp = Employments.format
+  implicit val changeDecimal = Json.format[Change[BigDecimal, BigDecimal]]
+  implicit val changeEmployments = Json.format[Change[Option[Employments], Option[Employments]]]
+}
 
 case class CYPlusOneChange(
                              employments: Option[List[Change[Option[Employments],Option[Employments]]]] = None,
@@ -361,10 +329,8 @@ case class CYPlusOneChange(
                              )
 
 object CYPlusOneChange {
-  implicit val emp = Employments.format
-
   implicit val formats = Json.format[CYPlusOneChange]
- }
+}
 
 case class TaxSummaryDetails( nino: String,
                                version: Int,
