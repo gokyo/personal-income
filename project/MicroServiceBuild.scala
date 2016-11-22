@@ -22,21 +22,21 @@ private object AppDependencies {
   import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val microserviceBootstrapVersion = "5.7.0"
+  private val microserviceBootstrapVersion = "5.8.0"
   private val playAuthVersion = "4.2.0"
   private val playHealthVersion = "2.0.0"
   private val playJsonLoggerVersion = "3.0.0"
   private val playUrlBindersVersion = "2.0.0"
   private val playConfigVersion = "3.0.0"
   private val domainVersion = "4.0.0"
-  private val playHmrcApiVersion = "1.1.0"
-  private val hmrcTestVersion = "2.0.0"
+  private val playHmrcApiVersion = "1.2.0"
+  private val hmrcTestVersion = "2.2.0"
   private val pegdownVersion = "1.6.0"
   private val scalaTestVersion = "2.2.6"
-  private val wireMockVersion = "2.2.2"
+  private val wireMockVersion = "2.3.1"
   private val cucumberVersion = "1.2.5"
-  private val playUI: String = "5.1.0"
-  private val circuitBreaker = "1.7.0"
+  private val playUI: String = "5.3.0"
+  private val circuitBreaker = "2.0.0"
 
   val compile = Seq(
 
@@ -64,7 +64,7 @@ private object AppDependencies {
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
         "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
         "org.pegdown" % "pegdown" % pegdownVersion % scope,
-        "org.mockito" % "mockito-all" % "1.9.5" % scope
+        "org.mockito" % "mockito-all" % "1.10.19" % scope
       )
     }.test
   }
@@ -82,7 +82,7 @@ private object AppDependencies {
         "info.cukes" %% "cucumber-scala" % cucumberVersion % scope,
         "info.cukes" % "cucumber-junit" % cucumberVersion % scope,
         "com.github.tomakehurst" % "wiremock" % wireMockVersion % scope,
-        "org.mockito" % "mockito-all" % "1.9.5" % scope,
+        "org.mockito" % "mockito-all" % "1.10.19" % scope,
         "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % scope
       )
     }.test
