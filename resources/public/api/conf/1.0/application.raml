@@ -1,0 +1,190 @@
+#%RAML 1.0
+---
+
+title: Personal Income
+version: 1.0
+protocols: [ HTTPS ]
+baseUri: https://api.service.hmrc.gov.uk/
+
+documentation:
+ - title: Overview
+   content: !include docs/overview.md
+ - title: Versioning
+   content: !include http://api-documentation-raml-frontend.service/api-documentation/assets/common/docs/versioning.md
+ - title: Errors
+   content: !include http://api-documentation-raml-frontend.service/api-documentation/assets/common/docs/errors.md
+
+mediaType: [ application/json, application/hal+json ]
+
+uses:
+  sec: http://api-documentation-raml-frontend.service/api-documentation/assets/common/modules/securitySchemes.raml
+  headers: http://api-documentation-raml-frontend.service/api-documentation/assets/common/modules/headers.raml
+  annotations: http://api-documentation-raml-frontend.service/api-documentation/assets/common/modules/annotations.raml
+  types: http://api-documentation-raml-frontend.service/api-documentation/assets/common/modules/types.raml
+
+/personal-income:
+  /income:
+    /tax-credits:
+      /submission:
+        /state:
+          get:
+            displayName: Get tax credits submission state
+            description: This endpoint retrieves the current state of tax credit submissions
+            is: [headers.acceptHeader]
+            (annotations.scope): "read:personal-income"
+            securedBy: [ sec.oauth_2_0: { scopes: [ "read:personal-income" ] } ]
+            queryParameters:
+              journeyId:
+                type: string
+                required: false
+            responses:
+              200:
+                body:
+                  application/json:
+                    examples:
+                      example-1:
+                        value: !include examples/get-tax-credits-submission-state-example-1.json
+          /enabled:
+            get:
+              displayName: Get tax credits submission state enabled
+              description: This endpoint retrieves the current state of tax credit submissions
+              is: [headers.acceptHeader]
+              (annotations.scope): "read:personal-income"
+              securedBy: [ sec.oauth_2_0: { scopes: [ "read:personal-income" ] } ]
+              queryParameters:
+                journeyId:
+                  type: string
+                  required: false
+              responses:
+                200:
+                  body:
+                    application/json:
+                      examples:
+                        example-1:
+                          value: !include examples/get-tax-credits-submission-state-enabled-example-1.json
+    /{nino}:
+      uriParameters:
+        nino:
+          description: The NINO for the individual.
+          type: string
+          example: NS123456B
+      /tax-summary:
+        /{year}:
+          uriParameters:
+            year:
+              description: The tax-summary for the specific year.
+              type: int
+              example: "10"
+          get:
+            displayName: Get summary
+            description: This endpoint retrieves the tax summary.
+            is: [headers.acceptHeader]
+            (annotations.scope): "read:personal-income"
+            securedBy: [ sec.oauth_2_0: { scopes: [ "read:personal-income" ] } ]
+            queryParameters:
+              journeyId:
+                type: string
+                required: false
+            responses:
+              200:
+                body:
+                  application/json:
+                    examples:
+                      example-1:
+                        value: !include examples/get-summary-example-1.json
+      /tax-credits:
+        /{renewalReference}:
+          uriParameters:
+            renewalReference:
+              type: string
+          /auth:
+            get:
+              displayName: Get auth token
+              description: This endpoint retrieves the auth token and validates the nino and tax reference number.
+              is: [headers.acceptHeader]
+              (annotations.scope): "read:personal-income"
+              securedBy: [ sec.oauth_2_0: { scopes: [ "read:personal-income" ] } ]
+              queryParameters:
+                journeyId:
+                  type: string
+                  required: false
+              responses:
+                200:
+                  body:
+                    application/json:
+                      examples:
+                        example-1:
+                          value: !include examples/get-auth-token-example-1.json
+        /claimant-details:
+          get:
+            displayName: Get claiment details
+            description: This endpoint retrieves the claiment details.
+            is: [headers.acceptHeader]
+            (annotations.scope): "read:personal-income"
+            securedBy: [ sec.oauth_2_0: { scopes: [ "read:personal-income" ] } ]
+            queryParameters:
+              journeyId:
+                type: string
+                required: false
+            responses:
+              200:
+                body:
+                  application/json:
+                    examples:
+                      example-1:
+                        value: !include examples/get-claiment-details-example-1.json
+        /renewal:
+          post:
+            displayName: Submit renewal
+            description: This endpoint submits a renewal.
+            is: [headers.acceptHeader]
+            (annotations.scope): "read:personal-income"
+            securedBy: [ sec.oauth_2_0: { scopes: [ "read:personal-income" ] } ]
+            queryParameters:
+              journeyId:
+                type: string
+                required: false
+            responses:
+              200:
+                body:
+                  application/json:
+                    examples:
+                      example-1:
+                        value: !include examples/submit-renewal-example-1.json
+        /tax-credits-summary:
+          get:
+            displayName: Get tax credits summary
+            description: This endpoint retrieves the tax credits summary.
+            is: [headers.acceptHeader]
+            (annotations.scope): "read:personal-income"
+            securedBy: [ sec.oauth_2_0: { scopes: [ "read:personal-income" ] } ]
+            queryParameters:
+              journeyId:
+                type: string
+                required: false
+            responses:
+              200:
+                body:
+                  application/json:
+                    examples:
+                      example-1:
+                        value: !include examples/get-tax-credits-summary-example-1.json
+        /tax-credits-decision:
+          get:
+            displayName: Get tax credits decision
+            description: This endpoint retrieves the tax credits decision.
+            is: [headers.acceptHeader]
+            (annotations.scope): "read:personal-income"
+            securedBy: [ sec.oauth_2_0: { scopes: [ "read:personal-income" ] } ]
+            queryParameters:
+              journeyId:
+                type: string
+                required: false
+            responses:
+              200:
+                body:
+                  application/json:
+                    examples:
+                      example-1:
+                        value: !include examples/get-tax-credits-decision-example-1.json
+
