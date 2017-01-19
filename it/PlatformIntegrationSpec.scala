@@ -114,5 +114,19 @@ class PlatformIntegrationSpec extends UnitSpec with MockitoSugar with ScalaFutur
         }
       }
     }
+
+    "provide RAML conf endpoint" in new MicroserviceLocalRunSugar with Setup {
+      override val additionalConfiguration: Map[String, Any] = Map(
+        "appName" -> "application-name",
+        "appUrl" -> "http://microservice-name.service",
+        "microservice.services.service-locator.host" -> stubHost,
+        "microservice.services.service-locator.port" -> stubPort)
+      run {
+        () => {
+          val result = documentationController.conf("1.0", "application.raml")(request)
+          status(result) shouldBe 200
+        }
+      }
+    }
   }
 }
