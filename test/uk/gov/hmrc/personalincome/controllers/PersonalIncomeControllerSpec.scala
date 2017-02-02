@@ -26,6 +26,89 @@ import uk.gov.hmrc.personalincome.services.SandboxPersonalIncomeService._
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
 
+class TestPersonalIncomeTaxSummarySpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {
+
+  override lazy val fakeApplication = FakeApplication(additionalConfiguration = config)
+
+  "getTaxSummary Live" should {
+
+    "return the tax summary successfully" in new Success {
+
+      val result: Result = await(controller.getTaxSummary(nino,90)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerNew)
+
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
+    }
+
+    "return 401 when the nino in the request does not match the authority nino" in new AccessCheck {
+      val result = await(controller.getTaxSummary(ninoIncorrect,90)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 401
+    }
+
+    "return the summary successfully when journeyId is supplied" in new Success {
+
+      val result: Result = await(controller.getTaxSummary(nino,90,Some(journeyId))(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerNew)
+
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
+    }
+
+
+    "return 404 when summary returned is None" in new NotFound {
+
+      val result: Result = await(controller.getTaxSummary(nino,90)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 404
+
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
+    }
+
+    "return the gateKeeper summary successfully" in new GateKeeper {
+
+      val result: Result = await(controller.getTaxSummary(nino,90)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerGKNew)
+
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
+    }
+
+
+    "return unauthorized when authority record does not contain a NINO" in new AuthWithoutNino {
+      val result = await(controller.getTaxSummary(nino,90)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 401
+      contentAsJson(result) shouldBe noNinoOnAccont
+
+      testPersonalIncomeService.saveDetails shouldBe Map.empty
+    }
+
+    "return unauthorized when authority record has a low CL" in new AuthWithLowCL {
+      val result = await(controller.getTaxSummary(nino,90)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 401
+      contentAsJson(result) shouldBe lowCl
+
+      testPersonalIncomeService.saveDetails shouldBe Map.empty
+    }
+
+    "return status code 406 when the headers are invalid" in new Success {
+      val result = await(controller.getTaxSummary(nino,90)(emptyRequest))
+
+      status(result) shouldBe 406
+      testPersonalIncomeService.saveDetails shouldBe Map.empty
+    }
+  }
+
+//  TODO: check whether getSummary Sandbox support will be required
+//  "getSummary Sandbox" should ...
+}
+
 class TestPersonalIncomeSummarySpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {
 
   override lazy val fakeApplication = FakeApplication(additionalConfiguration = config)
