@@ -23,13 +23,21 @@ import play.api.libs.json.{JsError, Json}
 import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService, SandboxPersonalIncomeService}
 import uk.gov.hmrc.domain.Nino
-import play.api.{Logger, mvc}
+import play.api._
 import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException, ServiceUnavailableException}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.api.controllers._
+import play.api.Play.current
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+
+object SummaryFormat extends Enumeration {
+  type SummaryFormat = Value
+  val Classic, Refresh = Value
+  def withNameOpt(s: String): Option[Value] = values.find(_.toString == s)
+}
+import SummaryFormat._
 
 trait ErrorHandling {
   self: BaseController =>
@@ -57,22 +65,24 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
   val accessControl:AccountAccessControlWithHeaderCheck
   val taxCreditsSubmissionControlConfig : TaxCreditsControl
 
-  final def getTaxSummary(nino: Nino, year: Int, journeyId: Option[String]=None) = accessControl.validateAcceptWithAuth(acceptHeaderValidationRules, Some(nino)).async {
-    implicit request =>
-      implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
-      errorWrapper(service.getTaxSummary(nino, year).map {
-        case Some(summary) => Ok(Json.toJson(summary))
-        case _ => NotFound
-      })
-  }
+  def getSummaryConfig(implicit app: Application): Option[SummaryFormat] = app.configuration.getString("summaryFormat").flatMap(SummaryFormat.withNameOpt)
 
   final def getSummary(nino: Nino, year: Int, journeyId: Option[String]=None) = accessControl.validateAcceptWithAuth(acceptHeaderValidationRules, Some(nino)).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
-      errorWrapper(service.getSummary(nino, year).map {
-        case Some(summary) => Ok(Json.toJson(summary))
-        case _ => NotFound
-      })
+      getSummaryConfig match {
+        case Some(Refresh) =>
+          errorWrapper(service.getTaxSummary(nino, year).map {
+            case Some(summary) => Ok(Json.toJson(summary))
+            case _ => NotFound
+          })
+        case _ =>
+          errorWrapper(
+            service.getSummary(nino, year).map {
+              case Some(summary) => Ok(Json.toJson(summary))
+              case _ => NotFound
+            })
+      }
   }
 
   final def getRenewalAuthentication(nino: Nino, renewalReference:RenewalReference, journeyId: Option[String]=None) = accessControl.validateAcceptWithAuth(acceptHeaderValidationRules, Some(nino)).async {

@@ -31,6 +31,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.api.service._
 import uk.gov.hmrc.api.sandbox._
 import uk.gov.hmrc.personalincome.domain.TcrAuthCheck
+import uk.gov.hmrc.personaltaxsummary.viewmodels.IncomeTaxViewModel
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -156,9 +157,26 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
 }
 
 object SandboxPersonalIncomeService extends PersonalIncomeService with FileResource {
+  override def getTaxSummary(nino: Nino, year: Int)(implicit hc: HeaderCarrier, ex: ExecutionContext) = {
+    val resource: Option[String] = findResource(s"/resources/getsummary/${nino.value}_${year}_refresh.json")
 
-  // TODO: check whether getSummary Sandbox support will be required
-  override def getTaxSummary(nino: Nino, year: Int)(implicit hc: HeaderCarrier, ex: ExecutionContext) = Future(None)
+    val details: uk.gov.hmrc.model.TaxSummaryDetails = uk.gov.hmrc.model.TaxSummaryDetails(nino.value, 1)
+    val baseViewModel: IncomeTaxViewModel = IncomeTaxViewModel(simpleTaxUser = true)
+    val taxSummaryContainerNew = uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer(details, baseViewModel, None, None, None)
+
+    val summary = resource.fold(taxSummaryContainerNew) { found =>
+      Json.parse(found).validate[uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer].fold(
+        error => {
+          Logger.error("Failed to parse summary " + JsError.toFlatJson(error))
+          throw new Exception("Failed to validate JSON data for summary!")
+        },
+        result => {
+          result
+        }
+      )
+    }
+    Future.successful(Some(summary))
+  }
 
   override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryContainer]] = {
     val resource: Option[String] = findResource(s"/resources/getsummary/${nino.value}_$year.json")
