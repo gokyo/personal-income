@@ -19,12 +19,11 @@ package uk.gov.hmrc.personalincome.controllers
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.Json
 import play.api.mvc.Result
-import play.api.test.Helpers._
 import play.api.test.FakeApplication
-import uk.gov.hmrc.personalincome.domain.{RenewalReference, BaseViewModel, TaxSummaryContainer, TaxSummaryDetails}
-import uk.gov.hmrc.personalincome.services.SandboxPersonalIncomeService._
+import play.api.test.Helpers._
+import uk.gov.hmrc.personalincome.domain.{BaseViewModel, RenewalReference, TaxSummaryContainer, TaxSummaryDetails}
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
-
+import uk.gov.hmrc.personalincome.services.SandboxPersonalIncomeService._
 
 class TestPersonalIncomeSummarySpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {
 
@@ -32,55 +31,23 @@ class TestPersonalIncomeSummarySpec extends UnitSpec with WithFakeApplication wi
 
   "getSummary Live" should {
 
-    "return the summary successfully" in new Success {
-
-      val result: Result = await(controller.getSummary(nino,90)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainer)
-
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
-    }
-
     "return 401 when the nino in the request does not match the authority nino" in new AccessCheck {
-      val result = await(controller.getSummary(ninoIncorrect,90)(emptyRequestWithAcceptHeader))
+      val result = await(controller.getSummary(ninoIncorrect, 90)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 401
     }
 
-    "return the summary successfully when journeyId is supplied" in new Success {
-
-      val result: Result = await(controller.getSummary(nino,90,Some(journeyId))(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainer)
-
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
-    }
-
-
     "return 404 when summary returned is None" in new NotFound {
 
-      val result: Result = await(controller.getSummary(nino,90)(emptyRequestWithAcceptHeader))
+      val result: Result = await(controller.getSummary(nino, 90)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 404
 
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
     }
 
-    "return the gateKeeper summary successfully" in new GateKeeper {
-
-      val result: Result = await(controller.getSummary(nino,90)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerGK)
-
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
-    }
-
-
     "return unauthorized when authority record does not contain a NINO" in new AuthWithoutNino {
-      val result = await(controller.getSummary(nino,90)(emptyRequestWithAcceptHeader))
+      val result = await(controller.getSummary(nino, 90)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 401
       contentAsJson(result) shouldBe noNinoOnAccont
@@ -89,7 +56,7 @@ class TestPersonalIncomeSummarySpec extends UnitSpec with WithFakeApplication wi
     }
 
     "return unauthorized when authority record has a low CL" in new AuthWithLowCL {
-      val result = await(controller.getSummary(nino,90)(emptyRequestWithAcceptHeader))
+      val result = await(controller.getSummary(nino, 90)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 401
       contentAsJson(result) shouldBe lowCl
@@ -98,16 +65,50 @@ class TestPersonalIncomeSummarySpec extends UnitSpec with WithFakeApplication wi
     }
 
     "return status code 406 when the headers are invalid" in new Success {
-      val result = await(controller.getSummary(nino,90)(emptyRequest))
+      val result = await(controller.getSummary(nino, 90)(emptyRequest))
 
       status(result) shouldBe 406
       testPersonalIncomeService.saveDetails shouldBe Map.empty
     }
   }
+}
+
+class TestPersonalIncomeSummaryClassicBehaviourSpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {
+  override lazy val fakeApplication = FakeApplication(additionalConfiguration = config + ("summaryFormat" -> "Classic"))
+
+  "getSummary Live" should {
+
+    "return a summary in 'classic' format" in new Success {
+      val result: Result = await(controller.getSummary(nino, 90)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainer)
+
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
+    }
+
+    "return a summary in 'classic' format when a journeyId is supplied" in new Success {
+      val result: Result = await(controller.getSummary(nino, 90, Some(journeyId))(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainer)
+
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
+    }
+
+    "return the gateKeeper summary in 'classic' format given a gatekeepered user" in new GateKeeper {
+      val result: Result = await(controller.getSummary(nino, 90)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerGK)
+
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
+    }
+  }
 
   "getSummary Sandbox" should {
 
-    "return the summary response from a resource" in new SandboxSuccess {
+    "return the summary response in 'classic' format from a resource" in new SandboxSuccess {
       val year = 2016
       val result = await(controller.getSummary(nino, year)(emptyRequestWithAcceptHeader))
 
@@ -119,13 +120,73 @@ class TestPersonalIncomeSummarySpec extends UnitSpec with WithFakeApplication wi
       testPersonalIncomeService.saveDetails shouldBe Map.empty
     }
 
-    "return the static resource since the supplied resource cannot be resolved" in new SandboxSuccess {
+    "return the static resource in 'classic' format if the supplied resource cannot be resolved" in new SandboxSuccess {
       val year = 2018
       val result = await(controller.getSummary(nino, year)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 200
 
-      contentAsJson(result) shouldBe Json.toJson(TaxSummaryContainer(TaxSummaryDetails(nino.value, year), BaseViewModel(estimatedIncomeTax=0), None, None, None))
+      contentAsJson(result) shouldBe Json.toJson(TaxSummaryContainer(TaxSummaryDetails(nino.value, year), BaseViewModel(estimatedIncomeTax = 0), None, None, None))
+
+      testPersonalIncomeService.saveDetails shouldBe Map.empty
+    }
+  }
+}
+
+class TestPersonalIncomeSummaryRefreshBehaviourSpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {
+  override lazy val fakeApplication = FakeApplication(additionalConfiguration = config + ("summaryFormat" -> "Refresh"))
+
+  "getSummary Live" should {
+
+    "return a summary in 'refresh' format" in new Success {
+      val result: Result = await(controller.getSummary(nino, 90)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerNew)
+
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
+    }
+
+    "return a summary in 'refresh' format when a journeyId is supplied" in new Success {
+      val result: Result = await(controller.getSummary(nino, 90, Some(journeyId))(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerNew)
+
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
+    }
+
+    "return a gateKeeper summary in 'refresh' format given a gatekeepered user" in new GateKeeper {
+
+      val result: Result = await(controller.getSummary(nino, 90)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerGKNew)
+
+      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
+    }
+  }
+
+  "getSummary Sandbox" should {
+    "return the summary response in 'refresh' format from a resource" in new SandboxSuccess {
+      val year = 2016
+      val result = await(controller.getSummary(nino, year)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+
+      val resource = findResource(s"/resources/getsummary/${nino.value}_${year}_refresh.json")
+      contentAsJson(result) shouldBe Json.parse(resource.get)
+
+      testPersonalIncomeService.saveDetails shouldBe Map.empty
+    }
+
+    "return the static resource in 'refresh' format if the supplied resource cannot be resolved" in new SandboxSuccess {
+      val year = 2018
+      val result = await(controller.getSummary(nino, year)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+
+      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerNew)
 
       testPersonalIncomeService.saveDetails shouldBe Map.empty
     }
@@ -159,13 +220,13 @@ class TestPersonalIncomeRenewalAuthenticateSpec extends UnitSpec with WithFakeAp
     }
 
     "return 404 response when hod returns 4xx status" in new Ntc400Result {
-      val  result = await(controller.getRenewalAuthentication(nino, renewalReferenceNines)(emptyRequestWithAcceptHeader))
+      val result = await(controller.getRenewalAuthentication(nino, renewalReferenceNines)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 404
     }
 
     "return unauthorized when authority record does not contain a NINO" in new AuthWithoutNino {
-      val  result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequestWithAcceptHeader))
+      val result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 401
       contentAsJson(result) shouldBe noNinoOnAccont
@@ -174,7 +235,7 @@ class TestPersonalIncomeRenewalAuthenticateSpec extends UnitSpec with WithFakeAp
     }
 
     "return unauthorized when authority record has a low CL" in new AuthWithLowCL {
-      val  result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequestWithAcceptHeader))
+      val result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 401
       contentAsJson(result) shouldBe lowCl
@@ -183,7 +244,7 @@ class TestPersonalIncomeRenewalAuthenticateSpec extends UnitSpec with WithFakeAp
     }
 
     "return status code 406 when the headers are invalid" in new Success {
-      val  result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequest))
+      val result = await(controller.getRenewalAuthentication(nino, renewalReference)(emptyRequest))
 
       status(result) shouldBe 406
     }
@@ -245,7 +306,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
     }
 
     "return status code 406 when the Accept header is invalid" in new Success {
-      val  result = await(controller.claimantDetails(nino)(emptyRequest))
+      val result = await(controller.claimantDetails(nino)(emptyRequest))
 
       status(result) shouldBe 406
     }
@@ -263,13 +324,14 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
 
     "return claimantDetails successfully when a known bar code reference is supplied" in new SandboxSuccess {
 
-      case class TestData(barcode:String, renewalFormType:String, hasPartner:Boolean=false)
-      val testData = Seq(TestData("111111111111111", "r"),TestData("222222222222222", "d"),TestData("333333333333333", "d2"),TestData("444444444444444", "d", hasPartner = true),TestData("555555555555555", "d2", true))
+      case class TestData(barcode: String, renewalFormType: String, hasPartner: Boolean = false)
 
-      testData.map( item => {
+      val testData = Seq(TestData("111111111111111", "r"), TestData("222222222222222", "d"), TestData("333333333333333", "d2"), TestData("444444444444444", "d", hasPartner = true), TestData("555555555555555", "d2", true))
+
+      testData.map(item => {
         val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(RenewalReference(item.barcode))))
         status(result) shouldBe 200
-        contentAsJson(result) shouldBe Json.toJson(claimentDetails.copy(hasPartner=item.hasPartner, renewalFormType=item.renewalFormType))
+        contentAsJson(result) shouldBe Json.toJson(claimentDetails.copy(hasPartner = item.hasPartner, renewalFormType = item.renewalFormType))
       })
 
     }
@@ -283,7 +345,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
     }
 
     "return status code 406 when the Accept header is invalid" in new SandboxSuccess {
-      val  result = await(controller.claimantDetails(nino)(emptyRequest))
+      val result = await(controller.claimantDetails(nino)(emptyRequest))
 
       status(result) shouldBe 406
     }
@@ -467,7 +529,6 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
 
   }
 }
-
 
 
 class TestExclusionsServiceSpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {

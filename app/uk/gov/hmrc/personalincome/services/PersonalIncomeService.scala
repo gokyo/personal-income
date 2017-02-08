@@ -18,12 +18,12 @@ package uk.gov.hmrc.personalincome.services
 
 import com.ning.http.util.Base64
 import play.api.Logger
-import play.api.libs.json.{JsResult, JsError, Json}
+import play.api.libs.json.{JsError, Json}
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.HeaderKeys
 import uk.gov.hmrc.personalincome.domain._
-import uk.gov.hmrc.personalincome.domain.userdata.{Exclusion, Children, Child, TaxCreditSummary}
+import uk.gov.hmrc.personalincome.domain.userdata.{Child, Children, Exclusion, TaxCreditSummary}
 import uk.gov.hmrc.personalincome.utils.TaxSummaryHelper
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -31,11 +31,14 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.api.service._
 import uk.gov.hmrc.api.sandbox._
 import uk.gov.hmrc.personalincome.domain.TcrAuthCheck
+import uk.gov.hmrc.personaltaxsummary.viewmodels.IncomeTaxViewModel
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait PersonalIncomeService {
+  def getTaxSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer]]
+
   def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryContainer]]
 
   // Renewal specific - authenticateRenewal must be called first to retrieve the authToken before calling claimantDetails, submitRenewal.
@@ -53,6 +56,8 @@ trait PersonalIncomeService {
 trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
   def authConnector: AuthConnector
 
+  def personalTaxSummaryConnector: PersonalTaxSummaryConnector
+
   def taiConnector: TaiConnector
 
   def ntcConnector: NtcConnector
@@ -61,6 +66,12 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
 
   def gateKeepered(taxSummary: TaxSummaryDetails): Boolean = {
     taxSummary.gateKeeper.exists(_.gateKeepered)
+  }
+
+  override def getTaxSummary(nino: Nino, year: Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer]] = {
+  withAudit("getTaxSummary", Map("nino" -> nino.value, "year" -> year.toString)) {
+      personalTaxSummaryConnector.taxSummary(nino, year)
+    }
   }
 
   override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryContainer]] = {
@@ -146,6 +157,26 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
 }
 
 object SandboxPersonalIncomeService extends PersonalIncomeService with FileResource {
+  override def getTaxSummary(nino: Nino, year: Int)(implicit hc: HeaderCarrier, ex: ExecutionContext) = {
+    val resource: Option[String] = findResource(s"/resources/getsummary/${nino.value}_${year}_refresh.json")
+
+    val details: uk.gov.hmrc.model.TaxSummaryDetails = uk.gov.hmrc.model.TaxSummaryDetails(nino.value, 1)
+    val baseViewModel: IncomeTaxViewModel = IncomeTaxViewModel(simpleTaxUser = true)
+    val taxSummaryContainerNew = uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer(details, baseViewModel, None, None, None)
+
+    val summary = resource.fold(taxSummaryContainerNew) { found =>
+      Json.parse(found).validate[uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer].fold(
+        error => {
+          Logger.error("Failed to parse summary " + JsError.toFlatJson(error))
+          throw new Exception("Failed to validate JSON data for summary!")
+        },
+        result => {
+          result
+        }
+      )
+    }
+    Future.successful(Some(summary))
+  }
 
   override def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryContainer]] = {
     val resource: Option[String] = findResource(s"/resources/getsummary/${nino.value}_$year.json")
@@ -203,6 +234,8 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
 
 object LivePersonalIncomeService extends LivePersonalIncomeService {
   override val authConnector: AuthConnector = AuthConnector
+
+  override val personalTaxSummaryConnector = PersonalTaxSummaryConnector
 
   override val taiConnector = TaiConnector
 
