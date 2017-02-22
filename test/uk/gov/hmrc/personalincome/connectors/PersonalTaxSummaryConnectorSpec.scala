@@ -19,9 +19,9 @@ package uk.gov.hmrc.personalincome.connectors
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.model.TaxSummaryDetails
 import uk.gov.hmrc.personalincome.config.ServicesCircuitBreaker
 import uk.gov.hmrc.personalincome.controllers.StubApplicationConfiguration
+import uk.gov.hmrc.personalincome.domain.TaxSummaryDetails
 import uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer
 import uk.gov.hmrc.personaltaxsummary.viewmodels.IncomeTaxViewModel
 import uk.gov.hmrc.play.config.ServicesConfig
@@ -73,35 +73,8 @@ class PersonalTaxSummaryConnectorSpec
     }
   }
 
-  "PersonalTaxSummaryConnector" should {
 
-    "return None when a BadRequestException is thrown" in new Setup {
-      override lazy val response = http400Response
-      await(connector.taxSummary(nino, 1)) shouldBe None
-    }
+  //TODO add tests for buildEstimatedIncome and buildYourTaxableIncome.
 
-    "return None when a NotFoundException is thrown" in new Setup {
-      override lazy val response = http404Response
-      await(connector.taxSummary(nino, 1)) shouldBe None
-    }
-
-    "throw Upstream5xxResponse when a 500 response is returned" in new Setup {
-      override lazy val response = http500Response
-      intercept[Upstream5xxResponse] {
-        await(connector.taxSummary(nino, 1))
-      }
-    }
-
-    "return a valid response when a 200 response is received with a valid json payload" in new Setup {
-      override lazy val response = http200Response
-      await(connector.taxSummary(nino, 1)) shouldBe Some(taxSummaryContainer)
-    }
-
-    "circuit breaker configuration should be applied and unhealthy service exception will kick in after 5th failed call" in new Setup {
-      override lazy val response = http500Response
-      executeCB(connector.taxSummary(nino, 1))
-    }
-
-  }
 
 }
