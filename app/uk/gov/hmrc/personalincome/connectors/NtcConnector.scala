@@ -30,6 +30,7 @@ sealed trait Response {
 case class Success(status:Int) extends Response
 case class Error(status:Int) extends Response
 
+
 trait NtcConnector {
   this: ServicesCircuitBreaker =>
 

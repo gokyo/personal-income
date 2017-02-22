@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.personaltaxsummary.domain
+package uk.gov.hmrc.personalincome.viewmodelfactories
 
-import play.api.libs.json.Json
-import uk.gov.hmrc.personalincome.domain.{DecreasesTax, IncreasesTax, TotalLiability}
+import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.personalincome.domain.TaxSummaryDetails
+import uk.gov.hmrc.personaltaxsummary.viewmodels.{EstimatedIncomeViewModel, YourTaxableIncomeViewModel}
 
-case class GateKeeperDetails (totalLiability: TotalLiability,
-                              decreasesTax: DecreasesTax,
-                              employmentList: List[MessageWrapper] = List(),
-                              increasesTax: IncreasesTax
-                             )
+trait ViewModelFactory[T] {
+  def createObject(nino: Nino, details: TaxSummaryDetails): T
 
-object GateKeeperDetails {
-  implicit val format = Json.format[GateKeeperDetails]
+  def createObject(nino: Nino, details: TaxSummaryDetails, estimatedIncome: EstimatedIncomeViewModel, taxableIncome: YourTaxableIncomeViewModel): T
 }
