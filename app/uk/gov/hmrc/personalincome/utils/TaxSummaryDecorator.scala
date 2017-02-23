@@ -16,9 +16,7 @@
 
 package uk.gov.hmrc.personalincome.utils
 
-import play.api.i18n.Messages
-import uk.gov.hmrc.personalincome.domain.{TaxBand, Tax}
-import uk.gov.hmrc.play.views.helpers.MoneyPounds
+import uk.gov.hmrc.model.{Tax, TaxBand}
 
 import scala.util.Try
 

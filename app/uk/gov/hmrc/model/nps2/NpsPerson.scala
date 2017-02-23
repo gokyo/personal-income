@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.model.nps2
 
-import org.joda.time.LocalDate
 import com.github.nscala_time.time.Imports._
+import org.joda.time.LocalDate
 import uk.gov.hmrc.model.nps2.NpsPerson.Name
 
 case class NpsPerson (

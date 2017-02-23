@@ -17,7 +17,7 @@
 package uk.gov.hmrc.personaltaxsummary.domain
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.personalincome.domain.TaxSummaryDetails
+import uk.gov.hmrc.model.TaxSummaryDetails
 import uk.gov.hmrc.personaltaxsummary.viewmodels._
 
 case class TaxSummaryContainer(

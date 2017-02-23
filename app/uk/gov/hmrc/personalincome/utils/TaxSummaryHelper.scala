@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.personalincome.utils
 
-import org.joda.time.DateTime
-import play.Logger
 import play.api.Play.current
 import play.api.i18n.Messages
 import play.api.i18n.Messages.Implicits._
-import uk.gov.hmrc.personalincome.domain._
+import uk.gov.hmrc.model._
 import uk.gov.hmrc.play.views.helpers.MoneyPounds
 
 

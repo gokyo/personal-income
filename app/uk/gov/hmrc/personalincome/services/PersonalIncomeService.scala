@@ -22,14 +22,14 @@ import play.api.libs.json.{JsError, Json}
 import uk.gov.hmrc.api.sandbox._
 import uk.gov.hmrc.api.service._
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.model.TaxSummaryDetails
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.HeaderKeys
-import uk.gov.hmrc.personalincome.domain.{TcrAuthCheck, _}
 import uk.gov.hmrc.personalincome.domain.userdata.{Child, Children, Exclusion, TaxCreditSummary}
-import uk.gov.hmrc.personalincome.utils.TaxSummaryHelper
+import uk.gov.hmrc.personalincome.domain.{TcrAuthCheck, _}
 import uk.gov.hmrc.personalincome.viewmodelfactories.TaxSummaryContainerFactory
-import uk.gov.hmrc.personaltaxsummary.domain.{EstimatedIncomeWrapper, GateKeeperDetails, TaxSummaryContainer}
+import uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer
 import uk.gov.hmrc.personaltaxsummary.viewmodels.IncomeTaxViewModel
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.HeaderCarrier

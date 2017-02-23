@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.model.tai
 
-import org.joda.time.LocalDate
 import com.github.nscala_time.time.Imports._
+import org.joda.time.LocalDate
 
 case class TaxYear(year: Int) extends Ordered[TaxYear] {
 

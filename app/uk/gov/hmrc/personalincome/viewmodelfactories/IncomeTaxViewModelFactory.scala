@@ -17,7 +17,7 @@
 package uk.gov.hmrc.personalincome.viewmodelfactories
 
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.personalincome.domain.TaxSummaryDetails
+import uk.gov.hmrc.model.TaxSummaryDetails
 import uk.gov.hmrc.personaltaxsummary.viewmodels.{EstimatedIncomeViewModel, IncomeTaxViewModel, YourTaxableIncomeViewModel}
 
 object IncomeTaxViewModelFactory extends ViewModelFactory[IncomeTaxViewModel] {

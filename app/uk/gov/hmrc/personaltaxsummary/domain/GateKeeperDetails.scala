@@ -17,7 +17,7 @@
 package uk.gov.hmrc.personaltaxsummary.domain
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.personalincome.domain.{DecreasesTax, IncreasesTax, TotalLiability}
+import uk.gov.hmrc.model.{DecreasesTax, IncreasesTax, TotalLiability}
 
 case class GateKeeperDetails (totalLiability: TotalLiability,
                               decreasesTax: DecreasesTax,

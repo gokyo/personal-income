@@ -74,8 +74,7 @@ object AnnualAccount {
 
     AnnualAccount(
       taxYear,
-      Some(nps.withEmployments{employments}.copy(
-        freeIabds = allIabds diff employments.flatMap(_.iabds))),
+      Some(nps.withEmployments{employments}),
       rtiDetails,
       rtiState
     )

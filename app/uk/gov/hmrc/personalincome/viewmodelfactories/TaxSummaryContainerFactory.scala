@@ -17,7 +17,7 @@
 package uk.gov.hmrc.personalincome.viewmodelfactories
 
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.personalincome.domain.{DecreasesTax, IncreasesTax, TaxSummaryDetails, TotalLiability}
+import uk.gov.hmrc.model.{DecreasesTax, IncreasesTax, TaxSummaryDetails, TotalLiability}
 import uk.gov.hmrc.personalincome.utils.TaxSummaryHelper
 import uk.gov.hmrc.personaltaxsummary.domain.{EstimatedIncomeWrapper, GateKeeperDetails, TaxSummaryContainer}
 import uk.gov.hmrc.personaltaxsummary.viewmodels.{EstimatedIncomeViewModel, YourTaxableIncomeViewModel}

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.personaltaxsummary.viewmodels
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.personalincome.domain.{IncreasesTax, TaxCodeIncomes}
+import uk.gov.hmrc.model.{IncreasesTax, TaxCodeIncomes}
 import uk.gov.hmrc.personaltaxsummary.domain.{BenefitsDataWrapper, MessageWrapper}
 
 case class YourTaxableIncomeViewModel(

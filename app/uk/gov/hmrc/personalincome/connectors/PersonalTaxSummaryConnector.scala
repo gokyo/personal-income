@@ -18,8 +18,8 @@ package uk.gov.hmrc.personalincome.connectors
 
 import play.api.Logger
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.model.TaxSummaryDetails
 import uk.gov.hmrc.personalincome.config.{ServicesCircuitBreaker, WSHttp}
-import uk.gov.hmrc.personalincome.domain.TaxSummaryDetails
 import uk.gov.hmrc.personaltaxsummary.viewmodels.{EstimatedIncomeViewModel, YourTaxableIncomeViewModel}
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
