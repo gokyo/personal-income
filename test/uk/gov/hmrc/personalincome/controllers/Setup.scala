@@ -24,13 +24,15 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.model._
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControl, AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
 import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.domain.userdata._
 import uk.gov.hmrc.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService, SandboxPersonalIncomeService}
-import uk.gov.hmrc.personaltaxsummary.viewmodels.{EstimatedIncomeViewModel, IncomeTaxViewModel, YourTaxableIncomeViewModel}
+import uk.gov.hmrc.personaltaxsummary.domain.PersonalTaxSummaryContainer
+import uk.gov.hmrc.personaltaxsummary.viewmodels.{IncomeTaxViewModel, PTSEstimatedIncomeViewModel, PTSYourTaxableIncomeViewModel}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
 import uk.gov.hmrc.play.http._
@@ -45,9 +47,9 @@ class TestPersonalTaxSummaryConnector(taxSummaryContainer:Option[uk.gov.hmrc.per
 
   override def serviceUrl: String = ???
 
-  override def buildYourTaxableIncome(nino: Nino, details: TaxSummaryDetails, journeyId: Option[String])(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[YourTaxableIncomeViewModel] = ???
+  override def buildYourTaxableIncome(nino: Nino, container: PersonalTaxSummaryContainer, journeyId: Option[String])(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[PTSYourTaxableIncomeViewModel] = ???
 
-  override def buildEstimatedIncome(nino: Nino, details: TaxSummaryDetails, journeyId: Option[String])(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[EstimatedIncomeViewModel] = ???
+  override def buildEstimatedIncome(nino: Nino, container: PersonalTaxSummaryContainer, journeyId: Option[String])(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[PTSEstimatedIncomeViewModel] = ???
 }
 
 class TestTaiConnector(taxSummaryDetails:Option[TaxSummaryDetails]) extends TaiTestConnector {
@@ -170,13 +172,13 @@ trait Setup {
   val lowCl = Json.parse("""{"code":"LOW_CONFIDENCE_LEVEL","message":"Confidence Level on account does not allow access"}""")
   val noNinoOnAccont = Json.parse("""{"code":"UNAUTHORIZED","message":"NINO does not exist on account"}""")
 
-  val details: TaxSummaryDetails = TaxSummaryDetails(nino.value, 1)
+  val details: TaxSummaryDetailsResponse = TaxSummaryDetailsResponse(nino.value, 1)
   val baseViewModel: IncomeTaxViewModel = IncomeTaxViewModel(simpleTaxUser = true)
   val taxSummaryContainerNew = uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer(details, baseViewModel, None, None, None)
 
   val gateKeeper = GateKeeper(true, List.empty)
-  val gateKeeperedSummary: TaxSummaryDetails =
-    TaxSummaryDetails(nino.value, 1, gateKeeper = Some(gateKeeper))
+  val gateKeeperedSummary: TaxSummaryDetailsResponse =
+    TaxSummaryDetailsResponse(nino.value, 1, gateKeeper = Some(gateKeeper))
   val gateKeeperedDetails: uk.gov.hmrc.personaltaxsummary.domain.GateKeeperDetails = uk.gov.hmrc.personaltaxsummary.domain.GateKeeperDetails(TotalLiability(totalTax = 1), DecreasesTax(total = 0), List.empty, IncreasesTax(total = 2))
   val taxSummaryContainerGKNew = uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer(gateKeeperedSummary, baseViewModel, None, None, Some(gateKeeperedDetails))
   val taxSummaryContainer = TaxSummaryContainer(TaxSummaryDetails(nino.value, 1), BaseViewModel(estimatedIncomeTax=0), None, Some(taxableIncome), None)

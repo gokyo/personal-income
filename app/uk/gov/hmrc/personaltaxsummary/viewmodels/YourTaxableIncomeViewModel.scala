@@ -18,7 +18,25 @@ package uk.gov.hmrc.personaltaxsummary.viewmodels
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.model.{IncreasesTax, TaxCodeIncomes}
-import uk.gov.hmrc.personaltaxsummary.domain.BenefitsDataWrapper
+import uk.gov.hmrc.personaltaxsummary.domain.{BenefitsDataWrapper, MessageWrapper}
+
+case class PTSYourTaxableIncomeViewModel(
+                                          taxFreeAmount: BigDecimal,
+                                          incomeTax: BigDecimal,
+                                          income: BigDecimal,
+                                          taxCodeList: List[String],
+                                          increasesTax: Option[IncreasesTax] = None,
+                                          employmentPension: EmploymentPension,
+                                          investmentIncomeData: List[(String, String, String)] = List(),
+                                          investmentIncomeTotal: BigDecimal,
+                                          otherIncomeData: List[(String, String, String)] = List(),
+                                          otherIncomeTotal: BigDecimal,
+                                          benefitsData: List[BenefitsDataWrapper] = List(),
+                                          benefitsTotal: BigDecimal,
+                                          taxableBenefitsData: List[(String, String, String)] = List(),
+                                          taxableBenefitsTotal: BigDecimal,
+                                          hasChanges: Boolean = false
+                                        )
 
 case class YourTaxableIncomeViewModel(
                                        taxFreeAmount: BigDecimal,
@@ -27,13 +45,13 @@ case class YourTaxableIncomeViewModel(
                                        taxCodeList: List[String],
                                        increasesTax: Option[IncreasesTax] = None,
                                        employmentPension: EmploymentPension,
-                                       investmentIncomeData: List[(String, String, String)] = List(),
+                                       investmentIncomeData: List[MessageWrapper] = List(),
                                        investmentIncomeTotal: BigDecimal,
-                                       otherIncomeData: List[(String, String, String)] = List(),
+                                       otherIncomeData: List[MessageWrapper] = List(),
                                        otherIncomeTotal: BigDecimal,
                                        benefitsData: List[BenefitsDataWrapper] = List(),
                                        benefitsTotal: BigDecimal,
-                                       taxableBenefitsData: List[(String, String, String)] = List(),
+                                       taxableBenefitsData: List[MessageWrapper] = List(),
                                        taxableBenefitsTotal: BigDecimal,
                                        hasChanges: Boolean = false
                                      )
@@ -49,7 +67,15 @@ object EmploymentPension {
   implicit val format = Json.format[EmploymentPension]
 }
 
+object PTSYourTaxableIncomeViewModel {
+
+  import TupleFormats._
+
+  implicit val format = Json.format[PTSYourTaxableIncomeViewModel]
+}
+
 object YourTaxableIncomeViewModel {
+
   import TupleFormats._
   implicit val format = Json.format[YourTaxableIncomeViewModel]
 }

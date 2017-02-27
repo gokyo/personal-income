@@ -22,14 +22,14 @@ import play.api.libs.json.{JsError, Json}
 import uk.gov.hmrc.api.sandbox._
 import uk.gov.hmrc.api.service._
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.model.TaxSummaryDetails
+import uk.gov.hmrc.model.{TaxSummaryDetails, TaxSummaryDetailsResponse}
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.HeaderKeys
 import uk.gov.hmrc.personalincome.domain.userdata.{Child, Children, Exclusion, TaxCreditSummary}
 import uk.gov.hmrc.personalincome.domain.{TcrAuthCheck, _}
 import uk.gov.hmrc.personalincome.viewmodelfactories.TaxSummaryContainerFactory
-import uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer
+import uk.gov.hmrc.personaltaxsummary.domain.{PersonalTaxSummaryContainer, TaxSummaryContainer}
 import uk.gov.hmrc.personaltaxsummary.viewmodels.IncomeTaxViewModel
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -37,9 +37,8 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 trait PersonalIncomeService {
-  def getTaxSummary(nino: Nino, year:Int, journeyId: Option[String] = None)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer]]
 
-//  def getSummary(nino: Nino, year:Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryContainer]]
+  def getTaxSummary(nino: Nino, year:Int, journeyId: Option[String] = None)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer]]
 
   // Renewal specific - authenticateRenewal must be called first to retrieve the authToken before calling claimantDetails, submitRenewal.
   def authenticateRenewal(nino: Nino, tcrRenewalReference:RenewalReference)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]]
@@ -72,18 +71,19 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
   override def getTaxSummary(nino: Nino, year: Int, journeyId: Option[String] = None)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryContainer]] = {
     withAudit("getTaxSummary", Map("nino" -> nino.value, "year" -> year.toString)) {
       taiConnector.taxSummary(nino, year).flatMap {
-        case Some(taxSummary) => buildTaxSummary(nino, journeyId, taxSummary).map(Option(_))
+        case Some(taiTaxSummary) => buildTaxSummary(nino, journeyId, taiTaxSummary).map(Option(_))
         case None => Future successful None
       }
     }
   }
 
   private def buildTaxSummary(nino: Nino, journeyId: Option[String], taxSummary: TaxSummaryDetails)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[TaxSummaryContainer] = {
+    val personalTaxSummaryContainer = PersonalTaxSummaryContainer(taxSummary, Map.empty)
     for {
-      estimatedIncome <- personalTaxSummaryConnector.buildEstimatedIncome(nino, taxSummary, journeyId)
-      yourTaxableIncome <- personalTaxSummaryConnector.buildYourTaxableIncome(nino, taxSummary, journeyId)
+      estimatedIncome <- personalTaxSummaryConnector.buildEstimatedIncome(nino, personalTaxSummaryContainer, journeyId)
+      yourTaxableIncome <- personalTaxSummaryConnector.buildYourTaxableIncome(nino, personalTaxSummaryContainer, journeyId)
     } yield {
-      TaxSummaryContainerFactory.buildTaxSummaryContainer(nino, taxSummary, estimatedIncome, yourTaxableIncome)
+      TaxSummaryContainerFactory.buildTaxSummaryContainer(nino, taxSummary,estimatedIncome, yourTaxableIncome)
     }
   }
 
@@ -141,7 +141,7 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
   override def getTaxSummary(nino: Nino, year: Int, journeyId: Option[String] = None)(implicit hc: HeaderCarrier, ex: ExecutionContext) = {
     val resource: Option[String] = findResource(s"/resources/getsummary/${nino.value}_${year}_refresh.json")
 
-    val details: TaxSummaryDetails = TaxSummaryDetails(nino.value, 1)
+    val details: TaxSummaryDetailsResponse = TaxSummaryDetailsResponse(nino.value, 1)
     val baseViewModel: IncomeTaxViewModel = IncomeTaxViewModel(simpleTaxUser = true)
     val taxSummaryContainerNew = uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer(details, baseViewModel, None, None, None)
 

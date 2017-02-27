@@ -18,10 +18,8 @@ package uk.gov.hmrc.personalincome.viewmodelfactories
 
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.model.TaxSummaryDetails
-import uk.gov.hmrc.personaltaxsummary.viewmodels.{EstimatedIncomeViewModel, YourTaxableIncomeViewModel}
 
 trait ViewModelFactory[T] {
   def createObject(nino: Nino, details: TaxSummaryDetails): T
 
-  def createObject(nino: Nino, details: TaxSummaryDetails, estimatedIncome: EstimatedIncomeViewModel, taxableIncome: YourTaxableIncomeViewModel): T
 }

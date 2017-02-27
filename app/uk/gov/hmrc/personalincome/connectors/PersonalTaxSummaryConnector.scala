@@ -18,9 +18,9 @@ package uk.gov.hmrc.personalincome.connectors
 
 import play.api.Logger
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.model.TaxSummaryDetails
 import uk.gov.hmrc.personalincome.config.{ServicesCircuitBreaker, WSHttp}
-import uk.gov.hmrc.personaltaxsummary.viewmodels.{EstimatedIncomeViewModel, YourTaxableIncomeViewModel}
+import uk.gov.hmrc.personaltaxsummary.domain.PersonalTaxSummaryContainer
+import uk.gov.hmrc.personaltaxsummary.viewmodels.{PTSEstimatedIncomeViewModel, PTSYourTaxableIncomeViewModel}
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
 
@@ -37,17 +37,17 @@ trait PersonalTaxSummaryConnector {
 
   def url(path: String) = s"$serviceUrl$path"
 
-  def buildEstimatedIncome(nino: Nino, details:TaxSummaryDetails, journeyId: Option[String] = None)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) : Future[EstimatedIncomeViewModel] = {
+  def buildEstimatedIncome(nino: Nino, container: PersonalTaxSummaryContainer, journeyId: Option[String] = None)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) : Future[PTSEstimatedIncomeViewModel] = {
     Logger.debug(s"PersonalTaxSummary - POST to /personal-tax/$nino/buildestimatedincome ")
     withCircuitBreaker(
-      http.POST[TaxSummaryDetails, EstimatedIncomeViewModel](url = url(s"/personal-tax/$nino/buildestimatedincome"), body = details)
+      http.POST[PersonalTaxSummaryContainer, PTSEstimatedIncomeViewModel](url = url(s"/personal-tax/$nino/buildestimatedincome"), body = container)
     )
   }
 
-  def buildYourTaxableIncome(nino: Nino, details:TaxSummaryDetails, journeyId: Option[String] = None)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) : Future[YourTaxableIncomeViewModel]= {
+  def buildYourTaxableIncome(nino: Nino, container: PersonalTaxSummaryContainer, journeyId: Option[String] = None)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) : Future[PTSYourTaxableIncomeViewModel]= {
     Logger.debug(s"PersonalTaxSummary - POST to /personal-tax/$nino/buildyourtaxableincome ")
     withCircuitBreaker(
-      http.POST[TaxSummaryDetails, YourTaxableIncomeViewModel](url = url(s"/personal-tax/$nino/buildyourtaxableincome"), body = details)
+      http.POST[PersonalTaxSummaryContainer, PTSYourTaxableIncomeViewModel](url = url(s"/personal-tax/$nino/buildyourtaxableincome"), body = container)
     )
   }
 }

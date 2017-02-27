@@ -16,32 +16,41 @@
 
 package uk.gov.hmrc.personalincome.viewmodelfactories
 
+import play.api.libs.json.Json
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.model.{DecreasesTax, IncreasesTax, TaxSummaryDetails, TotalLiability}
+import uk.gov.hmrc.model._
 import uk.gov.hmrc.personalincome.utils.TaxSummaryHelper
-import uk.gov.hmrc.personaltaxsummary.domain.{EstimatedIncomeWrapper, GateKeeperDetails, TaxSummaryContainer}
-import uk.gov.hmrc.personaltaxsummary.viewmodels.{EstimatedIncomeViewModel, YourTaxableIncomeViewModel}
+import uk.gov.hmrc.personaltaxsummary.domain.{EstimatedIncomeWrapper, GateKeeperDetails, PersonalTaxSummaryContainer, TaxSummaryContainer}
+import uk.gov.hmrc.personaltaxsummary.viewmodels.{PTSEstimatedIncomeViewModel, PTSYourTaxableIncomeViewModel}
+import uk.gov.hmrc.personaltaxsummary.viewmodels.PersonalIncomeAdapters._
 
 
 object TaxSummaryContainerFactory {
 
-  def buildTaxSummaryContainer(nino: Nino, details: TaxSummaryDetails, estimatedIncome: EstimatedIncomeViewModel, taxableIncome: YourTaxableIncomeViewModel): TaxSummaryContainer = {
+  def buildTaxSummaryContainer(nino: Nino, details: TaxSummaryDetails, estimatedIncome: PTSEstimatedIncomeViewModel, taxableIncome: PTSYourTaxableIncomeViewModel): TaxSummaryContainer = {
+
     val incomeTax = IncomeTaxViewModelFactory.createObject(nino, details)
 
-    if (!isGateKeepered(details)) {
-      val potentialUnderPayment = getPotentialUnderpayment(details)
-      val wrappedEstimatedIncome = EstimatedIncomeWrapper(estimatedIncome, potentialUnderPayment)
+    val taxSummaryDetailsResponse = Json.toJson(details).as[TaxSummaryDetailsResponse]
+    val estimatedIncomeModel  = PTSEstimatedIncomeViewModelConverter.fromPTSModel(estimatedIncome)
+    val taxableIncomeModel = PTSYourTaxableIncomeViewModelConverter.fromPTSModel(taxableIncome)
+
+
+    if (!isGateKeepered(taxSummaryDetailsResponse)) {
+      val potentialUnderPayment = getPotentialUnderpayment(taxSummaryDetailsResponse)
+
+      val wrappedEstimatedIncome = EstimatedIncomeWrapper(estimatedIncomeModel, potentialUnderPayment)
       TaxSummaryContainer(
-        details,
+        taxSummaryDetailsResponse,
         incomeTax,
         Some(wrappedEstimatedIncome),
-        Some(taxableIncome),
+        Some(taxableIncomeModel),
         None
       )
     } else {
       val gatekeeper = GateKeeperDetails(TotalLiability(totalTax = 0), DecreasesTax(total = 0), increasesTax = IncreasesTax(total = 0))
       TaxSummaryContainer(
-        details,
+        taxSummaryDetailsResponse,
         incomeTax,
         None,
         None,
@@ -50,11 +59,11 @@ object TaxSummaryContainerFactory {
     }
   }
 
-  def isGateKeepered(taxSummary: TaxSummaryDetails): Boolean = {
+  def isGateKeepered(taxSummary: TaxSummaryDetailsResponse): Boolean = {
     taxSummary.gateKeeper.exists(_.gateKeepered)
   }
 
-  def getPotentialUnderpayment(taxDetails: TaxSummaryDetails): Option[BigDecimal] = {
+  def getPotentialUnderpayment(taxDetails: TaxSummaryDetailsResponse): Option[BigDecimal] = {
     val incomesWithUnderpayment = taxDetails.increasesTax
       .flatMap(_.incomes.map(incomes =>
         TaxSummaryHelper.sortedTaxableIncomes(incomes.taxCodeIncomes).filter(_.tax.potentialUnderpayment.isDefined)))

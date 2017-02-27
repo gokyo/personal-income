@@ -18,13 +18,9 @@ package uk.gov.hmrc.personalincome.viewmodelfactories
 
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.model.TaxSummaryDetails
-import uk.gov.hmrc.personaltaxsummary.viewmodels.{EstimatedIncomeViewModel, IncomeTaxViewModel, YourTaxableIncomeViewModel}
+import uk.gov.hmrc.personaltaxsummary.viewmodels.IncomeTaxViewModel
 
 object IncomeTaxViewModelFactory extends ViewModelFactory[IncomeTaxViewModel] {
-
-//  override def buildTaxSummaryContainer(nino: Nino, container: PersonalTaxSummaryContainer): IncomeTaxViewModel = {
-//    buildTaxSummaryContainer(nino, container.details)
-//  }
 
   override def createObject(nino: Nino, details: TaxSummaryDetails): IncomeTaxViewModel = {
     val totalLiability = details.totalLiability
@@ -58,5 +54,4 @@ object IncomeTaxViewModelFactory extends ViewModelFactory[IncomeTaxViewModel] {
     taxCodeList.length == 1 && taxCodeList.head == "1100L"
   }
 
-  override def createObject(nino: Nino, details: TaxSummaryDetails, estimatedIncome: EstimatedIncomeViewModel, taxableIncome: YourTaxableIncomeViewModel): IncomeTaxViewModel = ???
 }

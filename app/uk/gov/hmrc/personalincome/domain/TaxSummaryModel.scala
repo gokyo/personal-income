@@ -396,5 +396,45 @@ case class TaxSummaryDetails(nino: String,
 }
 
 object TaxSummaryDetails {
-  implicit val formats: Format[TaxSummaryDetails] = Json.format[TaxSummaryDetails]
+  implicit val formats = Json.format[TaxSummaryDetails]
+}
+
+case class TaxSummaryDetailsResponse( nino: String,
+                              version: Int,
+                              increasesTax: Option[IncreasesTax] = None,
+                              decreasesTax: Option[DecreasesTax] = None,
+                              totalLiability : Option[TotalLiability] = None,
+                              extensionReliefs: Option[ExtensionReliefs] = None,
+                              gateKeeper:Option[GateKeeper]=None,
+                              taxCodeDetails : Option[TaxCodeDetails] = None,
+                              cyPlusOneChange:Option[CYPlusOneChange] = None)
+
+object TaxSummaryDetailsResponse {
+
+  implicit val reads: Reads[TaxSummaryDetailsResponse] =
+    (
+      (JsPath \ "nino").read[String] and
+        (JsPath \ "version").read[Int] and
+        (JsPath \ "increasesTax").readNullable[IncreasesTax] and
+        (JsPath \ "decreasesTax").readNullable[DecreasesTax] and
+        (JsPath \ "totalLiability").readNullable[TotalLiability] and
+        (JsPath \ "extensionReliefs").readNullable[ExtensionReliefs] and
+        (JsPath \ "gateKeeper").readNullable[GateKeeper] and
+        (JsPath \ "taxCodeDetails").readNullable[TaxCodeDetails] and
+        (JsPath \ "cyPlusOneChange").readNullable[CYPlusOneChange]
+      )(TaxSummaryDetailsResponse.apply _)
+
+  implicit val writes: Writes[TaxSummaryDetailsResponse] =
+    (
+      (JsPath \ "nino").write[String] and
+        (JsPath \ "version").write[Int] and
+        (JsPath \ "increasesTax").writeNullable[IncreasesTax] and
+        (JsPath \ "decreasesTax").writeNullable[DecreasesTax] and
+        (JsPath \ "totalLiability").writeNullable[TotalLiability] and
+        (JsPath \ "extensionReliefs").writeNullable[ExtensionReliefs] and
+        (JsPath \ "gateKeeper").writeNullable[GateKeeper] and
+        (JsPath \ "taxCodeDetails").writeNullable[TaxCodeDetails] and
+        (JsPath \ "cyPlusOneChange").writeNullable[CYPlusOneChange]
+      )(unlift(TaxSummaryDetailsResponse.unapply))
+
 }
