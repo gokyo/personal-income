@@ -19,6 +19,7 @@ package uk.gov.hmrc.personalincome.utils
 import java.io.File
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.model.TaxSummaryDetails
 import uk.gov.hmrc.personalincome.domain._
 
 import scala.io.BufferedSource

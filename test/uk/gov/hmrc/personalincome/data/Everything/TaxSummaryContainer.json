@@ -2,6 +2,7 @@
   "taxSummaryDetails": {
     "nino": "GX043813",
     "version": 1,
+    "accounts":[],
     "increasesTax": {
       "incomes": {
         "taxCodeIncomes": {
@@ -160,7 +161,7 @@
             "iabdSummaries": [
               {
                 "iabdType": 75,
-                "description": "Bank \/ Building Society Interest",
+                "description": "Bank / Building Society Interest",
                 "amount": 5000,
                 "employmentId": 0
               }
@@ -412,7 +413,7 @@
         "iabdSummaries": [
           {
             "iabdType": 15,
-            "description": "BPA Received from Spouse\/Civil Partner",
+            "description": "BPA Received from Spouse/Civil Partner",
             "amount": 100,
             "employmentId": 0
           },
@@ -523,7 +524,7 @@
         },
         {
           "iabdType": 75,
-          "description": "Bank \/ Building Society Interest",
+          "description": "Bank / Building Society Interest",
           "amount": 5000,
           "employmentId": 0
         },
@@ -744,9 +745,6 @@
       "childBenefitAmount": 1500,
       "childBenefitTaxDue": 1500
     },
-    "workingTaxableTotal": 143175,
-    "actualTaxableTotal": 143175,
-    "remainingTaxFree": 0,
     "adjustedNetIncome": 144110,
     "extensionReliefs": {
       "giftAid": {
@@ -895,21 +893,21 @@
       "incomeExplanations": [
         {
           "employerName": "Sainsburys",
-          "inYear": false,
           "incomeId": 1,
-          "isCeased": false,
-          "isPension": false,
+          "hasDuplicateEmploymentNames": false,
+          "worksNumber": "WN 1",
+          "notificationDate": "2016-05-05",
+          "updateActionDate": "2016-05-05",
+          "startDate": "2007-04-06",
+          "employmentStatus": 1,
+          "employmentType": 1,
+          "isPension": true,
           "isJSA": false,
-          "isRtiCalc": false,
-          "isUpdatedOnline": false,
-          "isUpdatedTelephone": false,
-          "isDefaultPrimary": false,
-          "isDefaultSecondary": false,
-          "isIrregularPrimary": false,
-          "isIrregularSecondary": false,
-          "payToDate": 0,
-          "isMonthly": false,
-          "amount": 50000,
+          "iabdSource": 46,
+          "payToDate": 4020,
+          "calcAmount": 20904,
+          "grossAmount": 22573,
+          "payFrequency": "W1",
           "editableDetails": {
             "isEditable": true,
             "payRollingBiks": false
@@ -917,21 +915,21 @@
         },
         {
           "employerName": "Aviva Pensions",
-          "inYear": false,
-          "incomeId": 2,
-          "isCeased": false,
+          "incomeId": 1,
+          "hasDuplicateEmploymentNames": false,
+          "worksNumber": "WN 2",
+          "notificationDate": "2016-05-05",
+          "updateActionDate": "2016-05-05",
+          "startDate": "2007-04-06",
+          "employmentStatus": 1,
+          "employmentType": 1,
           "isPension": true,
           "isJSA": false,
-          "isRtiCalc": false,
-          "isUpdatedOnline": false,
-          "isUpdatedTelephone": false,
-          "isDefaultPrimary": false,
-          "isDefaultSecondary": false,
-          "isIrregularPrimary": false,
-          "isIrregularSecondary": false,
-          "payToDate": 0,
-          "isMonthly": false,
-          "amount": 50000,
+          "iabdSource": 46,
+          "payToDate": 4020,
+          "calcAmount": 50000,
+          "grossAmount": 50000,
+          "payFrequency": "W1",
           "editableDetails": {
             "isEditable": true,
             "payRollingBiks": false

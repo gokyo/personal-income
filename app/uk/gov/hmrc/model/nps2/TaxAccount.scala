@@ -32,7 +32,8 @@ case class TaxAccount (
                         id: Option[Long],
 
                         /**
-                         * Date the tax position was confirmed (will be the tax code
+                         * Date the tax pos
+                          * ition was confirmed (will be the tax code
                          * date). May be absent, though we don't know what this means.
                          */
                         date: Option[LocalDate],
@@ -42,11 +43,8 @@ case class TaxAccount (
                          */
                         tax: BigDecimal,
 
-                        taxObjects: Map[TaxObject.Type.Value, Seq[TaxBand]] = Map.empty,
+                        incomes: Seq[Income] = Nil
 
-                        incomes: Seq[Income] = Nil,
-
-                        freeIabds: List[Iabd] = Nil
                         ) {
   def withEmployments(emps: Seq[NpsEmployment]): TaxAccount = {
     val newIncomes = incomes.map{ i =>
@@ -57,7 +55,4 @@ case class TaxAccount (
     }
     this.copy( incomes = newIncomes )
   }
-
-  def iabds: List[Iabd] =
-    freeIabds ++ incomes.flatMap{_.employmentRecord.map(_.iabds)}.flatten
 }

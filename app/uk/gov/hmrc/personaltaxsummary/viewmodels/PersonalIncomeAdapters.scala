@@ -1,0 +1,71 @@
+/*
+ * Copyright 2017 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package uk.gov.hmrc.personaltaxsummary.viewmodels
+
+object PersonalIncomeAdapters {
+
+  import uk.gov.hmrc.personaltaxsummary.domain.MessageWrapper.{applyForList2, applyForList3}
+
+  trait Converter[T, R] {
+    def fromPTSModel(t: T): R
+  }
+
+  object PTSEstimatedIncomeViewModelConverter extends Converter[PTSEstimatedIncomeViewModel, EstimatedIncomeViewModel] {
+    def fromPTSModel(pts: PTSEstimatedIncomeViewModel) = {
+      EstimatedIncomeViewModel(
+        pts.increasesTax,
+        pts.incomeTaxEstimate,
+        pts.incomeEstimate,
+        pts.taxFreeEstimate,
+        pts.taxRelief,
+        pts.taxCodes,
+        pts.potentialUnderpayment,
+        applyForList2(pts.additionalTaxTable),
+        pts.additionalTaxTableTotal,
+        applyForList3(pts.reductionsTable),
+        pts.reductionsTableTotal,
+        pts.graph,
+        pts.hasChanges,
+        pts.ukDividends,
+        pts.taxBands,
+        pts.incomeTaxReducedToZeroMessage
+      )
+    }
+  }
+
+  object PTSYourTaxableIncomeViewModelConverter extends Converter[PTSYourTaxableIncomeViewModel, YourTaxableIncomeViewModel] {
+    def fromPTSModel(pts: PTSYourTaxableIncomeViewModel) = {
+      new YourTaxableIncomeViewModel(
+        pts.taxFreeAmount,
+        pts.incomeTax,
+        pts.income,
+        pts.taxCodeList,
+        pts.increasesTax,
+        pts.employmentPension,
+        applyForList3(pts.investmentIncomeData),
+        pts.investmentIncomeTotal,
+        applyForList3(pts.otherIncomeData),
+        pts.otherIncomeTotal,
+        pts.benefitsData,
+        pts.benefitsTotal,
+        applyForList3(pts.taxableBenefitsData),
+        pts.taxableBenefitsTotal,
+        pts.hasChanges
+      )
+    }
+  }
+}

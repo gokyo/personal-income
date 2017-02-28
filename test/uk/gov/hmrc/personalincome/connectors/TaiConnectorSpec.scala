@@ -19,9 +19,9 @@ package uk.gov.hmrc.personalincome.connectors
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.model.TaxSummaryDetails
 import uk.gov.hmrc.personalincome.config.ServicesCircuitBreaker
 import uk.gov.hmrc.personalincome.controllers.StubApplicationConfiguration
-import uk.gov.hmrc.personalincome.domain.TaxSummaryDetails
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.hooks.HttpHook
 import uk.gov.hmrc.play.http.{HeaderCarrier, _}

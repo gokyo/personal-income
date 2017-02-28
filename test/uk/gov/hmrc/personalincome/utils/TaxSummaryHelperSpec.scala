@@ -22,7 +22,8 @@ import play.api.test.FakeApplication
 import uk.gov.hmrc.personalincome.domain.EstimatedIncomePageVM
 import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
+import uk.gov.hmrc.model.TaxSummaryDetails
+import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 import uk.gov.hmrc.personalincome.controllers.StubApplicationConfiguration
 
 class TaxSummaryHelperSpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {

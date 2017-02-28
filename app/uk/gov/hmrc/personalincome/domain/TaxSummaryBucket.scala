@@ -20,6 +20,7 @@ import play.api.Play.current
 import play.api.i18n.Messages
 import play.api.i18n.Messages.Implicits._
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.model._
 import uk.gov.hmrc.personalincome.utils.{TaxDecorator, TaxSummaryHelper}
 import uk.gov.hmrc.play.views.helpers.MoneyPounds
 

@@ -23,7 +23,6 @@ import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.model.nps2.Income.IncomeType
-import uk.gov.hmrc.model.nps2.TaxObject.Type.{Value => TaxObjectType}
 
 import scala.language.implicitConversions
 
@@ -58,6 +57,8 @@ package object nps2 {
         JsString(dateFormat.print(date))
     }
   )
+
+  import TaxObject.Type.{Value => TaxObjectType}
 
   implicit val formatTaxBand: Format[TaxBand] = (
     (__ \ "bandType").formatNullable[String] and
@@ -140,7 +141,7 @@ package object nps2 {
           (json \ "employmentType").as[Int] == 1,
           iType,
           (json \ "employmentStatus").asOpt[Int] match {
-            case Some(1) => Income.EmploymentStatus.Live //EmploymentStatus.Live
+            case Some(1) => Income.EmploymentStatus.Live
             case Some(2) => Income.EmploymentStatus.Ceased
             case Some(3) => Income.EmploymentStatus.PotentiallyCeased
           },
@@ -207,11 +208,8 @@ package object nps2 {
       (__ \ "date").formatNullable[LocalDate] and
       (__ \ "totalEstTax").formatNullable[BigDecimal].
         inmap[BigDecimal](_.getOrElse(0), Some(_)) and
-      (__ \ "totalLiability").format[Map[TaxObjectType, Seq[TaxBand]]] and
       (__ \ "incomeSources").formatNullable[Seq[Income]].
-        inmap[Seq[Income]](_.getOrElse(Nil), Some(_)) and
-      (__ \ "iabds").formatNullable[List[Iabd]].
-        inmap[List[Iabd]](_.getOrElse(Nil), Some(_))
+        inmap[Seq[Income]](_.getOrElse(Nil), Some(_))
     )(TaxAccount.apply, unlift(TaxAccount.unapply))
 
   implicit val formatHon = enumerationNumFormat(NpsPerson.Honorific)

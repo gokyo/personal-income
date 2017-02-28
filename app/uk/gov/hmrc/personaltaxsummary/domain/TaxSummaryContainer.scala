@@ -17,11 +17,11 @@
 package uk.gov.hmrc.personaltaxsummary.domain
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.model.{GateKeeper, TaxSummaryDetails}
+import uk.gov.hmrc.model.TaxSummaryDetailsResponse
 import uk.gov.hmrc.personaltaxsummary.viewmodels._
 
 case class TaxSummaryContainer(
-                                taxSummaryDetails: TaxSummaryDetails,
+                                taxSummaryDetails: TaxSummaryDetailsResponse,
                                 baseViewModel: IncomeTaxViewModel,
                                 estimatedIncomeWrapper: Option[EstimatedIncomeWrapper],
                                 taxableIncome: Option[YourTaxableIncomeViewModel],

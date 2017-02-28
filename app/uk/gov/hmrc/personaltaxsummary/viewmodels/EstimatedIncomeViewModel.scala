@@ -20,24 +20,42 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.model.{TaxBand, TaxComponent}
 import uk.gov.hmrc.personaltaxsummary.domain.MessageWrapper
 
+case class PTSEstimatedIncomeViewModel(
+                                        increasesTax: Boolean = false,
+                                        incomeTaxEstimate: BigDecimal = 0,
+                                        incomeEstimate: BigDecimal = 0,
+                                        taxFreeEstimate: BigDecimal = 0,
+                                        taxRelief: Boolean = false,
+                                        taxCodes: List[String] = List(),
+                                        potentialUnderpayment: Boolean = false,
+                                        additionalTaxTable: List[(String, String)] = List(),
+                                        additionalTaxTableTotal: String = "",
+                                        reductionsTable: List[(String, String, String)] = List(),
+                                        reductionsTableTotal: String = "",
+                                        graph: BandedGraph,
+                                        hasChanges: Boolean = false,
+                                        ukDividends: Option[TaxComponent],
+                                        taxBands: Option[List[TaxBand]],
+                                        incomeTaxReducedToZeroMessage: Option[String])
+
+
 case class EstimatedIncomeViewModel(
-                            increasesTax: Boolean = false,
-                            incomeTaxEstimate: BigDecimal = 0,
-                            incomeEstimate: BigDecimal = 0,
-                            taxFreeEstimate: BigDecimal = 0,
-                            taxRelief: Boolean = false,
-                            taxCodes: List[String] = List(),
-                            potentialUnderpayment: Boolean = false,
-                            additionalTaxTable: List[MessageWrapper] = List(),
-                            additionalTaxTableTotal: String = "",
-                            reductionsTable: List[MessageWrapper] = List(),
-                            reductionsTableTotal: String = "",
-                            graph: BandedGraph,
-                            hasChanges: Boolean = false,
-                            ukDividends: Option[TaxComponent],
-                            taxBands: Option[List[TaxBand]],
-                            incomeTaxReducedToZeroMessage: Option[String]
-                          )
+                                     increasesTax: Boolean = false,
+                                     incomeTaxEstimate: BigDecimal = 0,
+                                     incomeEstimate: BigDecimal = 0,
+                                     taxFreeEstimate: BigDecimal = 0,
+                                     taxRelief: Boolean = false,
+                                     taxCodes: List[String] = List(),
+                                     potentialUnderpayment: Boolean = false,
+                                     additionalTaxTable: List[MessageWrapper] = List(),
+                                     additionalTaxTableTotal: String = "",
+                                     reductionsTable: List[MessageWrapper] = List(),
+                                     reductionsTableTotal: String = "",
+                                     graph: BandedGraph,
+                                     hasChanges: Boolean = false,
+                                     ukDividends: Option[TaxComponent],
+                                     taxBands: Option[List[TaxBand]],
+                                     incomeTaxReducedToZeroMessage: Option[String])
 
 case class BandedGraph(
                         id: String,
@@ -65,7 +83,15 @@ object BandedGraph {
   implicit val format = Json.format[BandedGraph]
 }
 
-object EstimatedIncomeViewModel {
-  implicit val format = Json.format[EstimatedIncomeViewModel]
+object PTSEstimatedIncomeViewModel {
+
+  import TupleFormats._
+
+  implicit val format = Json.format[PTSEstimatedIncomeViewModel]
 }
 
+object EstimatedIncomeViewModel {
+
+
+  implicit val format = Json.format[EstimatedIncomeViewModel]
+}

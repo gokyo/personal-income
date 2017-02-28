@@ -21,9 +21,9 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
-import uk.gov.hmrc.personalincome.domain.{BaseViewModel, RenewalReference, TaxSummaryContainer, TaxSummaryDetails}
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
+import uk.gov.hmrc.personalincome.domain.RenewalReference
 import uk.gov.hmrc.personalincome.services.SandboxPersonalIncomeService._
+import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
 class TestPersonalIncomeSummarySpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {
 
@@ -68,126 +68,6 @@ class TestPersonalIncomeSummarySpec extends UnitSpec with WithFakeApplication wi
       val result = await(controller.getSummary(nino, 90)(emptyRequest))
 
       status(result) shouldBe 406
-      testPersonalIncomeService.saveDetails shouldBe Map.empty
-    }
-  }
-}
-
-class TestPersonalIncomeSummaryClassicBehaviourSpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {
-  override lazy val fakeApplication = FakeApplication(additionalConfiguration = config + ("summaryFormat" -> "Classic"))
-
-  "getSummary Live" should {
-
-    "return a summary in 'classic' format" in new Success {
-      val result: Result = await(controller.getSummary(nino, 90)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainer)
-
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
-    }
-
-    "return a summary in 'classic' format when a journeyId is supplied" in new Success {
-      val result: Result = await(controller.getSummary(nino, 90, Some(journeyId))(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainer)
-
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
-    }
-
-    "return the gateKeeper summary in 'classic' format given a gatekeepered user" in new GateKeeper {
-      val result: Result = await(controller.getSummary(nino, 90)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerGK)
-
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
-    }
-  }
-
-  "getSummary Sandbox" should {
-
-    "return the summary response in 'classic' format from a resource" in new SandboxSuccess {
-      val year = 2016
-      val result = await(controller.getSummary(nino, year)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-
-      val resource = findResource(s"/resources/getsummary/${nino.value}_$year.json")
-      contentAsJson(result) shouldBe Json.parse(resource.get)
-
-      testPersonalIncomeService.saveDetails shouldBe Map.empty
-    }
-
-    "return the static resource in 'classic' format if the supplied resource cannot be resolved" in new SandboxSuccess {
-      val year = 2018
-      val result = await(controller.getSummary(nino, year)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-
-      contentAsJson(result) shouldBe Json.toJson(TaxSummaryContainer(TaxSummaryDetails(nino.value, year), BaseViewModel(estimatedIncomeTax = 0), None, None, None))
-
-      testPersonalIncomeService.saveDetails shouldBe Map.empty
-    }
-  }
-}
-
-class TestPersonalIncomeSummaryRefreshBehaviourSpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {
-  override lazy val fakeApplication = FakeApplication(additionalConfiguration = config + ("summaryFormat" -> "Refresh"))
-
-  "getSummary Live" should {
-
-    "return a summary in 'refresh' format" in new Success {
-      val result: Result = await(controller.getSummary(nino, 90)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerNew)
-
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
-    }
-
-    "return a summary in 'refresh' format when a journeyId is supplied" in new Success {
-      val result: Result = await(controller.getSummary(nino, 90, Some(journeyId))(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerNew)
-
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
-    }
-
-    "return a gateKeeper summary in 'refresh' format given a gatekeepered user" in new GateKeeper {
-
-      val result: Result = await(controller.getSummary(nino, 90)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerGKNew)
-
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value, "year" -> "90")
-    }
-  }
-
-  "getSummary Sandbox" should {
-    "return the summary response in 'refresh' format from a resource" in new SandboxSuccess {
-      val year = 2016
-      val result = await(controller.getSummary(nino, year)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-
-      val resource = findResource(s"/resources/getsummary/${nino.value}_${year}_refresh.json")
-      contentAsJson(result) shouldBe Json.parse(resource.get)
-
-      testPersonalIncomeService.saveDetails shouldBe Map.empty
-    }
-
-    "return the static resource in 'refresh' format if the supplied resource cannot be resolved" in new SandboxSuccess {
-      val year = 2018
-      val result = await(controller.getSummary(nino, year)(emptyRequestWithAcceptHeader))
-
-      status(result) shouldBe 200
-
-      contentAsJson(result) shouldBe Json.toJson(taxSummaryContainerNew)
-
       testPersonalIncomeService.saveDetails shouldBe Map.empty
     }
   }

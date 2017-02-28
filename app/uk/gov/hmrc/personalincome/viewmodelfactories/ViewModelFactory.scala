@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.model.nps2
+package uk.gov.hmrc.personalincome.viewmodelfactories
 
-case class IabdSummary (
+import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.model.TaxSummaryDetails
 
-)
+trait ViewModelFactory[T] {
+  def createObject(nino: Nino, details: TaxSummaryDetails): T
+
+}

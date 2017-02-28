@@ -19,7 +19,8 @@ package uk.gov.hmrc.personalincome.connectors
 import play.api.Logger
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.personalincome.config.{ServicesCircuitBreaker, WSHttp}
-import uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer
+import uk.gov.hmrc.personaltaxsummary.domain.PersonalTaxSummaryContainer
+import uk.gov.hmrc.personaltaxsummary.viewmodels.{PTSEstimatedIncomeViewModel, PTSYourTaxableIncomeViewModel}
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
 
@@ -36,14 +37,17 @@ trait PersonalTaxSummaryConnector {
 
   def url(path: String) = s"$serviceUrl$path"
 
-  def taxSummary(nino: Nino, year : Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryContainer]] = {
-    Logger.debug(s"PersonalTaxSummary - connect to /$nino/summary/$year ")
+  def buildEstimatedIncome(nino: Nino, container: PersonalTaxSummaryContainer, journeyId: Option[String] = None)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) : Future[PTSEstimatedIncomeViewModel] = {
+    Logger.debug(s"PersonalTaxSummary - POST to /personal-tax/$nino/buildestimatedincome ")
     withCircuitBreaker(
-      http.GET[Option[TaxSummaryContainer]](url = url(s"/personal-tax/$nino/summary/$year")).recover {
-        case ex: NotFoundException => None
+      http.POST[PersonalTaxSummaryContainer, PTSEstimatedIncomeViewModel](url = url(s"/personal-tax/$nino/buildestimatedincome"), body = container)
+    )
+  }
 
-        case ex: BadRequestException => None
-      }
+  def buildYourTaxableIncome(nino: Nino, container: PersonalTaxSummaryContainer, journeyId: Option[String] = None)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) : Future[PTSYourTaxableIncomeViewModel]= {
+    Logger.debug(s"PersonalTaxSummary - POST to /personal-tax/$nino/buildyourtaxableincome ")
+    withCircuitBreaker(
+      http.POST[PersonalTaxSummaryContainer, PTSYourTaxableIncomeViewModel](url = url(s"/personal-tax/$nino/buildyourtaxableincome"), body = container)
     )
   }
 }

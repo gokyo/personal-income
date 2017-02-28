@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.personalincome.domain
+package uk.gov.hmrc.personaltaxsummary.domain
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.model.TaxSummaryDetails
 
-case class TaxSummaryContainer(taxSummaryDetails: TaxSummaryDetails,
-                               baseViewModel: BaseViewModel,
-                               estimatedIncomeWrapper: Option[EstimatedIncomeWrapper],
-                               taxableIncome: Option[TaxableIncome],
-                               gatekeeper:Option[GateKeeperDetails])
-object TaxSummaryContainer {
-  implicit val format = Json.format[TaxSummaryContainer]
+case class PersonalTaxSummaryContainer(details: TaxSummaryDetails, links: Map[String, String])
+
+object PersonalTaxSummaryContainer {
+  implicit val personalTaxSummaryContainerFmt = {
+    Json.format[PersonalTaxSummaryContainer]
+  }
 }
