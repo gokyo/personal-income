@@ -37,17 +37,19 @@ trait PersonalTaxSummaryConnector {
 
   def url(path: String) = s"$serviceUrl$path"
 
+  def buildJourneyQueryParam(journeyId: Option[String]) = journeyId.fold("")(id => s"?journeyId=$id")
+
   def buildEstimatedIncome(nino: Nino, container: PersonalTaxSummaryContainer, journeyId: Option[String] = None)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) : Future[PTSEstimatedIncomeViewModel] = {
     Logger.debug(s"PersonalTaxSummary - POST to /personal-tax/$nino/buildestimatedincome ")
     withCircuitBreaker(
-      http.POST[PersonalTaxSummaryContainer, PTSEstimatedIncomeViewModel](url = url(s"/personal-tax/$nino/buildestimatedincome"), body = container)
+      http.POST[PersonalTaxSummaryContainer, PTSEstimatedIncomeViewModel](url = url(s"/personal-tax/$nino/buildestimatedincome${buildJourneyQueryParam(journeyId)}"), body = container)
     )
   }
 
   def buildYourTaxableIncome(nino: Nino, container: PersonalTaxSummaryContainer, journeyId: Option[String] = None)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext) : Future[PTSYourTaxableIncomeViewModel]= {
     Logger.debug(s"PersonalTaxSummary - POST to /personal-tax/$nino/buildyourtaxableincome ")
     withCircuitBreaker(
-      http.POST[PersonalTaxSummaryContainer, PTSYourTaxableIncomeViewModel](url = url(s"/personal-tax/$nino/buildyourtaxableincome"), body = container)
+      http.POST[PersonalTaxSummaryContainer, PTSYourTaxableIncomeViewModel](url = url(s"/personal-tax/$nino/buildyourtaxableincome${buildJourneyQueryParam(journeyId)}"), body = container)
     )
   }
 }
