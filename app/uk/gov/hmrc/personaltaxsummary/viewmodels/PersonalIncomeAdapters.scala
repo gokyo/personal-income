@@ -42,7 +42,10 @@ object PersonalIncomeAdapters {
         pts.hasChanges,
         pts.ukDividends,
         pts.taxBands,
-        pts.incomeTaxReducedToZeroMessage
+        pts.incomeTaxReducedToZeroMessage,
+        pts.nextYearTaxTotal,
+        pts.hasPSA,
+        pts.hasSSR
       )
     }
   }

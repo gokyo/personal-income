@@ -18,34 +18,36 @@ package uk.gov.hmrc.model.nps2
 
 import org.joda.time.LocalDate
 
+
 /**
- * The root object for the NPS tax account, typically this is read in
- * from the HoD. It is considered less authoritative than the RTI Tax
- * Account data but is always available.
- */
+  * The root object for the NPS tax account, typically this is read in
+  * from the HoD. It is considered less authoritative than the RTI Tax
+  * Account data but is always available.
+  */
 case class TaxAccount (
 
                         /**
-                         * A unique ID to identify a tax account. You cannot really use this for
-                         * anything practical as we don't know if NPS will populate it or not.
-                         */
+                          * A unique ID to identify a tax account. You cannot really use this for
+                          * anything practical as we don't know if NPS will populate it or not.
+                          */
                         id: Option[Long],
 
                         /**
-                         * Date the tax pos
+                          * Date the tax pos
                           * ition was confirmed (will be the tax code
-                         * date). May be absent, though we don't know what this means.
-                         */
+                          * date). May be absent, though we don't know what this means.
+                          */
                         date: Option[LocalDate],
 
                         /**
-                         * Total tax across all income sources
-                         */
+                          * Total tax across all income sources
+                          */
                         tax: BigDecimal,
 
-                        incomes: Seq[Income] = Nil
+                        taxObjects: Map[TaxObject.Type.Value, TaxDetail] = Map.empty,
 
-                        ) {
+                        incomes: Seq[Income] = Nil
+                      ) {
   def withEmployments(emps: Seq[NpsEmployment]): TaxAccount = {
     val newIncomes = incomes.map{ i =>
       emps.find(x => Some(x.sequenceNumber) == i.employmentId) match {

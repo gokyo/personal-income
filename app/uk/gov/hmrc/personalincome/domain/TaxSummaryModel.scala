@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.model
+package uk.gov.hmrc.personalincome.domain
 
 import org.joda.time.LocalDate
 import play.api.libs.json.Format
@@ -306,27 +306,18 @@ object LiabilityAdditions {
 }
 
 
-case class TotalLiability(nonSavings: Option[Tax] = None,
-                          nonCodedIncome: Option[Tax] = None,
-                          untaxedInterest: Option[Tax] = None,
-                          bankInterest: Option[Tax] = None,
-                          ukDividends: Option[Tax] = None,
-                          foreignInterest: Option[Tax] = None,
-                          foreignDividends: Option[Tax] = None,
-                          mergedIncomes: Option[Tax] = None,
-                          totalLiability: Option[BigDecimal] = None,
-                          totalTax: BigDecimal,
-                          totalTaxOnIncome: BigDecimal = BigDecimal(0),
-                          underpaymentPreviousYear: BigDecimal = BigDecimal(0),
-                          outstandingDebt: BigDecimal = BigDecimal(0),
-                          childBenefitAmount: BigDecimal = BigDecimal(0),
-                          childBenefitTaxDue: BigDecimal = BigDecimal(0),
-                          taxOnBankBSInterest: Option[BigDecimal] = None,
-                          taxCreditOnUKDividends: Option[BigDecimal] = None,
-                          taxCreditOnForeignInterest: Option[BigDecimal] = None,
-                          taxCreditOnForeignIncomeDividends: Option[BigDecimal] = None,
-                          liabilityReductions: Option[LiabilityReductions] = None,
-                          liabilityAdditions: Option[LiabilityAdditions] = None)
+case class TotalLiability(
+                           nonCodedIncome: Option[Tax] = None,
+                           totalTax: BigDecimal,
+                           underpaymentPreviousYear: BigDecimal = BigDecimal(0),
+                           outstandingDebt: BigDecimal = BigDecimal(0),
+                           childBenefitTaxDue: BigDecimal = BigDecimal(0),
+                           taxOnBankBSInterest: Option[BigDecimal] = None,
+                           taxCreditOnUKDividends: Option[BigDecimal] = None,
+                           taxCreditOnForeignInterest: Option[BigDecimal] = None,
+                           taxCreditOnForeignIncomeDividends: Option[BigDecimal] = None,
+                           liabilityReductions: Option[LiabilityReductions] = None,
+                           liabilityAdditions: Option[LiabilityAdditions] = None)
 
 object TotalLiability {
   implicit val formats: Format[TotalLiability] = Json.format[TotalLiability]

@@ -22,7 +22,7 @@ import play.api.libs.json.{JsError, Json}
 import uk.gov.hmrc.api.sandbox._
 import uk.gov.hmrc.api.service._
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.model.{TaxSummaryDetails, TaxSummaryDetailsResponse}
+import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.HeaderKeys

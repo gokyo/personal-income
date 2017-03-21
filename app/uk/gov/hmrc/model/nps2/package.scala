@@ -22,6 +22,7 @@ import org.slf4j._
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.model.nps2.Income.EmploymentStatus._
 import uk.gov.hmrc.model.nps2.Income.IncomeType
 
 import scala.language.implicitConversions
@@ -58,19 +59,19 @@ package object nps2 {
     }
   )
 
-  import TaxObject.Type.{Value => TaxObjectType}
+  import nps2.TaxObject.Type.{Value => TaxObjectType}
 
   implicit val formatTaxBand: Format[TaxBand] = (
     (__ \ "bandType").formatNullable[String] and
-    (__ \ "code").formatNullable[String] and
-    (__ \ "income").formatNullable[BigDecimal].
-      inmap[BigDecimal](_.getOrElse(0), Some(_)) and
-    (__ \ "tax").formatNullable[BigDecimal].
-      inmap[BigDecimal](_.getOrElse(0), Some(_)) and
-    (__ \ "lowerBand").formatNullable[BigDecimal] and
-    (__ \ "upperBand").formatNullable[BigDecimal] and
-    (__ \ "rate").format[Int]
-  )(TaxBand.apply, unlift(TaxBand.unapply))
+      (__ \ "code").formatNullable[String] and
+      (__ \ "income").formatNullable[BigDecimal].
+        inmap[BigDecimal](_.getOrElse(0), Some(_)) and
+      (__ \ "tax").formatNullable[BigDecimal].
+        inmap[BigDecimal](_.getOrElse(0), Some(_)) and
+      (__ \ "lowerBand").formatNullable[BigDecimal] and
+      (__ \ "upperBand").formatNullable[BigDecimal] and
+      (__ \ "rate").format[BigDecimal]
+    )(TaxBand.apply, unlift(TaxBand.unapply))
 
   implicit val formatIabd: Format[Iabd] = (
     (__ \ "grossAmount").format[BigDecimal] and
@@ -93,27 +94,32 @@ package object nps2 {
       (__ \ "iabdSummaries").format[Seq[Iabd]]
     )(Component.apply, unlift(Component.unapply))
 
-  implicit val formatliabilityMap: Format[Map[TaxObjectType, Seq[TaxBand]]] = {
+  implicit val formatliabilityMap: Format[Map[TaxObjectType, TaxDetail]] = {
 
     val fieldNames: Map[TaxObject.Type.Value,String] =
       TaxObject.Type.values.toSeq.map{ x =>
         (x, x.toString.head.toLower + x.toString.tail)
       }.toMap
 
-    new Format[Map[TaxObjectType, Seq[TaxBand]]] {
-      def reads(json: JsValue): JsResult[Map[TaxObjectType, Seq[TaxBand]]] = {
-        JsSuccess(fieldNames.mapValues{ x =>
-          (json \ x \ "taxBands").asOpt[Seq[TaxBand]].getOrElse(Nil)
-        }.filter(!_._2.isEmpty).toMap)
+    new Format[Map[TaxObjectType, TaxDetail]] {
+      def reads(json: JsValue): JsResult[Map[TaxObjectType, TaxDetail]] = {
+        JsSuccess(fieldNames.mapValues{ x => TaxDetail(taxBands=
+          (json \ x \ "taxBands").asOpt[Seq[TaxBand]],
+          totalTax = (json \ x \ "totalTax").asOpt[BigDecimal],
+          totalIncome = (json \ x \ "totalIncome" ).asOpt[BigDecimal],
+          totalTaxableIncome = (json \ x \ "totalTaxableIncome").asOpt[BigDecimal]
+        )
+        })
       }
 
-      def writes(data: Map[TaxObjectType, Seq[TaxBand]]): JsValue =
+      def writes(data: Map[TaxObjectType, TaxDetail]): JsValue =
         JsObject(data.toSeq.map{ case (f,v) =>
           (fieldNames(f), JsObject(
             Seq(
-              ("taxBands",Json.toJson(v)),
-              ("totalTax", JsNumber(v.map(_.tax).sum)),
-              ("totalTaxableIncome", JsNumber(v.map(_.income).sum))
+              ("taxBands",Json.toJson(v.taxBands)),
+              ("totalTax", v.totalTax.map( x => JsNumber(x)).getOrElse(JsNull)),
+              ("totalTaxableIncome", v.totalTaxableIncome.map(x => JsNumber(x)).getOrElse(JsNull)),
+              ("totalIncome", v.totalIncome.map( x => JsNumber(x)).getOrElse(JsNull))
             )))
         })
     }
@@ -127,7 +133,7 @@ package object nps2 {
           (json \ "jsaIndicator").asOpt[Boolean].getOrElse(false),
           (json \ "pensionIndicator").asOpt[Boolean].getOrElse(false),
           (json \ "otherIncomeSourceIndicator").asOpt[Boolean].getOrElse(false)
-          ) match {
+        ) match {
           case (true,  false, _) => IncomeType.JobSeekersAllowance
           case (false, true , _) => IncomeType.Pension
           case (false, false, true ) => IncomeType.OtherIncome
@@ -141,9 +147,9 @@ package object nps2 {
           (json \ "employmentType").as[Int] == 1,
           iType,
           (json \ "employmentStatus").asOpt[Int] match {
-            case Some(1) => Income.EmploymentStatus.Live
-            case Some(2) => Income.EmploymentStatus.Ceased
-            case Some(3) => Income.EmploymentStatus.PotentiallyCeased
+            case Some(1) => Live
+            case Some(2) => Ceased
+            case Some(3) => PotentiallyCeased
           },
           (json \ "employmentTaxDistrictNumber").asOpt[Int],
           (json \ "employmentPayeRef").asOpt[String].getOrElse(""),
@@ -208,6 +214,7 @@ package object nps2 {
       (__ \ "date").formatNullable[LocalDate] and
       (__ \ "totalEstTax").formatNullable[BigDecimal].
         inmap[BigDecimal](_.getOrElse(0), Some(_)) and
+      (__ \ "totalLiability").format[Map[TaxObjectType, TaxDetail]] and
       (__ \ "incomeSources").formatNullable[Seq[Income]].
         inmap[Seq[Income]](_.getOrElse(Nil), Some(_))
     )(TaxAccount.apply, unlift(TaxAccount.unapply))

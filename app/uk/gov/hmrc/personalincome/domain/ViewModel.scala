@@ -18,7 +18,7 @@ package uk.gov.hmrc.personalincome.domain
 
 import play.api.libs.json._
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.model._
+import uk.gov.hmrc.personalincome.domain._
 
 
 trait ViewModelFactory {
