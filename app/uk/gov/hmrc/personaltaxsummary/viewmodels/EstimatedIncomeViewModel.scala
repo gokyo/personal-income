@@ -68,10 +68,6 @@ case class EstimatedIncomeViewModel(
                                      hasSSR: Boolean = false
                                    )
 
-object EstimatedIncomeViewModel {
-
-  implicit val format = Json.format[EstimatedIncomeViewModel]
-}
 
 case class BandedGraph(
                         id:String,
@@ -101,6 +97,11 @@ object Band {
 
 object BandedGraph {
   implicit val format = Json.format[BandedGraph]
+}
+
+object EstimatedIncomeViewModel {
+
+  implicit val format = Json.format[EstimatedIncomeViewModel]
 }
 
 object PTSEstimatedIncomeViewModel {
