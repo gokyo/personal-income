@@ -18,9 +18,9 @@ package uk.gov.hmrc.personalincome.viewmodelfactories
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.model._
+import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.utils.TaxSummaryHelper
-import uk.gov.hmrc.personaltaxsummary.domain.{EstimatedIncomeWrapper, GateKeeperDetails, PersonalTaxSummaryContainer, TaxSummaryContainer}
+import uk.gov.hmrc.personaltaxsummary.domain.{EstimatedIncomeWrapper, GateKeeperDetails, TaxSummaryContainer}
 import uk.gov.hmrc.personaltaxsummary.viewmodels.{PTSEstimatedIncomeViewModel, PTSYourTaxableIncomeViewModel}
 import uk.gov.hmrc.personaltaxsummary.viewmodels.PersonalIncomeAdapters._
 

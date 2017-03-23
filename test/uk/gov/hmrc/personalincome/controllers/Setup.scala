@@ -24,7 +24,7 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.model._
+import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControl, AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}

@@ -17,9 +17,10 @@
 package uk.gov.hmrc.personalincome.connectors
 
 import play.api.Logger
+import play.api.http.Status._
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.model.TaxSummaryDetails
 import uk.gov.hmrc.personalincome.config.{ServicesCircuitBreaker, WSHttp}
+import uk.gov.hmrc.personalincome.domain.TaxSummaryDetails
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
 
@@ -37,12 +38,18 @@ trait TaiConnector {
 
   def url(path: String) = s"$serviceUrl$path"
 
-  def taxSummary(nino : Nino, year : Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryDetails]] = {
-    Logger.debug(s"TaxForCitizens:Frontend - connect to /$nino/tax-summary-full/$year ")
+  def taxSummary(nino: Nino, year: Int)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryDetails]] = {
     withCircuitBreaker(
-      http.GET[Option[TaxSummaryDetails]](url = url(s"/tai/$nino/tax-summary-full/$year")).recover {
+      http.GET[HttpResponse](url = url(s"/tai/$nino/tax-summary-full/$year")) map { response =>
+        response.status match {
+          case OK => Some(response.json.as[TaxSummaryDetails](TaxSummaryDetails.formats))
+          case nonOkResponse => {
+            Logger.warn(s"taxSummary request responded with $nonOkResponse")
+            None
+          }
+        }
+      } recover {
         case ex: NotFoundException => None
-
         case ex: BadRequestException => None
       }
     )
@@ -51,5 +58,6 @@ trait TaiConnector {
 
 object TaiConnector extends TaiConnector with ServicesConfig with ServicesCircuitBreaker {
   lazy val serviceUrl = baseUrl("tai")
+
   override def http = WSHttp
 }

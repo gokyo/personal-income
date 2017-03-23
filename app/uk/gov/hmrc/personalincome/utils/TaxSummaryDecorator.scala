@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.personalincome.utils
 
-import uk.gov.hmrc.model.{Tax, TaxBand}
-
+import uk.gov.hmrc.personalincome.domain._
 import scala.util.Try
 
 case class TaxBandLabel(labelAmount: BigDecimal, locationAsPerc : BigDecimal)
