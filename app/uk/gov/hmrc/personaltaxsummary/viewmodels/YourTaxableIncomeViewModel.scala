@@ -35,8 +35,7 @@ case class PTSYourTaxableIncomeViewModel(
                                           benefitsTotal: BigDecimal,
                                           taxableBenefitsData: List[(String, String, String)] = List(),
                                           taxableBenefitsTotal: BigDecimal,
-                                          hasChanges: Boolean = false,
-                                          newGraph:BandedGraph
+                                          hasChanges: Boolean = false
                                         )
 
 case class YourTaxableIncomeViewModel(
