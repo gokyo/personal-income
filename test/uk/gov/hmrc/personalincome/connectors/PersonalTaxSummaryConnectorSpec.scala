@@ -49,8 +49,8 @@ class PersonalTaxSummaryConnectorSpec
     val taxSummary = TaxSummaryDetails(nino.value, 1)
     val taxSummaryContainer = PersonalTaxSummaryContainer(taxSummary, Map.empty)
     val incomeTax = IncomeTaxViewModel(simpleTaxUser = true)
-    val estimatedIncome = PTSEstimatedIncomeViewModel(graph = BandedGraph("1"), taxBands = None, ukDividends = None, incomeTaxReducedToZeroMessage = None)
-    val yourTaxableIncome = PTSYourTaxableIncomeViewModel(0, 0, 0, List(), None, EmploymentPension(None), List(), 0, List(), 0, List(), 0, List(), 0, false)
+    val estimatedIncome = PTSEstimatedIncomeViewModel(graph = BandedGraph("1"), taxBands = None, ukDividends = None, incomeTaxReducedToZeroMessage = None, newGraph = BandedGraph("1"))
+    val yourTaxableIncome = PTSYourTaxableIncomeViewModel(0, 0, 0, List(), None, EmploymentPension(None), List(), 0, List(), 0, List(), 0, List(), 0, false, newGraph = BandedGraph("1"))
 
     lazy val http500Response = Future.failed(new Upstream5xxResponse("Error", 500, 500))
     lazy val http400Response = Future.failed(new BadRequestException("bad request"))
