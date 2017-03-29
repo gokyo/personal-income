@@ -39,7 +39,8 @@ case class PTSEstimatedIncomeViewModel(
                                         incomeTaxReducedToZeroMessage: Option[String],
                                         nextYearTaxTotal: BigDecimal =0,
                                         hasPSA: Boolean = false,
-                                        hasSSR: Boolean = false
+                                        hasSSR: Boolean = false,
+                                        newGraph:BandedGraph
                                       )
 
 
