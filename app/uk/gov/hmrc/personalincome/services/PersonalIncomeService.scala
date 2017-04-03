@@ -113,7 +113,7 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
       def claimMatch(claim:Claim) = {
         val match1 = claim.household.applicant1.nino == nino.value
         val match2 = claim.household.applicant2.fold(false){found => found.nino == nino.value}
-        match1 | match2
+        match1 || match2
       }
 
       ntcConnector.claimantClaims(TaxCreditsNino(nino.value)).map { claims =>
