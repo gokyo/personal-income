@@ -273,10 +273,10 @@ trait Setup {
                      |        "applicationID": "198765432134566",
                      |        "applicant1": {
                      |          "nino": "CS700100A",
-                     |          "title": "Miss",
-                     |          "firstForename": "Emma",
+                     |          "title": "Mr",
+                     |          "firstForename": "Jon",
                      |          "secondForename": "",
-                     |          "surname": "Cowling"
+                     |          "surname": "Densmore"
                      |        }
                      |      },
                      |      "renewal": {
@@ -292,10 +292,10 @@ trait Setup {
                      |        "applicationID": "198765432134567",
                      |        "applicant1": {
                      |          "nino": "CS700100A",
-                     |          "title": "Miss",
-                     |          "firstForename": "Emma",
+                     |          "title": "Mr",
+                     |          "firstForename": "Jon",
                      |          "secondForename": "",
-                     |          "surname": "Cowling"
+                     |          "surname": "Densmore"
                      |        }
                      |      },
                      |      "renewal": {
@@ -307,7 +307,7 @@ trait Setup {
                      |    },
                      |    {
                      |      "household": {
-                     |        "barcodeReference": "200000000000014",
+                     |        "barcodeReference": "333333333333333",
                      |        "applicationID": "198765432134568",
                      |        "applicant1": {
                      |          "nino": "AM242413B",
@@ -330,54 +330,107 @@ trait Setup {
                      |        "renewalNoticeIssuedDate": "20301012",
                      |        "renewalNoticeFirstSpecifiedDate": "20101012"
                      |      }
+                     |    },
+                     |    {
+                     |      "household": {
+                     |        "barcodeReference": "200000000000014",
+                     |        "applicationID": "198765432134567",
+                     |        "applicant1": {
+                     |          "nino": "AM242413B",
+                     |          "title": "Miss",
+                     |          "firstForename": "Hazel",
+                     |          "secondForename": "",
+                     |          "surname": "Young"
+                     |        },
+                     |        "applicant2": {
+                     |          "nino": "CS700100A",
+                     |          "title": "Mr",
+                     |          "firstForename": "Jon",
+                     |          "secondForename": "",
+                     |          "surname": "Densmore"
+                     |        }
+                     |      },
+                     |      "renewal": {
+                     |        "awardStartDate": "2016-12-31",
+                     |        "awardEndDate": "2017-07-31",
+                     |        "renewalNoticeIssuedDate": "20301012",
+                     |        "renewalNoticeFirstSpecifiedDate": "20101012"
+                     |      }
                      |    }
                      |  ]
                      |}""".stripMargin
 
   val matchedClaimsJson = """{
-                        |  "references": [
-                        |    {
-                        |      "household": {
-                        |        "barcodeReference": "111111111111111",
-                        |        "applicationID": "198765432134566",
-                        |        "applicant1": {
-                        |          "nino": "CS700100A",
-                        |          "title": "Miss",
-                        |          "firstForename": "Emma",
-                        |          "secondForename": "",
-                        |          "surname": "Cowling"
-                        |        }
-                        |      },
-                        |      "renewal": {
-                        |        "awardStartDate": "2016-04-05",
-                        |        "awardEndDate": "2016-08-31",
-                        |        "renewalNoticeIssuedDate": "20301012",
-                        |        "renewalNoticeFirstSpecifiedDate": "20101012"
-                        |      },
-                        |      "authenticationToken": "Basic Q1M3MDAxMDBBOjExMTExMTExMTExMTExMQ=="
-                        |    },
-                        |    {
-                        |      "household": {
-                        |        "barcodeReference": "222222222222222",
-                        |        "applicationID": "198765432134567",
-                        |        "applicant1": {
-                        |          "nino": "CS700100A",
-                        |          "title": "Miss",
-                        |          "firstForename": "Emma",
-                        |          "secondForename": "",
-                        |          "surname": "Cowling"
-                        |        }
-                        |      },
-                        |      "renewal": {
-                        |        "awardStartDate": "2016-08-31",
-                        |        "awardEndDate": "2016-12-31",
-                        |        "renewalNoticeIssuedDate": "20301012",
-                        |        "renewalNoticeFirstSpecifiedDate": "20101012"
-                        |      },
-                        |      "authenticationToken": "Basic Q1M3MDAxMDBBOjIyMjIyMjIyMjIyMjIyMg=="
-                        |    }
-                        |  ]
-                        |}""".stripMargin
+                            |  "references": [
+                            |    {
+                            |      "household": {
+                            |        "barcodeReference": "111111111111111",
+                            |        "applicationID": "198765432134566",
+                            |        "applicant1": {
+                            |          "nino": "CS700100A",
+                            |          "title": "Mr",
+                            |          "firstForename": "Jon",
+                            |          "secondForename": "",
+                            |          "surname": "Densmore"
+                            |        }
+                            |      },
+                            |      "renewal": {
+                            |        "awardStartDate": "2016-04-05",
+                            |        "awardEndDate": "2016-08-31",
+                            |        "renewalNoticeIssuedDate": "20301012",
+                            |        "renewalNoticeFirstSpecifiedDate": "20101012"
+                            |      },
+                            |      "authenticationToken": "Basic Q1M3MDAxMDBBOjExMTExMTExMTExMTExMQ=="
+                            |    },
+                            |    {
+                            |      "household": {
+                            |        "barcodeReference": "222222222222222",
+                            |        "applicationID": "198765432134567",
+                            |        "applicant1": {
+                            |          "nino": "CS700100A",
+                            |          "title": "Mr",
+                            |          "firstForename": "Jon",
+                            |          "secondForename": "",
+                            |          "surname": "Densmore"
+                            |        }
+                            |      },
+                            |      "renewal": {
+                            |        "awardStartDate": "2016-08-31",
+                            |        "awardEndDate": "2016-12-31",
+                            |        "renewalNoticeIssuedDate": "20301012",
+                            |        "renewalNoticeFirstSpecifiedDate": "20101012"
+                            |      },
+                            |      "authenticationToken": "Basic Q1M3MDAxMDBBOjIyMjIyMjIyMjIyMjIyMg=="
+                            |    },
+                            |    {
+                            |      "household": {
+                            |        "barcodeReference": "200000000000014",
+                            |        "applicationID": "198765432134567",
+                            |        "applicant1": {
+                            |          "nino": "AM242413B",
+                            |          "title": "Miss",
+                            |          "firstForename": "Hazel",
+                            |          "secondForename": "",
+                            |          "surname": "Young"
+                            |        },
+                            |        "applicant2": {
+                            |          "nino": "CS700100A",
+                            |          "title": "Mr",
+                            |          "firstForename": "Jon",
+                            |          "secondForename": "",
+                            |          "surname": "Densmore"
+                            |        }
+                            |      },
+                            |      "renewal": {
+                            |        "awardStartDate": "2016-12-31",
+                            |        "awardEndDate": "2017-07-31",
+                            |        "renewalNoticeIssuedDate": "20301012",
+                            |        "renewalNoticeFirstSpecifiedDate": "20101012"
+                            |      },
+                            |      "authenticationToken": "Basic Q1M3MDAxMDBBOjIwMDAwMDAwMDAwMDAxNA=="
+                            |    }
+                            |  ]
+                            |}""".stripMargin
 
   val claims = Json.toJson(Json.parse(claimsJson)).as[Claims]
   val matchedClaims = Json.toJson(Json.parse(matchedClaimsJson)).as[ClaimsWithRef]
@@ -411,11 +464,13 @@ trait Success extends Setup {
 trait NotFoundClaimant extends Setup {
 
   def buildClaims = {
+    val applicantNotFound: Option[Applicant] = None
 
     val updated = claims.references.get.map{ item =>
       val applicant1 = item.household.applicant1
       val newApp = applicant1.copy(nino = "AM242413B")
-      val newHousehold = item.household.copy(applicant1 = newApp)
+      val secondApp: Option[Applicant] = item.household.applicant2.fold(applicantNotFound){ found => Some(found.copy(nino = "AM242413B")) }
+      val newHousehold = item.household.copy(applicant1 = newApp, applicant2 = secondApp)
       item.copy(household = newHousehold, renewal = item.renewal)
     }
 

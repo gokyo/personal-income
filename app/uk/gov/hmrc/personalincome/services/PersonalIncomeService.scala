@@ -110,10 +110,16 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
   override def claimantClaims(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimsWithRef] = {
     withAudit("claimantClaims", Map("nino" -> nino.value)) {
 
+      def claimMatch(claim:Claim) = {
+        val match1 = claim.household.applicant1.nino == nino.value
+        val match2 = claim.household.applicant2.fold(false){found => found.nino == nino.value}
+        match1 | match2
+      }
+
       ntcConnector.claimantClaims(TaxCreditsNino(nino.value)).map { claims =>
         claims.references.fold(ClaimsWithRef(None)){ items => {
-            val assoicatedReferences = items.filter(a => a.household.applicant1.nino == nino.value)
-              .map(b =>  ClaimWithReference(b.household, b.renewal, TcrAuthenticationToken.basicAuthString(b.household.applicant1.nino, b.household.barcodeReference)))
+            val assoicatedReferences = items.filter(a => claimMatch(a))
+              .map(b =>  ClaimWithReference(b.household, b.renewal, TcrAuthenticationToken.basicAuthString(nino.value, b.household.barcodeReference)))
             ClaimsWithRef(Some(assoicatedReferences))
           }
         }

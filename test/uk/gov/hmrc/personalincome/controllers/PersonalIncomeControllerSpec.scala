@@ -159,6 +159,20 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
       status(result) shouldBe 404
     }
 
+    "return 403 when no tcrAuthHeader is supplied to claimant details API" in new NotFoundClaimant {
+      val result = await(controller.claimantDetails(nino, None, None)(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 403
+      contentAsJson(result) shouldBe Json.parse("""{"code":"NTC_RENEWAL_AUTH_ERROR","message":"No auth header supplied in http request"}""")
+    }
+
+    "return 403 when tcrAuthHeader is supplied to claims API" in new NotFoundClaimant {
+      val result = await(controller.claimantDetails(nino, None, Some("claims"))(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
+
+      status(result) shouldBe 403
+      contentAsJson(result) shouldBe Json.parse("""{"code":"NTC_RENEWAL_AUTH_ERROR","message":"Auth header is not required in the request"}""")
+    }
+
     "return 401 when the nino in the request does not match the authority nino" in new AccessCheck {
       val result = await(controller.claimantDetails(ninoIncorrect)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
@@ -215,7 +229,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
       contentAsJson(result) shouldBe Json.toJson(claimentDetails)
     }
 
-    "return claimant claims successfully" in new Success {
+    "return claimant claims successfully" in new SandboxSuccess {
 
       val result = await(controller.claimantDetails(nino, None, Some("claims"))(emptyRequestWithAcceptHeader))
 
