@@ -6,10 +6,10 @@
         "applicationID": "198765432134566",
         "applicant1": {
           "nino": "CS700100A",
-          "title": "Miss",
-          "firstForename": "Emma",
+          "title": "Mr",
+          "firstForename": "Jon",
           "secondForename": "",
-          "surname": "Cowling"
+          "surname": "Densmore"
         }
       },
       "renewal": {
@@ -26,10 +26,10 @@
         "applicationID": "198765432134567",
         "applicant1": {
           "nino": "CS700100A",
-          "title": "Miss",
-          "firstForename": "Emma",
+          "title": "Mr",
+          "firstForename": "Jon",
           "secondForename": "",
-          "surname": "Cowling"
+          "surname": "Densmore"
         }
       },
       "renewal": {
@@ -39,6 +39,33 @@
         "renewalNoticeFirstSpecifiedDate": "20101012"
       },
       "authenticationToken": "Basic Q1M3MDAxMDBBOjIyMjIyMjIyMjIyMjIyMg=="
+    },
+    {
+      "household": {
+        "barcodeReference": "200000000000014",
+        "applicationID": "198765432134567",
+        "applicant1": {
+          "nino": "AM242413B",
+          "title": "Miss",
+          "firstForename": "Hazel",
+          "secondForename": "",
+          "surname": "Young"
+        },
+        "applicant2": {
+          "nino": "CS700100A",
+          "title": "Mr",
+          "firstForename": "Jon",
+          "secondForename": "",
+          "surname": "Densmore"
+        }
+      },
+      "renewal": {
+        "awardStartDate": "2016-12-31",
+        "awardEndDate": "2017-07-31",
+        "renewalNoticeIssuedDate": "20301012",
+        "renewalNoticeFirstSpecifiedDate": "20101012"
+      },
+      "authenticationToken": "Basic Q1M3MDAxMDBBOjIwMDAwMDAwMDAwMDAxNA=="
     }
   ]
 }

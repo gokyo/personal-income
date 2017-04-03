@@ -150,8 +150,11 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       case (t@Some(token), None) => func(hc.copy(extraHeaders = Seq(HeaderKeys.tcrAuthToken -> token)))
 
       case _ =>
-        Logger.warn("Failed to match headers. Either tcrAuthToken must be supplied as header or 'claims' as query param.")
-        Future.successful(Forbidden(Json.toJson(ErrorNoAuthToken)))
+        val default: ErrorResponse = ErrorNoAuthToken
+        val authTokenShouldNotBeSupplied = ErrorAuthTokenSupplied
+        val response = mode.fold(default){ found => authTokenShouldNotBeSupplied}
+        Logger.warn("Either tcrAuthToken must be supplied as header or 'claims' as query param.")
+        Future.successful(Forbidden(Json.toJson(response)))
     }
   }
 

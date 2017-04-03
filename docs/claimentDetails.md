@@ -53,8 +53,8 @@ If 'claims' query parameter is not supplied as a query parameter then a single r
 }
 ```
 
-If 'claims' query parameter is supplied as a query parameter for all barcode references associated to the NINO will be returned.
-Note the authenticationToken is the tcrAuthToken supplied to the claimant-details service.
+If 'claims' query parameter is supplied, all barcode references associated to the NINO will be returned.
+Note the returned 'authenticationToken' attribute is the tcrAuthToken supplied to the claimant-details service.
 
 ```json
 {
