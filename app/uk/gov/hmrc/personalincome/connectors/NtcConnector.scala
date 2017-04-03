@@ -63,6 +63,10 @@ trait NtcConnector {
     withCircuitBreaker(http.GET[ClaimantDetails](s"$serviceUrl/tcs/${nino.value}/claimant-details"))
   }
 
+  def claimantClaims(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Claims] = {
+    withCircuitBreaker(http.GET[Claims](s"$serviceUrl/tcs/${nino.value}/claimant-claims"))
+  }
+
   def submitRenewal(nino: TaxCreditsNino,
                     renewalData: TcrRenewal)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Response] = {
     val uri = s"$serviceUrl/tcs/${nino.taxCreditsNino}/renewal"

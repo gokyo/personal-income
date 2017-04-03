@@ -3,7 +3,7 @@ GET     /income/:nino/tax-summary/:year                      uk.gov.hmrc.persona
 
 GET     /income/:nino/tax-credits/:renewalReference/auth     uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.getRenewalAuthentication(nino:uk.gov.hmrc.domain.Nino, renewalReference:uk.gov.hmrc.personalincome.domain.RenewalReference, journeyId: Option[String])
 
-GET     /income/:nino/tax-credits/claimant-details           uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.claimantDetails(nino: uk.gov.hmrc.domain.Nino, journeyId: Option[String])
+GET     /income/:nino/tax-credits/claimant-details           uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.claimantDetails(nino: uk.gov.hmrc.domain.Nino, journeyId: Option[String], claims:Option[String])
 
 POST    /income/:nino/tax-credits/renewal                    uk.gov.hmrc.personalincome.controllers.LivePersonalIncomeController.submitRenewal(nino: uk.gov.hmrc.domain.Nino, journeyId: Option[String])
 
