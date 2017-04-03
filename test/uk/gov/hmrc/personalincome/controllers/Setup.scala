@@ -24,7 +24,6 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControl, AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
@@ -62,7 +61,7 @@ class TestTaiConnector(taxSummaryDetails:Option[TaxSummaryDetails]) extends TaiT
   }
 }
 
-class TestNtcConnector(response:Response, tcrAuthToken:Option[TcrAuthenticationToken], claimantDetails:ClaimantDetails) extends NtcTestConnector {
+class TestNtcConnector(response:Response, tcrAuthToken:Option[TcrAuthenticationToken], claimantDetails:ClaimantDetails, claims:Claims) extends NtcTestConnector {
   override def http: HttpGet with HttpPost = ???
 
   override def serviceUrl: String = ???
@@ -75,14 +74,19 @@ class TestNtcConnector(response:Response, tcrAuthToken:Option[TcrAuthenticationT
     Future.successful(response)
   }
 
-  override def authenticateRenewal(nino: TaxCreditsNino,
-                          renewalReference: RenewalReference)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]] = {
+  override def authenticateRenewal(nino: TaxCreditsNino, renewalReference: RenewalReference)
+    (implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Option[TcrAuthenticationToken]] = {
     Future.successful(tcrAuthToken)
   }
 
   override def claimantDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimantDetails] = {
     Future.successful(claimantDetails)
   }
+
+  override def claimantClaims(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Claims] = {
+    Future.successful(claims)
+  }
+
 }
 
 class TestAuthConnector(nino: Option[Nino], ex:Option[Exception]=None) extends AuthConnector {
@@ -260,15 +264,134 @@ trait Setup {
   val taiConnector = new TestTaiConnector(Some(taxSummaryDetails))
   val tcrAuthToken = TcrAuthenticationToken("some-auth-token")
   val claimentDetails = ClaimantDetails(false, 1, "r", nino.value, None, false, "some-app-id")
-  val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails)
-  val ntcConnector400 = new TestNtcConnector(Success(200), None, claimentDetails)
+
+  val claimsJson = """{
+                     |  "references": [
+                     |    {
+                     |      "household": {
+                     |        "barcodeReference": "111111111111111",
+                     |        "applicationID": "198765432134566",
+                     |        "applicant1": {
+                     |          "nino": "CS700100A",
+                     |          "title": "Miss",
+                     |          "firstForename": "Emma",
+                     |          "secondForename": "",
+                     |          "surname": "Cowling"
+                     |        }
+                     |      },
+                     |      "renewal": {
+                     |        "awardStartDate": "2016-04-05",
+                     |        "awardEndDate": "2016-08-31",
+                     |        "renewalNoticeIssuedDate": "20301012",
+                     |        "renewalNoticeFirstSpecifiedDate": "20101012"
+                     |      }
+                     |    },
+                     |    {
+                     |      "household": {
+                     |        "barcodeReference": "222222222222222",
+                     |        "applicationID": "198765432134567",
+                     |        "applicant1": {
+                     |          "nino": "CS700100A",
+                     |          "title": "Miss",
+                     |          "firstForename": "Emma",
+                     |          "secondForename": "",
+                     |          "surname": "Cowling"
+                     |        }
+                     |      },
+                     |      "renewal": {
+                     |        "awardStartDate": "2016-08-31",
+                     |        "awardEndDate": "2016-12-31",
+                     |        "renewalNoticeIssuedDate": "20301012",
+                     |        "renewalNoticeFirstSpecifiedDate": "20101012"
+                     |      }
+                     |    },
+                     |    {
+                     |      "household": {
+                     |        "barcodeReference": "200000000000014",
+                     |        "applicationID": "198765432134568",
+                     |        "applicant1": {
+                     |          "nino": "AM242413B",
+                     |          "title": "Miss",
+                     |          "firstForename": "Hazel",
+                     |          "secondForename": "",
+                     |          "surname": "Young"
+                     |        },
+                     |        "applicant2": {
+                     |          "nino": "AP412713B",
+                     |          "title": "Miss",
+                     |          "firstForename": "Cathy",
+                     |          "secondForename": "",
+                     |          "surname": "Garcia-Vazquez"
+                     |        }
+                     |      },
+                     |      "renewal": {
+                     |        "awardStartDate": "2016-12-31",
+                     |        "awardEndDate": "2017-07-31",
+                     |        "renewalNoticeIssuedDate": "20301012",
+                     |        "renewalNoticeFirstSpecifiedDate": "20101012"
+                     |      }
+                     |    }
+                     |  ]
+                     |}""".stripMargin
+
+  val matchedClaimsJson = """{
+                        |  "references": [
+                        |    {
+                        |      "household": {
+                        |        "barcodeReference": "111111111111111",
+                        |        "applicationID": "198765432134566",
+                        |        "applicant1": {
+                        |          "nino": "CS700100A",
+                        |          "title": "Miss",
+                        |          "firstForename": "Emma",
+                        |          "secondForename": "",
+                        |          "surname": "Cowling"
+                        |        }
+                        |      },
+                        |      "renewal": {
+                        |        "awardStartDate": "2016-04-05",
+                        |        "awardEndDate": "2016-08-31",
+                        |        "renewalNoticeIssuedDate": "20301012",
+                        |        "renewalNoticeFirstSpecifiedDate": "20101012"
+                        |      },
+                        |      "authenticationToken": "Basic Q1M3MDAxMDBBOjExMTExMTExMTExMTExMQ=="
+                        |    },
+                        |    {
+                        |      "household": {
+                        |        "barcodeReference": "222222222222222",
+                        |        "applicationID": "198765432134567",
+                        |        "applicant1": {
+                        |          "nino": "CS700100A",
+                        |          "title": "Miss",
+                        |          "firstForename": "Emma",
+                        |          "secondForename": "",
+                        |          "surname": "Cowling"
+                        |        }
+                        |      },
+                        |      "renewal": {
+                        |        "awardStartDate": "2016-08-31",
+                        |        "awardEndDate": "2016-12-31",
+                        |        "renewalNoticeIssuedDate": "20301012",
+                        |        "renewalNoticeFirstSpecifiedDate": "20101012"
+                        |      },
+                        |      "authenticationToken": "Basic Q1M3MDAxMDBBOjIyMjIyMjIyMjIyMjIyMg=="
+                        |    }
+                        |  ]
+                        |}""".stripMargin
+
+  val claims = Json.toJson(Json.parse(claimsJson)).as[Claims]
+  val matchedClaims = Json.toJson(Json.parse(matchedClaimsJson)).as[ClaimsWithRef]
+  val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claims)
+  val ntcConnector400 = new TestNtcConnector(Success(200), None, claimentDetails, claims)
   val exclusion = Exclusion(false)
   val exclusionResult = Json.parse("""{"showData":true}""")
-  val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, Some(children), Some(exclusion))
+  val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails,
+    Some(children), Some(exclusion))
 
   val testAccess = new TestAccessCheck(authConnector)
   val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
-  val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+  val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+    authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
 
   val testSandboxPersonalIncomeService = SandboxPersonalIncomeService
   val sandboxCompositeAction = AccountAccessControlCheckOff
@@ -278,6 +401,32 @@ trait Setup {
 }
 
 trait Success extends Setup {
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+  }
+}
+
+trait NotFoundClaimant extends Setup {
+
+  def buildClaims = {
+
+    val updated = claims.references.get.map{ item =>
+      val applicant1 = item.household.applicant1
+      val newApp = applicant1.copy(nino = "AM242413B")
+      val newHousehold = item.household.copy(applicant1 = newApp)
+      item.copy(household = newHousehold, renewal = item.renewal)
+    }
+
+    Claims(Some(updated))
+  }
+
+  override val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, buildClaims)
+
+  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+    authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction

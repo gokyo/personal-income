@@ -22,7 +22,6 @@ import play.api.libs.json.{JsError, Json}
 import uk.gov.hmrc.api.sandbox._
 import uk.gov.hmrc.api.service._
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.HeaderKeys
@@ -46,6 +45,8 @@ trait PersonalIncomeService {
   def getTaxCreditExclusion(nino: Nino)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Exclusion]
 
   def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimantDetails]
+
+  def claimantClaims(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimsWithRef]
 
   def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Response]
 
@@ -106,6 +107,20 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
     }
   }
 
+  override def claimantClaims(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimsWithRef] = {
+    withAudit("claimantClaims", Map("nino" -> nino.value)) {
+
+      ntcConnector.claimantClaims(TaxCreditsNino(nino.value)).map { claims =>
+        claims.references.fold(ClaimsWithRef(None)){ items => {
+            val assoicatedReferences = items.filter(a => a.household.applicant1.nino == nino.value)
+              .map(b =>  ClaimWithReference(b.household, b.renewal, TcrAuthenticationToken.basicAuthString(b.household.applicant1.nino, b.household.barcodeReference)))
+            ClaimsWithRef(Some(assoicatedReferences))
+          }
+        }
+      }
+    }
+  }
+
   override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Response] = {
     withAudit("submitRenewal", Map("nino" -> nino.value)) {
       ntcConnector.submitRenewal(TaxCreditsNino(nino.value), tcrRenewal)
@@ -148,7 +163,7 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
     val summary = resource.fold(taxSummaryContainerNew) { found =>
       Json.parse(found).validate[uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer].fold(
         error => {
-          Logger.error("Failed to parse summary " + JsError.toFlatJson(error))
+          Logger.error("Failed to parse summary " + JsError.toJson(error))
           throw new Exception("Failed to validate JSON data for summary!")
         },
         result => {
@@ -176,12 +191,16 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
     getTcrAuthHeader { header =>
       try {
         val resource: String = findResource(s"/resources/claimantdetails/${nino.value}-${header.extractRenewalReference.get}.json").getOrElse(throw new IllegalArgumentException("Resource not found!"))
-        val resp = Json.parse(resource).as[ClaimantDetails]
-        Future.successful(resp)
+        Future.successful(Json.parse(resource).as[ClaimantDetails])
       } catch {
         case ex:Exception => Future.successful(ClaimantDetails(hasPartner = false, 1, "r", nino.value, None, availableForCOCAutomation = false, "some-app-id"))
       }
     }
+  }
+
+  override def claimantClaims(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimsWithRef] = {
+    val resource :String = findResource(s"/resources/claimantdetails/claims.json").getOrElse(throw new IllegalArgumentException("Resource not found!"))
+    Future.successful(Json.parse(resource).as[ClaimsWithRef])
   }
 
   override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Response] = {
@@ -194,6 +213,7 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
   }
 
   override def getTaxCreditExclusion(nino: Nino)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Exclusion] = Future.successful(Exclusion(false))
+
 }
 
 object LivePersonalIncomeService extends LivePersonalIncomeService {

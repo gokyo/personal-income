@@ -54,6 +54,77 @@ class NtcConnectorSpec
       val tcrAuthToken = TcrAuthenticationToken("some-token")
       val claimentDetails = ClaimantDetails(false, 1, "renewalForm", nino.value, None, false, "some-app-id")
 
+      val claimsJson = """{
+       |  "references": [
+       |    {
+       |      "household": {
+       |        "barcodeReference": "200000000000012",
+       |        "applicationID": "198765432134566",
+       |        "applicant1": {
+       |          "nino": "AA000003D",
+       |          "title": "Miss",
+       |          "firstForename": "Emma",
+       |          "secondForename": "",
+       |          "surname": "Cowling"
+       |        }
+       |      },
+       |      "renewal": {
+       |        "awardStartDate": "2016-04-05",
+       |        "awardEndDate": "2016-08-31",
+       |        "renewalNoticeIssuedDate": "20301012",
+       |        "renewalNoticeFirstSpecifiedDate": "20101012"
+       |      }
+       |    },
+       |    {
+       |      "household": {
+       |        "barcodeReference": "200000000000013",
+       |        "applicationID": "198765432134567",
+       |        "applicant1": {
+       |          "nino": "AA000003D",
+       |          "title": "Miss",
+       |          "firstForename": "Emma",
+       |          "secondForename": "",
+       |          "surname": "Cowling"
+       |        }
+       |      },
+       |      "renewal": {
+       |        "awardStartDate": "2016-08-31",
+       |        "awardEndDate": "2016-12-31",
+       |        "renewalNoticeIssuedDate": "20301012",
+       |        "renewalNoticeFirstSpecifiedDate": "20101012"
+       |      }
+       |    },
+       |    {
+       |      "household": {
+       |        "barcodeReference": "200000000000014",
+       |        "applicationID": "198765432134568",
+       |        "applicant1": {
+       |          "nino": "AM242413B",
+       |          "title": "Miss",
+       |          "firstForename": "Hazel",
+       |          "secondForename": "",
+       |          "surname": "Young"
+       |        },
+       |        "applicant2": {
+       |          "nino": "AP412713B",
+       |          "title": "Miss",
+       |          "firstForename": "Cathy",
+       |          "secondForename": "",
+       |          "surname": "Garcia-Vazquez"
+       |        }
+       |      },
+       |      "renewal": {
+       |        "awardStartDate": "2016-12-31",
+       |        "awardEndDate": "2017-07-31",
+       |        "renewalNoticeIssuedDate": "20301012",
+       |        "renewalNoticeFirstSpecifiedDate": "20101012"
+       |      }
+       |    }
+       |  ]
+       |}""".stripMargin
+
+      val claims200Success = Json.parse(claimsJson)
+      lazy val http200ClaimsResponse = Future.successful(HttpResponse(200, Some(claims200Success)))
       lazy val http500Response = Future.failed(new Upstream5xxResponse("Error", 500, 500))
       lazy val http400Response = Future.failed(new BadRequestException("bad request"))
       lazy val http404Response = Future.successful(HttpResponse(404))
@@ -114,6 +185,35 @@ class NtcConnectorSpec
         executeCB(connector.authenticateRenewal(taxCreditNino, renewalReference))
       }
 
+    }
+
+    "claims tcsConnector" should {
+
+      "throw BadRequestException when a 400 response is returned" in new Setup {
+        override lazy val response = http400Response
+        intercept[BadRequestException] {
+          await(connector.claimantClaims(taxCreditNino))
+        }
+      }
+
+      "throw Upstream5xxResponse when a 500 response is returned" in new Setup {
+        override lazy val response = http500Response
+        intercept[Upstream5xxResponse] {
+          await(connector.claimantClaims(taxCreditNino))
+        }
+      }
+
+      "return a valid response when a 200 response is received with a valid json payload" in new Setup {
+        override lazy val response = http200ClaimsResponse
+        val result = await(connector.claimantClaims(taxCreditNino))
+
+        result shouldBe Json.toJson(claims200Success).as[Claims]
+      }
+
+      "circuit breaker configuration should be applied and unhealthy service exception will kick in after 5th failed call" in new Setup {
+        override lazy val response = http500Response
+        executeCB(connector.claimantClaims(taxCreditNino))
+      }
     }
 
     "claimantDetails tcsConnector" should {

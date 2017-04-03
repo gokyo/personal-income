@@ -1,0 +1,44 @@
+{
+  "references": [
+    {
+      "household": {
+        "barcodeReference": "111111111111111",
+        "applicationID": "198765432134566",
+        "applicant1": {
+          "nino": "CS700100A",
+          "title": "Miss",
+          "firstForename": "Emma",
+          "secondForename": "",
+          "surname": "Cowling"
+        }
+      },
+      "renewal": {
+        "awardStartDate": "2016-04-05",
+        "awardEndDate": "2016-08-31",
+        "renewalNoticeIssuedDate": "20301012",
+        "renewalNoticeFirstSpecifiedDate": "20101012"
+      },
+      "authenticationToken": "Basic Q1M3MDAxMDBBOjExMTExMTExMTExMTExMQ=="
+    },
+    {
+      "household": {
+        "barcodeReference": "222222222222222",
+        "applicationID": "198765432134567",
+        "applicant1": {
+          "nino": "CS700100A",
+          "title": "Miss",
+          "firstForename": "Emma",
+          "secondForename": "",
+          "surname": "Cowling"
+        }
+      },
+      "renewal": {
+        "awardStartDate": "2016-08-31",
+        "awardEndDate": "2016-12-31",
+        "renewalNoticeIssuedDate": "20301012",
+        "renewalNoticeFirstSpecifiedDate": "20101012"
+      },
+      "authenticationToken": "Basic Q1M3MDAxMDBBOjIyMjIyMjIyMjIyMjIyMg=="
+    }
+  ]
+}

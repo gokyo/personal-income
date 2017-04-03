@@ -1,6 +1,8 @@
-Return Claiment Details object
+Return Claimant Details object
 ----
-  Return claiment details object based on NINO.
+  Return claimant details object based on NINO. The service can either return details a single claim or multiple claims.
+  Requesting a single claim the 'claims' parameter must not be supplied and the tcrTokenAuth must be supplied in the header.
+  Requesting multiple claims, the 'claim' parameter must be supplied with no tcrTokenAuth header.
 
 * **URL**
 
@@ -9,8 +11,13 @@ Return Claiment Details object
 * **Method:**
   
   `GET`
-  
+
 *  **URL Params**
+
+  `claims=yes`
+
+   Supplying the claims query parameter will drive the service to return all claims associated from the supplied NINO.
+
 
    **Required:**
  
@@ -22,7 +29,9 @@ Return Claiment Details object
 
    **Required:**
  
-   `tcrAuthToken: [TCRAuthToken]`
+   `tcrAuthToken: [TCRAuthToken]` to be supplied when requesting a single claim.
+
+   Note: The tcrAuthToken is only required when the claims query parameter is not supplied.
 
 * **Success Response:**
 
@@ -30,6 +39,8 @@ Return Claiment Details object
     **Content:**
 
         [Source...](Please see https://github.com/hmrc/personal-income/blob/master/app/uk/gov/hmrc/apigateway/personalincome/domain/Renewals.scala#L55)
+
+If 'claims' query parameter is not supplied as a query parameter then a single response will be returned based on the barcode reference supplied in the tcrAuthToken.
 
 ```json
 {
@@ -42,10 +53,64 @@ Return Claiment Details object
 }
 ```
 
+If 'claims' query parameter is supplied as a query parameter for all barcode references associated to the NINO will be returned.
+Note the authenticationToken is the tcrAuthToken supplied to the claimant-details service.
+
+```json
+{
+  "references": [
+    {
+      "household": {
+        "barcodeReference": "111111111111111",
+        "applicationID": "198765432134566",
+        "applicant1": {
+          "nino": "CS700100A",
+          "title": "Miss",
+          "firstForename": "Emma",
+          "secondForename": "",
+          "surname": "Cowling"
+        }
+      },
+      "renewal": {
+        "awardStartDate": "2016-04-05",
+        "awardEndDate": "2016-08-31",
+        "renewalNoticeIssuedDate": "20301012",
+        "renewalNoticeFirstSpecifiedDate": "20101012"
+      },
+      "authenticationToken": "Basic Q1M3MDAxMDBBOjExMTExMTExMTExMTExMQ=="
+    },
+    {
+      "household": {
+        "barcodeReference": "222222222222222",
+        "applicationID": "198765432134567",
+        "applicant1": {
+          "nino": "CS700100A",
+          "title": "Miss",
+          "firstForename": "Emma",
+          "secondForename": "",
+          "surname": "Cowling"
+        }
+      },
+      "renewal": {
+        "awardStartDate": "2016-08-31",
+        "awardEndDate": "2016-12-31",
+        "renewalNoticeIssuedDate": "20301012",
+        "renewalNoticeFirstSpecifiedDate": "20101012"
+      },
+      "authenticationToken": "Basic Q1M3MDAxMDBBOjIyMjIyMjIyMjIyMjIyMg=="
+    }
+  ]
+}
+```
+
+
 * **Error Response:**
 
   * **Code:** 400 BADREQUEST <br />
     **Content:** `{"code":"BADREQUEST","message":"Bad Request"}`
+
+  * **Code:** 404 BADREQUEST <br />
+    **Content:** `{"code":"NOT_FOUND","message":"Not Found"}`
 
   * **Code:** 401 UNAUTHORIZED <br />
     **Content:** `{"code":"UNAUTHORIZED","message":"Bearer token is missing or not authorized for access"}`

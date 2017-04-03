@@ -46,10 +46,16 @@ case class TcrAuthenticationToken(tcrAuthToken: String) {
       }
     }.toOption
   }
+
 }
 
 object TcrAuthenticationToken {
   implicit val formats = Json.format[TcrAuthenticationToken]
+
+  def basicAuthString(nino:String, renewalReference:String): String = "Basic " + encodedAuth(nino, renewalReference)
+
+  def encodedAuth(nino:String, renewalReference:String): String = new String(Base64.encode(s"${nino}:${renewalReference}".getBytes))
+
 }
 
 object TcrAuthCheck {

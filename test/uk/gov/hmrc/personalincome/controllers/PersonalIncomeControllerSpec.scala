@@ -137,13 +137,26 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
 
   override lazy val fakeApplication = FakeApplication(additionalConfiguration = config)
 
-  "claimentDetails Live" should {
+  "requesting claimant details Live" should {
 
-    "return claimentDetails successfully" in new Success {
+    "return claimant details successfully" in new Success {
       val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(claimentDetails)
+    }
+
+    "return claimant claims successfully" in new Success {
+      val result = await(controller.claimantDetails(nino, None, Some("claims"))(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.parse(matchedClaimsJson)
+    }
+
+    "return 404 when no claims matched the supplied nino" in new NotFoundClaimant {
+      val result = await(controller.claimantDetails(nino, None, Some("claims"))(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 404
     }
 
     "return 401 when the nino in the request does not match the authority nino" in new AccessCheck {
@@ -193,16 +206,24 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
 
   }
 
-  "claimantDetails Sandbox" should {
+  "claimant details Sandbox" should {
 
-    "return claimantDetails successfully when an unknown bar code reference is supplied" in new SandboxSuccess {
+    "return claimant details successfully when an unknown bar code reference is supplied" in new SandboxSuccess {
       val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReferenceUnknown)))
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(claimentDetails)
     }
 
-    "return claimantDetails successfully when a known bar code reference is supplied" in new SandboxSuccess {
+    "return claimant claims successfully" in new Success {
+
+      val result = await(controller.claimantDetails(nino, None, Some("claims"))(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.parse(matchedClaimsJson)
+    }
+
+    "return claimant details successfully when a known bar code reference is supplied" in new SandboxSuccess {
 
       case class TestData(barcode: String, renewalFormType: String, hasPartner: Boolean = false)
 

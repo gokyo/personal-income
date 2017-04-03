@@ -41,9 +41,11 @@ object SummaryFormat extends Enumeration {
 trait ErrorHandling {
   self: BaseController =>
 
+  def notFound = Status(ErrorNotFound.httpStatusCode)(Json.toJson(ErrorNotFound))
+
   def errorWrapper(func: => Future[mvc.Result])(implicit hc: HeaderCarrier) = {
     func.recover {
-      case ex: NotFoundException => Status(ErrorNotFound.httpStatusCode)(Json.toJson(ErrorNotFound))
+      case ex: NotFoundException => notFound
 
       case ex: ServiceUnavailableException =>
         // The hod can return a 503 HTTP status which is translated to a 429 response code.
@@ -79,7 +81,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       errorWrapper(
         service.authenticateRenewal(nino, renewalReference).map {
           case Some(authToken) => Ok(Json.toJson(authToken))
-          case _ => NotFound
+          case _ => notFound
         })
   }
 
@@ -90,13 +92,18 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
         service.getTaxCreditExclusion(nino).map { res => Ok(Json.parse(s"""{"showData":${!res.excluded}}""")) })
   }
 
-  final def claimantDetails(implicit nino: Nino, journeyId: Option[String] = None) = accessControl.validateAcceptWithAuth(acceptHeaderValidationRules, Some(nino)).async {
+  final def claimantDetails(nino: Nino, journeyId: Option[String] = None, claims: Option[String] = None) = accessControl.validateAcceptWithAuth(acceptHeaderValidationRules, Some(nino)).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
-      errorWrapper(validateTcrAuthHeader() {
-        token =>
+
+      errorWrapper(validateTcrAuthHeader(claims) {
           implicit hc =>
-            service.claimantDetails(nino).map(as => Ok(Json.toJson(as)))
+            def legacyClaims = service.claimantDetails(nino).map(claim => Ok(Json.toJson(claim)))
+
+            def retrieveAllClaims = service.claimantClaims(nino).map { claims =>
+              claims.references.fold(notFound){found => if (found.isEmpty) notFound else Ok(Json.toJson(claims))}}
+
+            claims.fold(legacyClaims){_ => retrieveAllClaims}
       })
   }
 
@@ -109,11 +116,10 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       request.body.validate[TcrRenewal].fold(
         errors => {
           Logger.warn("Received error with service submitRenewal: " + errors)
-          Future.successful(BadRequest(Json.obj("message" -> JsError.toFlatJson(errors))))
+          Future.successful(BadRequest(Json.obj("message" -> JsError.toJson(errors))))
         },
         renewal => {
-          errorWrapper(validateTcrAuthHeader() {
-            token =>
+          errorWrapper(validateTcrAuthHeader(None) {
               implicit hc =>
                 if (!enabled) {
                   Logger.info("Renewals have been disabled.")
@@ -135,12 +141,16 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
       errorWrapper(service.getTaxCreditSummary(nino).map(as => Ok(Json.toJson(as))))
   }
 
-  private def validateTcrAuthHeader()(func: String => HeaderCarrier => Future[mvc.Result])(implicit request: Request[_], hc: HeaderCarrier) = {
-    request.headers.get(HeaderKeys.tcrAuthToken) match {
-      case Some(token) => func(token)(hc.copy(extraHeaders = Seq(HeaderKeys.tcrAuthToken -> token)))
+  private def validateTcrAuthHeader(mode:Option[String])(func: HeaderCarrier => Future[mvc.Result])(implicit request: Request[_], hc: HeaderCarrier) = {
+
+    (request.headers.get(HeaderKeys.tcrAuthToken), mode) match {
+
+      case (None , Some(value)) => func(hc)
+
+      case (t@Some(token), None) => func(hc.copy(extraHeaders = Seq(HeaderKeys.tcrAuthToken -> token)))
 
       case _ =>
-        Logger.warn("Failed to find auth header")
+        Logger.warn("Failed to match headers. Either tcrAuthToken must be supplied as header or 'claims' as query param.")
         Future.successful(Forbidden(Json.toJson(ErrorNoAuthToken)))
     }
   }
