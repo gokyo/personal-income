@@ -94,6 +94,7 @@ Note the returned 'authenticationToken' attribute is the tcrAuthToken supplied t
       "renewal": {
         "awardStartDate": "2016-08-31",
         "awardEndDate": "2016-12-31",
+        "renewalStatus": "L",
         "renewalNoticeIssuedDate": "20301012",
         "renewalNoticeFirstSpecifiedDate": "20101012"
       },
