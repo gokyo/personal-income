@@ -58,47 +58,76 @@ Note the returned 'authenticationToken' attribute is the tcrAuthToken supplied t
 
 ```json
 {
-  "references": [
+  "references":[
     {
-      "household": {
-        "barcodeReference": "111111111111111",
-        "applicationID": "198765432134566",
-        "applicant1": {
-          "nino": "CS700100A",
-          "title": "Miss",
-          "firstForename": "Emma",
-          "secondForename": "",
-          "surname": "Cowling"
-        }
+      "household":{
+        "barcodeReference":"111111111111111",
+        "applicationID":"198765432134566",
+        "applicant1":{
+          "nino":"CS700100A",
+          "title":"Mr",
+          "firstForename":"Jon",
+          "secondForename":"",
+          "surname":"Densmore"
+        },
+        "householdCeasedDate":"12/10/2010",
+        "householdEndReason":"Some reason"
       },
-      "renewal": {
-        "awardStartDate": "2016-04-05",
-        "awardEndDate": "2016-08-31",
-        "renewalNoticeIssuedDate": "20301012",
-        "renewalNoticeFirstSpecifiedDate": "20101012"
-      },
-      "authenticationToken": "Basic Q1M3MDAxMDBBOjExMTExMTExMTExMTExMQ=="
+      "renewal":{
+        "awardStartDate":"05/04/2016",
+        "awardEndDate":"31/08/2016",
+        "renewalNoticeIssuedDate":"12/10/2030",
+        "renewalNoticeFirstSpecifiedDate":"12/10/2010"
+      }
     },
     {
-      "household": {
-        "barcodeReference": "222222222222222",
-        "applicationID": "198765432134567",
-        "applicant1": {
-          "nino": "CS700100A",
-          "title": "Miss",
-          "firstForename": "Emma",
-          "secondForename": "",
-          "surname": "Cowling"
+      "household":{
+        "barcodeReference":"222222222222222",
+        "applicationID":"198765432134567",
+        "applicant1":{
+          "nino":"CS700100A",
+          "title":"Mr",
+          "firstForename":"Jon",
+          "secondForename":"",
+          "surname":"Densmore"
+        },
+        "householdCeasedDate":"12/10/2010",
+        "householdEndReason":"Some reason"
+      },
+      "renewal":{
+        "awardStartDate":"31/08/2016",
+        "awardEndDate":"31/12/2016",
+        "renewalStatus":"L",
+        "renewalNoticeIssuedDate":"12/10/2030",
+        "renewalNoticeFirstSpecifiedDate":"12/10/2010"
+      }
+    },
+    {
+      "household":{
+        "barcodeReference":"200000000000014",
+        "applicationID":"198765432134567",
+        "applicant1":{
+          "nino":"AM242413B",
+          "title":"Miss",
+          "firstForename":"Hazel",
+          "secondForename":"",
+          "surname":"Young"
+        },
+        "applicant2":{
+          "nino":"CS700100A",
+          "title":"Mr",
+          "firstForename":"Jon",
+          "secondForename":"",
+          "surname":"Densmore"
         }
       },
-      "renewal": {
-        "awardStartDate": "2016-08-31",
-        "awardEndDate": "2016-12-31",
-        "renewalStatus": "L",
-        "renewalNoticeIssuedDate": "20301012",
-        "renewalNoticeFirstSpecifiedDate": "20101012"
-      },
-      "authenticationToken": "Basic Q1M3MDAxMDBBOjIyMjIyMjIyMjIyMjIyMg=="
+      "renewal":{
+        "awardStartDate":"31/12/2016",
+        "awardEndDate":"31/07/2017",
+        "renewalStatus":"L",
+        "renewalNoticeIssuedDate":"12/10/2030",
+        "renewalNoticeFirstSpecifiedDate":"12/10/2010"
+      }
     }
   ]
 }

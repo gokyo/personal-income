@@ -25,19 +25,6 @@ object Claim {
   implicit val formats: Format[Claim] = Json.format[Claim]
 }
 
-case class ClaimWithReference(household: Household, renewal: Renewal, authenticationToken:String)
-
-object ClaimWithReference {
-  implicit val formats: Format[ClaimWithReference] = Json.format[ClaimWithReference]
-}
-
-case class ClaimsWithRef(references: Option[Seq[ClaimWithReference]])
-
-object ClaimsWithRef {
-  implicit val formats: Format[ClaimsWithRef] = Json.format[ClaimsWithRef]
-}
-
-
 case class Claims(references: Option[Seq[Claim]])
 
 object Claims {
