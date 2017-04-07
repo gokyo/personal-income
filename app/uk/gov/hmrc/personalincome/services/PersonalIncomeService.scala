@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.personalincome.services
 
+import com.github.nscala_time.time.Imports._
 import com.ning.http.util.Base64
 import play.api.Logger
 import play.api.libs.json.{JsError, Json}
@@ -46,7 +47,7 @@ trait PersonalIncomeService {
 
   def claimantDetails(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimantDetails]
 
-  def claimantClaims(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimsWithRef]
+  def claimantClaims(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Claims]
 
   def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Response]
 
@@ -67,7 +68,6 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
   def gateKeepered(taxSummary: TaxSummaryDetails): Boolean = {
     taxSummary.gateKeeper.exists(_.gateKeepered)
   }
-
 
   override def getTaxSummary(nino: Nino, year: Int, journeyId: Option[String] = None)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Option[TaxSummaryContainer]] = {
     withAudit("getTaxSummary", Map("nino" -> nino.value, "year" -> year.toString)) {
@@ -107,20 +107,36 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
     }
   }
 
-  override def claimantClaims(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimsWithRef] = {
+  private val formatA = DateTimeFormat.forPattern("yyyy-MM-dd")
+  private val formatB = DateTimeFormat.forPattern("yyyyMMdd")
+
+  override def claimantClaims(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Claims] = {
     withAudit("claimantClaims", Map("nino" -> nino.value)) {
 
-      def claimMatch(claim:Claim) = {
+      def claimMatch(claim: Claim) = {
         val match1 = claim.household.applicant1.nino == nino.value
-        val match2 = claim.household.applicant2.fold(false){found => found.nino == nino.value}
+        val match2 = claim.household.applicant2.fold(false) { found => found.nino == nino.value }
         match1 || match2
       }
 
+      def dateConversion(date: Option[String], conversion: String => DateTime): Option[String] = {
+        val notFound: Option[String] = None
+        date.fold(notFound) { found => Some(conversion(found).toString("dd/MM/yyyy")) }
+      }
+
       ntcConnector.claimantClaims(TaxCreditsNino(nino.value)).map { claims =>
-        claims.references.fold(ClaimsWithRef(None)){ items => {
-            val assoicatedReferences = items.filter(a => claimMatch(a))
-              .map(b =>  ClaimWithReference(b.household, b.renewal, TcrAuthenticationToken.basicAuthString(nino.value, b.household.barcodeReference)))
-            ClaimsWithRef(Some(assoicatedReferences))
+        claims.references.fold(Claims(None)) { items => {
+          val references = items.filter(a => claimMatch(a))
+            .map { b =>
+              Claim(b.household.copy(householdCeasedDate = dateConversion(b.household.householdCeasedDate, formatB.parseDateTime)),
+                Renewal(
+                  dateConversion(b.renewal.awardStartDate, formatA.parseDateTime),
+                  dateConversion(b.renewal.awardEndDate, formatA.parseDateTime),
+                  b.renewal.renewalStatus,
+                  dateConversion(b.renewal.renewalNoticeIssuedDate, formatB.parseDateTime),
+                  dateConversion(b.renewal.renewalNoticeFirstSpecifiedDate, formatB.parseDateTime)))
+            }
+            Claims(Some(references))
           }
         }
       }
@@ -204,9 +220,9 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
     }
   }
 
-  override def claimantClaims(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[ClaimsWithRef] = {
+  override def claimantClaims(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Claims] = {
     val resource :String = findResource(s"/resources/claimantdetails/claims.json").getOrElse(throw new IllegalArgumentException("Resource not found!"))
-    Future.successful(Json.parse(resource).as[ClaimsWithRef])
+    Future.successful(Json.parse(resource).as[Claims])
   }
 
   override def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Response] = {

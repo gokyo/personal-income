@@ -277,7 +277,9 @@ trait Setup {
                      |          "firstForename": "Jon",
                      |          "secondForename": "",
                      |          "surname": "Densmore"
-                     |        }
+                     |        },
+                     |        "householdCeasedDate": "20101012",
+                     |        "householdEndReason": "Some reason"
                      |      },
                      |      "renewal": {
                      |        "awardStartDate": "2016-04-05",
@@ -296,7 +298,9 @@ trait Setup {
                      |          "firstForename": "Jon",
                      |          "secondForename": "",
                      |          "surname": "Densmore"
-                     |        }
+                     |        },
+                     |        "householdCeasedDate": "20101012",
+                     |        "householdEndReason": "Some reason"
                      |      },
                      |      "renewal": {
                      |        "awardStartDate": "2016-08-31",
@@ -374,15 +378,16 @@ trait Setup {
                             |          "firstForename": "Jon",
                             |          "secondForename": "",
                             |          "surname": "Densmore"
-                            |        }
+                            |        },
+                            |        "householdCeasedDate": "12/10/2010",
+                            |        "householdEndReason": "Some reason"
                             |      },
                             |      "renewal": {
-                            |        "awardStartDate": "2016-04-05",
-                            |        "awardEndDate": "2016-08-31",
-                            |        "renewalNoticeIssuedDate": "20301012",
-                            |        "renewalNoticeFirstSpecifiedDate": "20101012"
-                            |      },
-                            |      "authenticationToken": "Basic Q1M3MDAxMDBBOjExMTExMTExMTExMTExMQ=="
+                            |        "awardStartDate": "05/04/2016",
+                            |        "awardEndDate": "31/08/2016",
+                            |        "renewalNoticeIssuedDate": "12/10/2030",
+                            |        "renewalNoticeFirstSpecifiedDate": "12/10/2010"
+                            |      }
                             |    },
                             |    {
                             |      "household": {
@@ -394,16 +399,17 @@ trait Setup {
                             |          "firstForename": "Jon",
                             |          "secondForename": "",
                             |          "surname": "Densmore"
-                            |        }
+                            |        },
+                            |        "householdCeasedDate": "12/10/2010",
+                            |        "householdEndReason": "Some reason"
                             |      },
                             |      "renewal": {
-                            |        "awardStartDate": "2016-08-31",
-                            |        "awardEndDate": "2016-12-31",
+                            |        "awardStartDate": "31/08/2016",
+                            |        "awardEndDate": "31/12/2016",
                             |        "renewalStatus": "L",
-                            |        "renewalNoticeIssuedDate": "20301012",
-                            |        "renewalNoticeFirstSpecifiedDate": "20101012"
-                            |      },
-                            |      "authenticationToken": "Basic Q1M3MDAxMDBBOjIyMjIyMjIyMjIyMjIyMg=="
+                            |        "renewalNoticeIssuedDate": "12/10/2030",
+                            |        "renewalNoticeFirstSpecifiedDate": "12/10/2010"
+                            |      }
                             |    },
                             |    {
                             |      "household": {
@@ -425,19 +431,18 @@ trait Setup {
                             |        }
                             |      },
                             |      "renewal": {
-                            |        "awardStartDate": "2016-12-31",
-                            |        "awardEndDate": "2017-07-31",
+                            |        "awardStartDate": "31/12/2016",
+                            |        "awardEndDate": "31/07/2017",
                             |        "renewalStatus": "L",
-                            |        "renewalNoticeIssuedDate": "20301012",
-                            |        "renewalNoticeFirstSpecifiedDate": "20101012"
-                            |      },
-                            |      "authenticationToken": "Basic Q1M3MDAxMDBBOjIwMDAwMDAwMDAwMDAxNA=="
+                            |        "renewalNoticeIssuedDate": "12/10/2030",
+                            |        "renewalNoticeFirstSpecifiedDate": "12/10/2010"
+                            |      }
                             |    }
                             |  ]
                             |}""".stripMargin
 
   val claims = Json.toJson(Json.parse(claimsJson)).as[Claims]
-  val matchedClaims = Json.toJson(Json.parse(matchedClaimsJson)).as[ClaimsWithRef]
+  val matchedClaims = Json.toJson(Json.parse(matchedClaimsJson)).as[Claims]
   val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claims)
   val ntcConnector400 = new TestNtcConnector(Success(200), None, claimentDetails, claims)
   val exclusion = Exclusion(false)
