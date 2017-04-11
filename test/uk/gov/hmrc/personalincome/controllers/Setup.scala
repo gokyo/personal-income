@@ -24,7 +24,8 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
+import uk.gov.hmrc.personalincome.config.AppContext.RenewalStatusTransform
+import uk.gov.hmrc.personalincome.config.{AppContext, MicroserviceAuditConnector}
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControl, AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
 import uk.gov.hmrc.personalincome.domain._
@@ -124,6 +125,7 @@ class TestPersonalIncomeService(testPersonalTaxSummaryConnector:TestPersonalTaxS
                                 testTaxCreditBrokerConnector:TaxCreditsBrokerConnector,
                                 testAuditConnector: uk.gov.hmrc.play.audit.http.connector.AuditConnector) extends LivePersonalIncomeService {
   var saveDetails:Map[String, String]=Map.empty
+  override def renewalStatusTransform: Option[List[RenewalStatusTransform]] = AppContext.renewalStatusTransform
 
 
 
@@ -269,6 +271,27 @@ trait Setup {
                      |  "references": [
                      |    {
                      |      "household": {
+                     |        "barcodeReference": "000000000000000",
+                     |        "applicationID": "198765432134566",
+                     |        "applicant1": {
+                     |          "nino": "CS700100A",
+                     |          "title": "Mr",
+                     |          "firstForename": "Jon",
+                     |          "secondForename": "",
+                     |          "surname": "Densmore"
+                     |        },
+                     |        "householdCeasedDate": "20101012",
+                     |        "householdEndReason": "Some reason"
+                     |      },
+                     |      "renewal": {
+                     |        "awardStartDate": "2016-04-05",
+                     |        "awardEndDate": "2016-08-31",
+                     |        "renewalNoticeIssuedDate": "20301012",
+                     |        "renewalNoticeFirstSpecifiedDate": "20101012"
+                     |      }
+                     |    },
+                     |    {
+                     |      "household": {
                      |        "barcodeReference": "111111111111111",
                      |        "applicationID": "198765432134566",
                      |        "applicant1": {
@@ -305,7 +328,7 @@ trait Setup {
                      |      "renewal": {
                      |        "awardStartDate": "2016-08-31",
                      |        "awardEndDate": "2016-12-31",
-                     |        "renewalStatus": "L",
+                     |        "renewalStatus": "PARTIAL CAPTURE",
                      |        "renewalNoticeIssuedDate": "20301012",
                      |        "renewalNoticeFirstSpecifiedDate": "20101012"
                      |      }
@@ -332,6 +355,7 @@ trait Setup {
                      |      "renewal": {
                      |        "awardStartDate": "2016-12-31",
                      |        "awardEndDate": "2017-07-31",
+                     |        "renewalStatus": "AWAITING PROCESS",
                      |        "renewalNoticeIssuedDate": "20301012",
                      |        "renewalNoticeFirstSpecifiedDate": "20101012"
                      |      }
@@ -358,7 +382,7 @@ trait Setup {
                      |      "renewal": {
                      |        "awardStartDate": "2016-12-31",
                      |        "awardEndDate": "2017-07-31",
-                     |        "renewalStatus": "L",
+                     |        "renewalStatus": "REPLY USED FOR FINALISATION",
                      |        "renewalNoticeIssuedDate": "20301012",
                      |        "renewalNoticeFirstSpecifiedDate": "20101012"
                      |      }
@@ -368,6 +392,28 @@ trait Setup {
 
   val matchedClaimsJson = """{
                             |  "references": [
+                            |    {
+                            |      "household": {
+                            |        "barcodeReference": "000000000000000",
+                            |        "applicationID": "198765432134566",
+                            |        "applicant1": {
+                            |          "nino": "CS700100A",
+                            |          "title": "Mr",
+                            |          "firstForename": "Jon",
+                            |          "secondForename": "",
+                            |          "surname": "Densmore"
+                            |        },
+                            |        "householdCeasedDate": "12/10/2010",
+                            |        "householdEndReason": "Some reason"
+                            |      },
+                            |      "renewal": {
+                            |        "awardStartDate": "05/04/2016",
+                            |        "awardEndDate": "31/08/2016",
+                            |        "renewalStatus": "AWAITING_BARCODE",
+                            |        "renewalNoticeIssuedDate": "12/10/2030",
+                            |        "renewalNoticeFirstSpecifiedDate": "12/10/2010"
+                            |      }
+                            |    },
                             |    {
                             |      "household": {
                             |        "barcodeReference": "111111111111111",
@@ -385,6 +431,7 @@ trait Setup {
                             |      "renewal": {
                             |        "awardStartDate": "05/04/2016",
                             |        "awardEndDate": "31/08/2016",
+                            |        "renewalStatus": "NOT_SUBMITTED",
                             |        "renewalNoticeIssuedDate": "12/10/2030",
                             |        "renewalNoticeFirstSpecifiedDate": "12/10/2010"
                             |      }
@@ -406,7 +453,7 @@ trait Setup {
                             |      "renewal": {
                             |        "awardStartDate": "31/08/2016",
                             |        "awardEndDate": "31/12/2016",
-                            |        "renewalStatus": "L",
+                            |        "renewalStatus": "SUBMITTED_AND_PROCESSING",
                             |        "renewalNoticeIssuedDate": "12/10/2030",
                             |        "renewalNoticeFirstSpecifiedDate": "12/10/2010"
                             |      }
@@ -433,7 +480,7 @@ trait Setup {
                             |      "renewal": {
                             |        "awardStartDate": "31/12/2016",
                             |        "awardEndDate": "31/07/2017",
-                            |        "renewalStatus": "L",
+                            |        "renewalStatus": "COMPLETE",
                             |        "renewalNoticeIssuedDate": "12/10/2030",
                             |        "renewalNoticeFirstSpecifiedDate": "12/10/2010"
                             |      }

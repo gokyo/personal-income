@@ -76,6 +76,7 @@ Note the returned 'authenticationToken' attribute is the tcrAuthToken supplied t
       "renewal":{
         "awardStartDate":"05/04/2016",
         "awardEndDate":"31/08/2016",
+        "renewalStatus":"NOT_SUBMITTED",
         "renewalNoticeIssuedDate":"12/10/2030",
         "renewalNoticeFirstSpecifiedDate":"12/10/2010"
       }
@@ -97,7 +98,7 @@ Note the returned 'authenticationToken' attribute is the tcrAuthToken supplied t
       "renewal":{
         "awardStartDate":"31/08/2016",
         "awardEndDate":"31/12/2016",
-        "renewalStatus":"L",
+        "renewalStatus":"NOT_SUBMITTED",
         "renewalNoticeIssuedDate":"12/10/2030",
         "renewalNoticeFirstSpecifiedDate":"12/10/2010"
       }
@@ -124,7 +125,7 @@ Note the returned 'authenticationToken' attribute is the tcrAuthToken supplied t
       "renewal":{
         "awardStartDate":"31/12/2016",
         "awardEndDate":"31/07/2017",
-        "renewalStatus":"L",
+        "renewalStatus":"NOT_SUBMITTED",
         "renewalNoticeIssuedDate":"12/10/2030",
         "renewalNoticeFirstSpecifiedDate":"12/10/2010"
       }
