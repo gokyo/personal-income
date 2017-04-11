@@ -23,7 +23,8 @@ import play.api.libs.json.{JsError, Json}
 import uk.gov.hmrc.api.sandbox._
 import uk.gov.hmrc.api.service._
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.personalincome.config.MicroserviceAuditConnector
+import uk.gov.hmrc.personalincome.config.AppContext.RenewalStatusTransform
+import uk.gov.hmrc.personalincome.config.{AppContext, MicroserviceAuditConnector}
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.HeaderKeys
 import uk.gov.hmrc.personalincome.domain.userdata.{Child, Children, Exclusion, TaxCreditSummary}
@@ -54,7 +55,7 @@ trait PersonalIncomeService {
   def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier, ex: ExecutionContext): Future[TaxCreditSummary]
 }
 
-trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
+trait LivePersonalIncomeService extends PersonalIncomeService with Auditor with RenewalStatus {
   def authConnector: AuthConnector
 
   def personalTaxSummaryConnector: PersonalTaxSummaryConnector
@@ -127,14 +128,14 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
       ntcConnector.claimantClaims(TaxCreditsNino(nino.value)).map { claims =>
         claims.references.fold(Claims(None)) { items => {
           val references = items.filter(a => claimMatch(a))
-            .map { b =>
-              Claim(b.household.copy(householdCeasedDate = dateConversion(b.household.householdCeasedDate, formatB.parseDateTime)),
+            .map { claim =>
+              Claim(claim.household.copy(householdCeasedDate = dateConversion(claim.household.householdCeasedDate, formatB.parseDateTime)),
                 Renewal(
-                  dateConversion(b.renewal.awardStartDate, formatA.parseDateTime),
-                  dateConversion(b.renewal.awardEndDate, formatA.parseDateTime),
-                  b.renewal.renewalStatus,
-                  dateConversion(b.renewal.renewalNoticeIssuedDate, formatB.parseDateTime),
-                  dateConversion(b.renewal.renewalNoticeFirstSpecifiedDate, formatB.parseDateTime)))
+                  dateConversion(claim.renewal.awardStartDate, formatA.parseDateTime),
+                  dateConversion(claim.renewal.awardEndDate, formatA.parseDateTime),
+                  Some(resolveStatus(claim)),
+                  dateConversion(claim.renewal.renewalNoticeIssuedDate, formatB.parseDateTime),
+                  dateConversion(claim.renewal.renewalNoticeFirstSpecifiedDate, formatB.parseDateTime)))
             }
             Claims(Some(references))
           }
@@ -172,6 +173,33 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor {
       } yield(TaxCreditSummary(paymentSummary, personalDetails, parterDetails, children))
     }
   }
+}
+
+trait RenewalStatus {
+  val defaultRenewalStatus = "NOT_SUBMITTED"
+  val      awaitingBarcode = "AWAITING_BARCODE"
+  val           no_barcode = "000000000000000"
+
+  def renewalStatusTransform: Option[List[RenewalStatusTransform]]
+
+  def defaultRenewalStatusReturned(returned:String) = {
+    Logger.warn(s"Failed to resolve renewalStatus $returned against configuration! Returning default status.")
+    defaultRenewalStatus
+  }
+
+  def resolveStatus(claim:Claim) = {
+    if (claim.household.barcodeReference.equals(no_barcode)) {
+      awaitingBarcode
+    } else {
+      claim.renewal.renewalStatus.fold(defaultRenewalStatus) { renewalStatus =>
+        val config: List[RenewalStatusTransform] = AppContext.renewalStatusTransform.getOrElse(throw new IllegalArgumentException("Failed to resolve renewal status config!"))
+        config.map { item =>
+          if (item.statusValues.contains(renewalStatus)) Some(item.name) else None
+        }.flatten.headOption.getOrElse(defaultRenewalStatusReturned(renewalStatus))
+      }
+    }
+  }
+
 }
 
 object SandboxPersonalIncomeService extends PersonalIncomeService with FileResource {
@@ -250,4 +278,6 @@ object LivePersonalIncomeService extends LivePersonalIncomeService {
   override val taxCreditBrokerConnector = TaxCreditsBrokerConnector
 
   override val auditConnector: AuditConnector = MicroserviceAuditConnector
+
+  override def renewalStatusTransform: Option[List[RenewalStatusTransform]] = AppContext.renewalStatusTransform
 }

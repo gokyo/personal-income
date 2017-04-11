@@ -98,12 +98,12 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
 
       errorWrapper(validateTcrAuthHeader(claims) {
           implicit hc =>
-            def legacyClaims = service.claimantDetails(nino).map(claim => Ok(Json.toJson(claim)))
+            def singleClaim = service.claimantDetails(nino).map(claim => Ok(Json.toJson(claim)))
 
             def retrieveAllClaims = service.claimantClaims(nino).map { claims =>
               claims.references.fold(notFound){found => if (found.isEmpty) notFound else Ok(Json.toJson(claims))}}
 
-            claims.fold(legacyClaims){_ => retrieveAllClaims}
+            claims.fold(singleClaim){_ => retrieveAllClaims}
       })
   }
 
