@@ -36,6 +36,7 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 trait PersonalIncomeService {
 
@@ -122,7 +123,14 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor with 
 
       def dateConversion(date: Option[String], conversion: String => DateTime): Option[String] = {
         val notFound: Option[String] = None
-        date.fold(notFound) { found => Some(conversion(found).toString("dd/MM/yyyy")) }
+        date.fold(notFound) { found =>
+          Try {
+            Some(conversion(found).toString("dd/MM/yyyy"))
+          }.getOrElse {
+            Logger.error(s"Failed to convert input date $found for NINO ${nino.value}. Removing date from response!")
+            notFound
+          }
+        }
       }
 
       ntcConnector.claimantClaims(TaxCreditsNino(nino.value)).map { claims =>

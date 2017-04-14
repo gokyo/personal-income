@@ -153,6 +153,13 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
       contentAsJson(result) shouldBe Json.parse(matchedClaimsJson)
     }
 
+    "return claimant claims successfully and drop invalid dates from the response" in new SuccessWithInvalidDates {
+      val result = await(controller.claimantDetails(nino, None, Some("claims"))(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.parse(matchedClaimsJsonWithInvalidDates)
+    }
+
     "return 404 when no claims matched the supplied nino" in new NotFoundClaimant {
       val result = await(controller.claimantDetails(nino, None, Some("claims"))(emptyRequestWithAcceptHeader))
 
