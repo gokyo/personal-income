@@ -156,7 +156,7 @@ class TestTaxCreditsSubmission(taxCreditsSubmissions: TaxCreditsSubmissions) ext
 }
 
 
-trait Setup {
+trait Setup extends ClaimsJson {
   implicit val hc = HeaderCarrier()
 
   val journeyId = UUID.randomUUID().toString
@@ -267,229 +267,14 @@ trait Setup {
   val tcrAuthToken = TcrAuthenticationToken("some-auth-token")
   val claimentDetails = ClaimantDetails(false, 1, "r", nino.value, None, false, "some-app-id")
 
-  val claimsJson = """{
-                     |  "references": [
-                     |    {
-                     |      "household": {
-                     |        "barcodeReference": "000000000000000",
-                     |        "applicationID": "198765432134566",
-                     |        "applicant1": {
-                     |          "nino": "CS700100A",
-                     |          "title": "Mr",
-                     |          "firstForename": "Jon",
-                     |          "secondForename": "",
-                     |          "surname": "Densmore"
-                     |        },
-                     |        "householdCeasedDate": "20101012",
-                     |        "householdEndReason": "Some reason"
-                     |      },
-                     |      "renewal": {
-                     |        "awardStartDate": "2016-04-05",
-                     |        "awardEndDate": "2016-08-31",
-                     |        "renewalNoticeIssuedDate": "20301012",
-                     |        "renewalNoticeFirstSpecifiedDate": "20101012"
-                     |      }
-                     |    },
-                     |    {
-                     |      "household": {
-                     |        "barcodeReference": "111111111111111",
-                     |        "applicationID": "198765432134566",
-                     |        "applicant1": {
-                     |          "nino": "CS700100A",
-                     |          "title": "Mr",
-                     |          "firstForename": "Jon",
-                     |          "secondForename": "",
-                     |          "surname": "Densmore"
-                     |        },
-                     |        "householdCeasedDate": "20101012",
-                     |        "householdEndReason": "Some reason"
-                     |      },
-                     |      "renewal": {
-                     |        "awardStartDate": "2016-04-05",
-                     |        "awardEndDate": "2016-08-31",
-                     |        "renewalNoticeIssuedDate": "20301012",
-                     |        "renewalNoticeFirstSpecifiedDate": "20101012"
-                     |      }
-                     |    },
-                     |    {
-                     |      "household": {
-                     |        "barcodeReference": "222222222222222",
-                     |        "applicationID": "198765432134567",
-                     |        "applicant1": {
-                     |          "nino": "CS700100A",
-                     |          "title": "Mr",
-                     |          "firstForename": "Jon",
-                     |          "secondForename": "",
-                     |          "surname": "Densmore"
-                     |        },
-                     |        "householdCeasedDate": "20101012",
-                     |        "householdEndReason": "Some reason"
-                     |      },
-                     |      "renewal": {
-                     |        "awardStartDate": "2016-08-31",
-                     |        "awardEndDate": "2016-12-31",
-                     |        "renewalStatus": "PARTIAL CAPTURE",
-                     |        "renewalNoticeIssuedDate": "20301012",
-                     |        "renewalNoticeFirstSpecifiedDate": "20101012"
-                     |      }
-                     |    },
-                     |    {
-                     |      "household": {
-                     |        "barcodeReference": "333333333333333",
-                     |        "applicationID": "198765432134568",
-                     |        "applicant1": {
-                     |          "nino": "AM242413B",
-                     |          "title": "Miss",
-                     |          "firstForename": "Hazel",
-                     |          "secondForename": "",
-                     |          "surname": "Young"
-                     |        },
-                     |        "applicant2": {
-                     |          "nino": "AP412713B",
-                     |          "title": "Miss",
-                     |          "firstForename": "Cathy",
-                     |          "secondForename": "",
-                     |          "surname": "Garcia-Vazquez"
-                     |        }
-                     |      },
-                     |      "renewal": {
-                     |        "awardStartDate": "2016-12-31",
-                     |        "awardEndDate": "2017-07-31",
-                     |        "renewalStatus": "AWAITING PROCESS",
-                     |        "renewalNoticeIssuedDate": "20301012",
-                     |        "renewalNoticeFirstSpecifiedDate": "20101012"
-                     |      }
-                     |    },
-                     |    {
-                     |      "household": {
-                     |        "barcodeReference": "200000000000014",
-                     |        "applicationID": "198765432134567",
-                     |        "applicant1": {
-                     |          "nino": "AM242413B",
-                     |          "title": "Miss",
-                     |          "firstForename": "Hazel",
-                     |          "secondForename": "",
-                     |          "surname": "Young"
-                     |        },
-                     |        "applicant2": {
-                     |          "nino": "CS700100A",
-                     |          "title": "Mr",
-                     |          "firstForename": "Jon",
-                     |          "secondForename": "",
-                     |          "surname": "Densmore"
-                     |        }
-                     |      },
-                     |      "renewal": {
-                     |        "awardStartDate": "2016-12-31",
-                     |        "awardEndDate": "2017-07-31",
-                     |        "renewalStatus": "REPLY USED FOR FINALISATION",
-                     |        "renewalNoticeIssuedDate": "20301012",
-                     |        "renewalNoticeFirstSpecifiedDate": "20101012"
-                     |      }
-                     |    }
-                     |  ]
-                     |}""".stripMargin
 
-  val matchedClaimsJson = """{
-                            |  "references": [
-                            |    {
-                            |      "household": {
-                            |        "barcodeReference": "000000000000000",
-                            |        "applicationID": "198765432134566",
-                            |        "applicant1": {
-                            |          "nino": "CS700100A",
-                            |          "title": "Mr",
-                            |          "firstForename": "Jon",
-                            |          "secondForename": "",
-                            |          "surname": "Densmore"
-                            |        },
-                            |        "householdCeasedDate": "12/10/2010",
-                            |        "householdEndReason": "Some reason"
-                            |      },
-                            |      "renewal": {
-                            |        "awardStartDate": "05/04/2016",
-                            |        "awardEndDate": "31/08/2016",
-                            |        "renewalStatus": "AWAITING_BARCODE",
-                            |        "renewalNoticeIssuedDate": "12/10/2030",
-                            |        "renewalNoticeFirstSpecifiedDate": "12/10/2010"
-                            |      }
-                            |    },
-                            |    {
-                            |      "household": {
-                            |        "barcodeReference": "111111111111111",
-                            |        "applicationID": "198765432134566",
-                            |        "applicant1": {
-                            |          "nino": "CS700100A",
-                            |          "title": "Mr",
-                            |          "firstForename": "Jon",
-                            |          "secondForename": "",
-                            |          "surname": "Densmore"
-                            |        },
-                            |        "householdCeasedDate": "12/10/2010",
-                            |        "householdEndReason": "Some reason"
-                            |      },
-                            |      "renewal": {
-                            |        "awardStartDate": "05/04/2016",
-                            |        "awardEndDate": "31/08/2016",
-                            |        "renewalStatus": "NOT_SUBMITTED",
-                            |        "renewalNoticeIssuedDate": "12/10/2030",
-                            |        "renewalNoticeFirstSpecifiedDate": "12/10/2010"
-                            |      }
-                            |    },
-                            |    {
-                            |      "household": {
-                            |        "barcodeReference": "222222222222222",
-                            |        "applicationID": "198765432134567",
-                            |        "applicant1": {
-                            |          "nino": "CS700100A",
-                            |          "title": "Mr",
-                            |          "firstForename": "Jon",
-                            |          "secondForename": "",
-                            |          "surname": "Densmore"
-                            |        },
-                            |        "householdCeasedDate": "12/10/2010",
-                            |        "householdEndReason": "Some reason"
-                            |      },
-                            |      "renewal": {
-                            |        "awardStartDate": "31/08/2016",
-                            |        "awardEndDate": "31/12/2016",
-                            |        "renewalStatus": "SUBMITTED_AND_PROCESSING",
-                            |        "renewalNoticeIssuedDate": "12/10/2030",
-                            |        "renewalNoticeFirstSpecifiedDate": "12/10/2010"
-                            |      }
-                            |    },
-                            |    {
-                            |      "household": {
-                            |        "barcodeReference": "200000000000014",
-                            |        "applicationID": "198765432134567",
-                            |        "applicant1": {
-                            |          "nino": "AM242413B",
-                            |          "title": "Miss",
-                            |          "firstForename": "Hazel",
-                            |          "secondForename": "",
-                            |          "surname": "Young"
-                            |        },
-                            |        "applicant2": {
-                            |          "nino": "CS700100A",
-                            |          "title": "Mr",
-                            |          "firstForename": "Jon",
-                            |          "secondForename": "",
-                            |          "surname": "Densmore"
-                            |        }
-                            |      },
-                            |      "renewal": {
-                            |        "awardStartDate": "31/12/2016",
-                            |        "awardEndDate": "31/07/2017",
-                            |        "renewalStatus": "COMPLETE",
-                            |        "renewalNoticeIssuedDate": "12/10/2030",
-                            |        "renewalNoticeFirstSpecifiedDate": "12/10/2010"
-                            |      }
-                            |    }
-                            |  ]
-                            |}""".stripMargin
 
   val claims = Json.toJson(Json.parse(claimsJson)).as[Claims]
   val matchedClaims = Json.toJson(Json.parse(matchedClaimsJson)).as[Claims]
+  val claimsWithInvalidDate = Json.toJson(Json.parse(claimsJsonWithInvalidDates)).as[Claims]
+  val matchedClaimsWithInvalidDate = Json.toJson(Json.parse(matchedClaimsJsonWithInvalidDates)).as[Claims]
+
+
   val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claims)
   val ntcConnector400 = new TestNtcConnector(Success(200), None, claimentDetails, claims)
   val exclusion = Exclusion(false)
@@ -510,6 +295,22 @@ trait Setup {
 }
 
 trait Success extends Setup {
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+  }
+}
+
+trait SuccessWithInvalidDates extends Setup {
+
+// TODO...
+  override val  ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithInvalidDate)
+
+  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+    authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+
+
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
