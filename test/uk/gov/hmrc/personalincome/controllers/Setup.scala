@@ -303,13 +303,9 @@ trait Success extends Setup {
 }
 
 trait SuccessWithInvalidDates extends Setup {
-
-// TODO...
   override val  ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithInvalidDate)
-
   override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
     authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
-
 
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
