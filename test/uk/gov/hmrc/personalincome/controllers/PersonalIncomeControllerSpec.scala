@@ -144,6 +144,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(claimentDetails)
+      result.header.headers.get("Cache-Control") shouldBe None
     }
 
     "return claimant claims successfully" in new Success {
@@ -151,6 +152,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.parse(matchedClaimsJson)
+      result.header.headers.get("Cache-Control") shouldBe Some("max-age=1800")
     }
 
     "return claimant claims successfully and drop invalid dates from the response" in new SuccessWithInvalidDates {
