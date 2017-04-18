@@ -17,8 +17,9 @@
 package uk.gov.hmrc.personalincome.controllers
 
 import play.api._
+import play.api.http.HeaderNames
 import play.api.libs.json.{JsError, Json}
-import play.api.mvc.{BodyParsers, Request}
+import play.api.mvc.{Result, BodyParsers, Request}
 import uk.gov.hmrc.api.controllers._
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.personalincome.connectors.Error
@@ -60,11 +61,15 @@ trait ErrorHandling {
   }
 }
 
-trait PersonalIncomeController extends BaseController with HeaderValidator with ErrorHandling {
+trait PersonalIncomeController extends BaseController with HeaderValidator with ErrorHandling with ConfigLoad {
 
   val service: PersonalIncomeService
   val accessControl: AccountAccessControlWithHeaderCheck
   val taxCreditsSubmissionControlConfig: TaxCreditsControl
+
+  def addCacheHeader(maxAge:Long, result:Result):Result = {
+    result.withHeaders(HeaderNames.CACHE_CONTROL -> s"max-age=$maxAge")
+  }
 
   final def getSummary(nino: Nino, year: Int, journeyId: Option[String] = None) = accessControl.validateAcceptWithAuth(acceptHeaderValidationRules, Some(nino)).async {
     implicit request =>
@@ -103,7 +108,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
             def retrieveAllClaims = service.claimantClaims(nino).map { claims =>
               claims.references.fold(notFound){found => if (found.isEmpty) notFound else Ok(Json.toJson(claims))}}
 
-            claims.fold(singleClaim){_ => retrieveAllClaims}
+            claims.fold(singleClaim){_ => retrieveAllClaims.map(addCacheHeader(maxAgeForClaims, _))}
       })
   }
 
@@ -160,6 +165,15 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
 
 }
 
+trait ConfigLoad {
+  val maxAgeClaimsConfig = "claims.maxAge"
+  def getConfigForClaimsMaxAge:Option[Long]
+
+  lazy val maxAgeForClaims: Long = getConfigForClaimsMaxAge
+    .getOrElse(throw new Exception(s"Failed to resolve config key $maxAgeClaimsConfig"))
+}
+
+
 object SandboxPersonalIncomeController extends PersonalIncomeController {
   override val service = SandboxPersonalIncomeService
   override val accessControl = AccountAccessControlCheckOff
@@ -168,10 +182,12 @@ object SandboxPersonalIncomeController extends PersonalIncomeController {
 
     override def toSubmissionState: SubmissionState = SubmissionState(submissionState = true)
   }
+  override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
 }
 
 object LivePersonalIncomeController extends PersonalIncomeController {
   override val service = LivePersonalIncomeService
   override val accessControl = AccountAccessControlWithHeaderCheck
   override val taxCreditsSubmissionControlConfig: TaxCreditsControl = TaxCreditsSubmissionControl
+  override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
 }

@@ -20,6 +20,7 @@ import java.util.UUID
 
 import com.ning.http.util.Base64
 import org.joda.time.DateTime
+import play.api.Play
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -299,6 +300,7 @@ trait Success extends Setup {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
     override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
   }
 }
 
@@ -311,6 +313,7 @@ trait SuccessWithInvalidDates extends Setup {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
     override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
   }
 }
 
@@ -339,6 +342,7 @@ trait NotFoundClaimant extends Setup {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
     override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
   }
 }
 
@@ -351,6 +355,7 @@ trait AccessCheck extends Setup {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
     override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
   }
 }
 
@@ -360,6 +365,7 @@ trait SuccessRenewalDisabled extends Setup {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
     override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControlShuttered
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
   }
 }
 
@@ -373,6 +379,7 @@ trait Generate_503 extends Setup {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
     override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
   }
 }
 
@@ -384,6 +391,7 @@ trait NotFound extends Setup {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
     override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
   }
 }
 
@@ -396,6 +404,7 @@ trait GateKeeper extends Setup {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
     override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
   }
 }
 
@@ -418,6 +427,7 @@ trait AuthWithLowCL extends Setup {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
     override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
   }
 
 }
@@ -439,6 +449,7 @@ trait AuthWithoutNino extends Setup {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
     override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
   }
 }
 
@@ -450,6 +461,7 @@ trait Ntc400Result extends Success {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
     override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
   }
 }
 
@@ -458,6 +470,7 @@ trait SandboxSuccess extends Setup {
     override val service: PersonalIncomeService = testSandboxPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = sandboxCompositeAction
     override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
   }
 }
 
