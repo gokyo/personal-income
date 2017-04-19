@@ -23,7 +23,7 @@ import net.ceedubs.ficus.Ficus._
 import play.api._
 import play.api.libs.json.Json
 import play.api.mvc.Results._
-import play.api.mvc.{RequestHeader, Result}
+import play.api.mvc._
 import uk.gov.hmrc.personalincome.controllers._
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
@@ -35,7 +35,7 @@ import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.api.config.{ServiceLocatorConfig, ServiceLocatorRegistration}
 import uk.gov.hmrc.api.connector.ServiceLocatorConnector
 import uk.gov.hmrc.api.controllers._
-import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
+import uk.gov.hmrc.play.filters.{NoCacheFilter, MicroserviceFilterSupport}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -89,6 +89,12 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with Se
         case _ => Status(ErrorInternalServerError.httpStatusCode)(Json.toJson(ErrorInternalServerError))
       }
     })
+  }
+
+  override def microserviceFilters: Seq[EssentialFilter] = Seq.empty
+
+  override def doFilter(a: EssentialAction): EssentialAction = {
+    Filters(super.doFilter(a), defaultMicroserviceFilters.filterNot( _.isInstanceOf[NoCacheFilter.type] ) : _*)
   }
 
   override def onBadRequest(request: RequestHeader, error: String): Future[Result] = {
