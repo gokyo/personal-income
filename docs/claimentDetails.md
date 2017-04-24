@@ -47,7 +47,7 @@ If 'claims' query parameter is not supplied as a query parameter then a single r
   "hasPartner": false,
   "claimantNumber": 1,
   "renewalFormType": "r",
-  "mainApplicantNino": "CS700100A",
+  "mainApplicantNino": "true",
   "availableForCOCAutomation": false,
   "applicationId": "some-app-id"
 }

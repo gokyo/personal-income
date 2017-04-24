@@ -266,9 +266,7 @@ trait Setup extends ClaimsJson {
   val personalTaxSummaryConnector = new TestPersonalTaxSummaryConnector(Some(taxSummaryContainerNew))
   val taiConnector = new TestTaiConnector(Some(taxSummaryDetails))
   val tcrAuthToken = TcrAuthenticationToken("some-auth-token")
-  val claimentDetails = ClaimantDetails(false, 1, "r", nino.value, None, false, "some-app-id")
-
-
+  lazy val claimentDetails = ClaimantDetails(false, 1, "r", "CS700100A", None, false, "some-app-id")
 
   val claims = Json.toJson(Json.parse(claimsJson)).as[Claims]
   val matchedClaims = Json.toJson(Json.parse(matchedClaimsJson)).as[Claims]

@@ -30,7 +30,7 @@ import uk.gov.hmrc.play.http._
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 object SummaryFormat extends Enumeration {
   type SummaryFormat = Value
@@ -97,13 +97,21 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
         service.getTaxCreditExclusion(nino).map { res => Ok(Json.parse(s"""{"showData":${!res.excluded}}""")) })
   }
 
+  def addMainApplicantFlag(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Result] = {
+    service.claimantDetails(nino).map { claim =>
+
+      val mainApplicantFlag: String = if (claim.mainApplicantNino == nino.value) "true" else "false"
+      Ok(Json.toJson(claim.copy(mainApplicantNino = mainApplicantFlag)))
+    }
+  }
+
   final def claimantDetails(nino: Nino, journeyId: Option[String] = None, claims: Option[String] = None) = accessControl.validateAcceptWithAuth(acceptHeaderValidationRules, Some(nino)).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
 
       errorWrapper(validateTcrAuthHeader(claims) {
           implicit hc =>
-            def singleClaim = service.claimantDetails(nino).map(claim => Ok(Json.toJson(claim)))
+            def singleClaim: Future[Result] = addMainApplicantFlag(nino)
 
             def retrieveAllClaims = service.claimantClaims(nino).map { claims =>
               claims.references.fold(notFound){found => if (found.isEmpty) notFound else Ok(Json.toJson(claims))}}

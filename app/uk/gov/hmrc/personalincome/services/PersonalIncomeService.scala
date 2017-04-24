@@ -251,7 +251,7 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
         val resource: String = findResource(s"/resources/claimantdetails/${nino.value}-${header.extractRenewalReference.get}.json").getOrElse(throw new IllegalArgumentException("Resource not found!"))
         Future.successful(Json.parse(resource).as[ClaimantDetails])
       } catch {
-        case ex:Exception => Future.successful(ClaimantDetails(hasPartner = false, 1, "r", nino.value, None, availableForCOCAutomation = false, "some-app-id"))
+        case ex:Exception => Future.successful(ClaimantDetails(hasPartner = false, 1, "r", "false", None, availableForCOCAutomation = false, "some-app-id"))
       }
     }
   }
