@@ -21,7 +21,7 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
-import uk.gov.hmrc.personalincome.domain.RenewalReference
+import uk.gov.hmrc.personalincome.domain.{ClaimantDetails, RenewalReference}
 import uk.gov.hmrc.personalincome.services.SandboxPersonalIncomeService._
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
@@ -143,7 +143,17 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
       val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(claimentDetails)
+      contentAsJson(result) shouldBe Json.toJson(claimentDetails.copy(mainApplicantNino = "true"))
+      result.header.headers.get("Cache-Control") shouldBe None
+    }
+
+    "return claimant details successfully when NINO does not match mainApplicantNino" in new Success {
+      override lazy val claimentDetails = ClaimantDetails(false, 1, "r", "CS777100A", None, false, "some-app-id")
+
+      val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.toJson(claimentDetails.copy(mainApplicantNino = "false"))
       result.header.headers.get("Cache-Control") shouldBe None
     }
 
@@ -192,7 +202,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
       val result = await(controller.claimantDetails(nino, Some(journeyId))(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(claimentDetails)
+      contentAsJson(result) shouldBe Json.toJson(claimentDetails.copy(mainApplicantNino = "true"))
     }
 
     "return unauthorized when authority record does not contain a NINO" in new AuthWithoutNino {
@@ -213,7 +223,6 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
       testPersonalIncomeService.saveDetails shouldBe Map.empty
     }
 
-
     "return 403 response when the tcr auth header is not supplied in the request" in new Success {
       val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeader))
 
@@ -232,10 +241,10 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
   "claimant details Sandbox" should {
 
     "return claimant details successfully when an unknown bar code reference is supplied" in new SandboxSuccess {
-      val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReferenceUnknown)))
+      val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(RenewalReference("888888888888888"))))
 
       status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(claimentDetails)
+      contentAsJson(result) shouldBe Json.toJson(claimentDetails.copy(mainApplicantNino = "false", hasPartner = false, renewalFormType = "r"))
     }
 
     "return claimant claims successfully" in new SandboxSuccess {
@@ -255,7 +264,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
       testData.map(item => {
         val result = await(controller.claimantDetails(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(RenewalReference(item.barcode))))
         status(result) shouldBe 200
-        contentAsJson(result) shouldBe Json.toJson(claimentDetails.copy(hasPartner = item.hasPartner, renewalFormType = item.renewalFormType))
+        contentAsJson(result) shouldBe Json.toJson(claimentDetails.copy(mainApplicantNino = "true", hasPartner = item.hasPartner, renewalFormType = item.renewalFormType))
       })
 
     }
