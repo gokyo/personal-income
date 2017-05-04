@@ -392,11 +392,11 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
 
   "tax credits summary live" should {
 
-    "process the request successfully and filter children older than 16" in new Success {
+    "process the request successfully and filter children older than 20 and where deceased flags are active" in new Success {
       val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxRenewalSummaryWithoutChildrenOver16)
+      contentAsJson(result) shouldBe Json.toJson(taxRenewalSummaryWithoutChildrenOverAge20)
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
     }
 
@@ -417,7 +417,7 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
       val result = await(controller.taxCreditsSummary(nino, Some(journeyId))(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxRenewalSummaryWithoutChildrenOver16)
+      contentAsJson(result) shouldBe Json.toJson(taxRenewalSummaryWithoutChildrenOverAge20)
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
     }
 

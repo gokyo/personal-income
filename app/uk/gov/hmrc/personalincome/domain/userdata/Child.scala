@@ -24,7 +24,8 @@ case class Child(firstNames:String,
                  dateOfBirth:DateTime,
                  hasFTNAE:Boolean,
                  hasConnexions: Boolean,
-                 isActive:Boolean)
+                 isActive:Boolean,
+                 dateOfDeath:Option[DateTime])
 
 
 object Child {
@@ -35,4 +36,11 @@ object Child {
     years.getYears();
   }
 
+  def getEligibleInactiveChildren(children: Children): Seq[Child] = {
+    children.child.filter { child =>
+      getAge(child) < 20 &&
+        !child.isActive &&
+        !child.dateOfDeath.isDefined
+    }
+  }
 }

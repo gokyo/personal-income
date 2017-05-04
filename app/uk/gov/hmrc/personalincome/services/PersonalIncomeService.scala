@@ -165,7 +165,7 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor with 
 
       def getChildrenAge16AndUnder(): Future[Children] = {
         taxCreditBrokerConnector.getChildren(tcNino).map(children =>
-          Children(children.child.filter(child => Child.getAge(child) <= 16)))
+          Children(Child.getEligibleInactiveChildren(children)))
       }
 
       val childrenFuture = getChildrenAge16AndUnder

@@ -25,13 +25,13 @@ class ChildSpec extends UnitSpec {
   "Child DOB calculation" should {
 
     "using today's date for child DOB will result in age 0" in {
-      val childA = Child("first", "second", DateTimeUtils.now, false, false, false)
+      val childA = Child("first", "second", DateTimeUtils.now, false, false, false, None)
 
       Child.getAge(childA) shouldBe 0
     }
 
     "using today's date - 16 years for child DOB will result in age 16" in {
-      val childB = Child("first", "second", DateTimeUtils.now.minusYears(16), false, false, false)
+      val childB = Child("first", "second", DateTimeUtils.now.minusYears(16), false, false, false, None)
 
       Child.getAge(childB) shouldBe 16
     }
@@ -39,7 +39,7 @@ class ChildSpec extends UnitSpec {
     "using today's date - 16 years and +1 month for child DOB will result in age 15" in {
       val age= DateTimeUtils.now.minusYears(15)
 
-      val childC = Child("first", "second", DateTimeUtils.now.minusYears(16).plusMonths(1), false, false, false)
+      val childC = Child("first", "second", DateTimeUtils.now.minusYears(16).plusMonths(1), false, false, false, None)
 
       Child.getAge(childC) shouldBe 15
     }
