@@ -36,10 +36,10 @@ object Child {
     years.getYears();
   }
 
-  def getEligibleInactiveChildren(children: Children): Seq[Child] = {
+  def getEligibleChildren(children: Children): Seq[Child] = {
     children.child.filter { child =>
       getAge(child) < 20 &&
-        !child.isActive &&
+        child.isActive &&
         !child.dateOfDeath.isDefined
     }
   }

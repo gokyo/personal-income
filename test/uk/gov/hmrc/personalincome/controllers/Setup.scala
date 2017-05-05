@@ -210,12 +210,12 @@ trait Setup extends ClaimsJson {
   val AGE21=DateTimeUtils.now.minusYears(21)
   val DECEASED_DATE=DateTimeUtils.now.minusYears(1)
 
-  val SarahSmith = Child("Sarah", "Smith",new DateTime(AGE16),false,false,false, None)
-  val JosephSmith = Child("Joseph", "Smith",new DateTime(AGE15),false,false,false, None)
-  val MarySmith = Child("Mary", "Smith", new DateTime(AGE13),false,false,false, None)
-  val JennySmith = Child("Jenny", "Smith", new DateTime(AGE21),false,false,false, None)
-  val PeterSmith = Child("Peter", "Smith", new DateTime(AGE13),false,false, true, Some(new DateTime(DECEASED_DATE)))
-  val SimonSmith = Child("Simon", "Smith", new DateTime(AGE13),false,false, false, Some(new DateTime(DECEASED_DATE)))
+  val SarahSmith = Child("Sarah", "Smith",new DateTime(AGE16),false,false,true, None)
+  val JosephSmith = Child("Joseph", "Smith",new DateTime(AGE15),false,false,true, None)
+  val MarySmith = Child("Mary", "Smith", new DateTime(AGE13),false,false,true, None)
+  val JennySmith = Child("Jenny", "Smith", new DateTime(AGE21),false,false,true, None)
+  val PeterSmith = Child("Peter", "Smith", new DateTime(AGE13),false,false, false, Some(new DateTime(DECEASED_DATE)))
+  val SimonSmith = Child("Simon", "Smith", new DateTime(AGE13),false,false, true, Some(new DateTime(DECEASED_DATE)))
 
   val address =  uk.gov.hmrc.personalincome.domain.userdata.Address("addressLine1", "addressLine2", Some("addressLine3"), Some("addressLine4"), "postcode")
 
