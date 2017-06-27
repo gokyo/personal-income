@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.personalincome.connectors
 
+import play.api.libs.json.{JsSuccess, JsValue, Json}
 import uk.gov.hmrc.personalincome.config.{ServicesCircuitBreaker, WSHttp}
 import uk.gov.hmrc.personalincome.domain.TaxCreditsNino
 import uk.gov.hmrc.personalincome.domain.userdata._
@@ -36,8 +37,16 @@ trait TaxCreditsBrokerConnector {
 
   def url(nino:TaxCreditsNino, route:String) = s"$serviceUrl/tcs/${nino.value}/$route"
 
-  def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[PaymentSummary] = {
-    withCircuitBreaker((http.GET[PaymentSummary](url(nino, "payment-summary"))))
+  def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Either[PaymentSummary, FuturePaymentSummary]] = {
+    withCircuitBreaker{
+      val response = http.GET[JsValue](url(nino, "payment-summary"))
+      response.map { res =>
+        res.validate[FuturePaymentSummary] match {
+          case success: JsSuccess[FuturePaymentSummary] => Right(success.get)
+          case _ => Left(res.as[PaymentSummary])
+        }
+      }
+    }
   }
 
   def getPersonalDetails(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[PersonalDetails] = {

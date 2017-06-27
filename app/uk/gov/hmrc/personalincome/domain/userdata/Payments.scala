@@ -21,9 +21,7 @@ import play.api.libs.json.Json
 
 case class PaymentSummary(workingTaxCredit: Option[Payment], childTaxCredit: Option[Payment])
 
-
 case class Payment(amount: Double, paymentDate: DateTime, paymentFrequency:Option[String])
-
 
 object Payment {
   implicit val formats = Json.format[Payment]
@@ -33,4 +31,25 @@ object PaymentSummary {
   def key: String = "payments-data"
 
   implicit val formats = Json.format[PaymentSummary]
+}
+
+case class FuturePaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCredit: Option[PaymentSection], paymentSummaryEnabled: Boolean)
+
+case class PaymentSection(payments: List[FuturePayment], frequency: String)
+
+case class FuturePayment(amount: Double, paymentDate: DateTime, oneOffPayment: Boolean)
+
+
+object FuturePayment {
+  implicit val formats = Json.format[FuturePayment]
+}
+
+object PaymentSection {
+  implicit val formats = Json.format[PaymentSection]
+}
+
+object FuturePaymentSummary {
+  def key: String = "payment-data"
+
+  implicit val formats = Json.format[FuturePaymentSummary]
 }
