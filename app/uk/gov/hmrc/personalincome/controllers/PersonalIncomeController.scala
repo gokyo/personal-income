@@ -151,7 +151,14 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
   final def taxCreditsSummary(nino: Nino, journeyId: Option[String] = None) = accessControl.validateAcceptWithAuth(acceptHeaderValidationRules, Some(nino)).async {
     implicit request =>
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
-      errorWrapper(service.getTaxCreditSummary(nino).map(as => Ok(Json.toJson(as))))
+      errorWrapper {
+        service.getTaxCreditSummary(nino).map { summary =>
+          summary match {
+            case Left(_) => Ok(Json.toJson(summary.left.get))
+            case Right(_) => Ok(Json.toJson(summary.right.get))
+          }
+        }
+      }
   }
 
   private def validateTcrAuthHeader(mode:Option[String])(func: HeaderCarrier => Future[mvc.Result])(implicit request: Request[_], hc: HeaderCarrier) = {
