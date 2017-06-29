@@ -108,7 +108,7 @@ class TestAuthConnector(nino: Option[Nino], ex:Option[Exception]=None) extends A
   }
 }
 
-class TestTaxCreditBrokerConnector(payment: PaymentSummary, personal: PersonalDetails, partner: PartnerDetails,
+class TestTaxCreditBrokerConnector(payment: Either[PaymentSummaryOld, PaymentSummary], personal: PersonalDetails, partner: PartnerDetails,
                                      children: Option[Children], exclusion:Option[Exclusion]) extends TaxCreditsBrokerTestConnector {
   private def serviceUnavailable = throw new ServiceUnavailableException("controlled error")
 
@@ -198,11 +198,13 @@ trait Setup extends ClaimsJson {
   val renewalReferenceUnknown = RenewalReference("some-reference")
   val renewalReference = RenewalReference("111111111111111")
   val renewalReferenceNines = RenewalReference("999999999999999")
-  val weekly = "WEEKLY"
   val expectedNextDueDate = DateTime.parse("2015-07-16")
-  val expectedPaymentCTC = Payment(140.12, expectedNextDueDate, Some(weekly))
-  val expectedPaymentWTC = Payment(160.34, expectedNextDueDate, Some(weekly))
-  val paymentSummary = PaymentSummary(Some(expectedPaymentWTC), Some(expectedPaymentCTC))
+
+  val expectedPaymentWTC = Payment(160.34, expectedNextDueDate, false)
+  val expectedPaymentCTC = Payment(140.12, expectedNextDueDate, false)
+  val paymentSectionCTC = PaymentSection(List(expectedPaymentCTC), "weekly")
+  val paymentSectionWTC = PaymentSection(List(expectedPaymentWTC), "weekly")
+  val paymentSummary = PaymentSummary(Some(paymentSectionWTC), Some(paymentSectionCTC), true)
 
   val AGE16=DateTimeUtils.now.minusYears(16)
   val AGE15=DateTimeUtils.now.minusYears(15)
@@ -281,7 +283,7 @@ trait Setup extends ClaimsJson {
   val ntcConnector400 = new TestNtcConnector(Success(200), None, claimentDetails, claims)
   val exclusion = Exclusion(false)
   val exclusionResult = Json.parse("""{"showData":true}""")
-  val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails,
+  val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(Right(paymentSummary), personalDetails, partnerDetails,
     Some(children), Some(exclusion))
 
   val testAccess = new TestAccessCheck(authConnector)
@@ -297,6 +299,28 @@ trait Setup extends ClaimsJson {
 }
 
 trait Success extends Setup {
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+  }
+}
+
+trait BackwardsCompatibleSuccess extends Setup {
+
+  val expectedPaymentOldCTC = PaymentOld(140.12, expectedNextDueDate, Some("WEEKLY"))
+  val expectedPaymentOldWTC = PaymentOld(160.34, expectedNextDueDate, Some("WEEKLY"))
+  val paymentSummaryOld = PaymentSummaryOld(Some(expectedPaymentOldWTC), Some(expectedPaymentOldCTC))
+  val taxRenewalSummaryOld = TaxCreditSummaryOld(paymentSummaryOld, personalDetails, Some(partnerDetails), Children(Seq(SarahSmith, JosephSmith, MarySmith, JennySmith, PeterSmith, SimonSmith)))
+  val taxRenewalSummaryOldWithoutChildrenOverAge20 = TaxCreditSummaryOld(paymentSummaryOld, personalDetails, Some(partnerDetails), children)
+
+  override val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(Left(paymentSummaryOld), personalDetails, partnerDetails,
+    Some(children), Some(exclusion))
+
+  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+    authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+
   val controller = new PersonalIncomeController {
     override val service: PersonalIncomeService = testPersonalIncomeService
     override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
@@ -373,7 +397,26 @@ trait SuccessRenewalDisabled extends Setup {
 trait Generate_503 extends Setup {
   override val taiConnector = new TestTaiConnector(None)
 
-  override val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, None, None)
+  override val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(Right(paymentSummary), personalDetails, partnerDetails, None, None)
+
+  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+  }
+}
+
+trait BackwardsCompatible_Generate_503 extends Setup {
+
+  val expectedPaymentOldCTC = PaymentOld(140.12, expectedNextDueDate, Some("WEEKLY"))
+  val expectedPaymentOldWTC = PaymentOld(160.34, expectedNextDueDate, Some("WEEKLY"))
+  val paymentSummaryOld = PaymentSummaryOld(Some(expectedPaymentOldWTC), Some(expectedPaymentOldCTC))
+
+  override val taiConnector = new TestTaiConnector(None)
+
+  override val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(Left(paymentSummaryOld), personalDetails, partnerDetails, None, None)
 
   override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
   val controller = new PersonalIncomeController {

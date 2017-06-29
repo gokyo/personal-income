@@ -169,19 +169,19 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor with 
       }
 
       val childrenFuture = getChildrenAge16AndUnder
-      val parterDetailsFuture = taxCreditBrokerConnector.getPartnerDetails(tcNino)
+      val partnerDetailsFuture = taxCreditBrokerConnector.getPartnerDetails(tcNino)
       val paymentSummaryFuture = taxCreditBrokerConnector.getPaymentSummary(tcNino)
       val personalDetailsFuture = taxCreditBrokerConnector.getPersonalDetails(tcNino)
 
       for {
         children <- childrenFuture
-        parterDetails <- parterDetailsFuture
+        partnerDetails <- partnerDetailsFuture
         paymentSummary <- paymentSummaryFuture
         personalDetails <- personalDetailsFuture
       } yield {
-        paymentSummaryFuture match {
-          case ps: PaymentSummary => Left(TaxCreditSummaryOld(ps, personalDetails, parterDetails, children))
-          case fps: FuturePaymentSummary => Right(TaxCreditSummary(fps, personalDetails, parterDetails, children))
+        paymentSummary match {
+          case Left(_) => Left(TaxCreditSummaryOld(paymentSummary.left.get, personalDetails, partnerDetails, children))
+          case Right(_) => Right(TaxCreditSummary(paymentSummary.right.get, personalDetails, partnerDetails, children))
         }
       }
     }

@@ -18,7 +18,7 @@ package uk.gov.hmrc.personalincome.domain.userdata
 
 import play.api.libs.json.Json
 
-case class TaxCreditSummaryOld(paymentSummary: PaymentSummary,
+case class TaxCreditSummaryOld(paymentSummary: PaymentSummaryOld,
                           personalDetails: PersonalDetails,
                           partnerDetails:Option[PartnerDetails],
                           children: Children)
@@ -27,7 +27,7 @@ object TaxCreditSummaryOld {
   implicit val format = Json.format[TaxCreditSummaryOld]
 }
 
-case class TaxCreditSummary(paymentSummary: FuturePaymentSummary,
+case class TaxCreditSummary(paymentSummary: PaymentSummary,
                                personalDetails: PersonalDetails,
                                partnerDetails:Option[PartnerDetails],
                                children: Children)

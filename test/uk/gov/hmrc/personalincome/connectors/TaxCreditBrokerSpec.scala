@@ -49,14 +49,17 @@ class TaxCreditBrokerSpec extends UnitSpec with ScalaFutures with StubApplicatio
 
 override lazy val fakeApplication = FakeApplication(additionalConfiguration = config)
 
-  private trait Setup {
+  trait Setup {
     implicit lazy val hc = HeaderCarrier()
 
     val weekly = "WEEKLY"
     val expectedNextDueDate = DateTime.parse("2015-07-16")
-    val expectedPaymentCTC = Payment(140.12, expectedNextDueDate, Some(weekly))
-    val expectedPaymentWTC = Payment(160.34, expectedNextDueDate, Some(weekly))
-    val paymentSummary = PaymentSummary(Some(expectedPaymentWTC), Some(expectedPaymentCTC))
+
+    val expectedPaymentWTC = Payment(160.34, expectedNextDueDate, false)
+    val expectedPaymentCTC = Payment(140.12, expectedNextDueDate, false)
+    val paymentSectionCTC = PaymentSection(List(expectedPaymentCTC), "weekly")
+    val paymentSectionWTC = PaymentSection(List(expectedPaymentWTC), "weekly")
+    val paymentSummary = PaymentSummary(Some(paymentSectionWTC), Some(paymentSectionCTC), true)
 
 
     lazy val http500Response = Future.failed(new Upstream5xxResponse("Error", 500, 500))
@@ -103,6 +106,16 @@ override lazy val fakeApplication = FakeApplication(additionalConfiguration = co
     val connector = new TaxCreditsBrokerTestConnector(Some(response))
   }
 
+  trait BackwardsCompatibleSetup extends Setup {
+
+    lazy val backwardsCompatibleResponse: Future[HttpResponse] = http200PaymentOld
+    val expectedPaymentCTCOld = PaymentOld(140.12, expectedNextDueDate, Some("WEEKLY"))
+    val expectedPaymentWTCOld = PaymentOld(160.34, expectedNextDueDate, Some("WEEKLY"))
+    val paymentSummaryOld = PaymentSummaryOld(Some(expectedPaymentWTCOld), Some(expectedPaymentCTCOld))
+    val http200PaymentOld = Future.successful(HttpResponse(200, Some(Json.toJson(paymentSummaryOld))))
+    override val connector = new TaxCreditsBrokerTestConnector(Some(backwardsCompatibleResponse))
+  }
+
   "taxCreditBroker connector" should {
 
     "return a valid response for getPersonalDetails when a 200 response is received with a valid json payload" in new Setup {
@@ -133,7 +146,16 @@ override lazy val fakeApplication = FakeApplication(additionalConfiguration = co
     "return a valid response for getPaymentSummary when a 200 response is received with a valid json payload" in new Setup {
       override lazy val response = http200Payment
 
-      await(connector.getPaymentSummary(TaxCreditsNino(nino.value))) shouldBe paymentSummary
+      val result = await(connector.getPaymentSummary(TaxCreditsNino(nino.value)))
+      result.isRight shouldBe true
+      result.right.get shouldBe paymentSummary
+    }
+
+    "return a valid response for getPaymentSummary when a 200 response is received with a valid json payload - Backwards Compatible" in new BackwardsCompatibleSetup {
+
+      val result = await(connector.getPaymentSummary(TaxCreditsNino(nino.value)))
+      result.isLeft shouldBe true
+      result.left.get shouldBe paymentSummaryOld
     }
 
     "circuit breaker configuration should be applied and unhealthy service exception will kick in after 5th failed call" in new Setup {

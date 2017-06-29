@@ -37,13 +37,13 @@ trait TaxCreditsBrokerConnector {
 
   def url(nino:TaxCreditsNino, route:String) = s"$serviceUrl/tcs/${nino.value}/$route"
 
-  def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Either[PaymentSummary, FuturePaymentSummary]] = {
+  def getPaymentSummary(nino: TaxCreditsNino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Either[PaymentSummaryOld, PaymentSummary]] = {
     withCircuitBreaker{
       val response = http.GET[JsValue](url(nino, "payment-summary"))
       response.map { res =>
-        res.validate[FuturePaymentSummary] match {
-          case success: JsSuccess[FuturePaymentSummary] => Right(success.get)
-          case _ => Left(res.as[PaymentSummary])
+        res.validate[PaymentSummary] match {
+          case success: JsSuccess[PaymentSummary] => Right(success.get)
+          case _ => Left(res.as[PaymentSummaryOld])
         }
       }
     }
