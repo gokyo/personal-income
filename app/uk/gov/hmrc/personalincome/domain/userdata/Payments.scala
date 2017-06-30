@@ -16,13 +16,9 @@
 
 package uk.gov.hmrc.personalincome.domain.userdata
 
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
-import org.joda.time.{DateTime, LocalDate}
-import play.api.data.validation.ValidationError
-import play.api.libs.json.{JsError, _}
+import org.joda.time.DateTime
+import play.api.libs.json._
 import play.api.libs.functional.syntax._
-
-import scala.util.matching.Regex
 
 case class PaymentSummaryOld(workingTaxCredit: Option[PaymentOld], childTaxCredit: Option[PaymentOld])
 
@@ -39,11 +35,12 @@ object PaymentSummaryOld {
 }
 
 case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCredit: Option[PaymentSection], paymentEnabled: Boolean) {
-  def totalsByDate: List[Total] = {
+  def totalsByDate: Option[List[Total]] = {
     val wtc = workingTaxCredit.map(_.paymentSeq).getOrElse(List())
     val ctc = childTaxCredit.map(_.paymentSeq).getOrElse(List())
     val all: Seq[Payment] = wtc.union(ctc)
-    all.map(_.paymentDate).distinct.map(date => Total(all.filter(_.paymentDate.equals(date)).foldLeft(0.0)(_ + _.amount),date)).toList
+    if (all.isEmpty) None
+    else Option(all.map(_.paymentDate).distinct.map(date => Total(all.filter(_.paymentDate.equals(date)).foldLeft(0.0)(_ + _.amount),date)).toList)
   }
 }
 
@@ -76,14 +73,19 @@ object PaymentSummary {
     )(PaymentSummary.apply _)
 
   implicit val writes: Writes[PaymentSummary] = new Writes[PaymentSummary] {
-    def writes(paymentSummary: PaymentSummary): JsObject = {
-      Json.obj(
-        "workingTaxCredit" -> paymentSummary.workingTaxCredit,
-        "childTaxCredit" -> paymentSummary.childTaxCredit,
-        "paymentEnabled" -> paymentSummary.paymentEnabled,
-        "totalsByDate" -> Json.toJson(paymentSummary.totalsByDate)
-      )
+
+    def writes(paymentSummary: PaymentSummary) = {
+      val paymentSummaryWrites = (
+        (__ \ "workingTaxCredit").writeNullable[PaymentSection] ~
+          (__ \ "childTaxCredit").writeNullable[PaymentSection] ~
+          (__ \ "paymentEnabled").write[Boolean] ~
+          (__ \ "totalsByDate").writeNullable[List[Total]]
+      ).tupled
+
+      paymentSummaryWrites.writes(paymentSummary.workingTaxCredit, paymentSummary.childTaxCredit, paymentSummary.paymentEnabled, paymentSummary.totalsByDate)
     }
   }
+
+
 }
 
