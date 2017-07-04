@@ -115,5 +115,66 @@ class PaymentSummarySpec extends UnitSpec {
 
       Json.stringify(Json.toJson(paymentSummary)) shouldBe """{"workingTaxCredit":{"paymentSeq":[{"amount":55,"paymentDate":1499209200000,"oneOffPayment":false},{"amount":55,"paymentDate":1499814000000,"oneOffPayment":false},{"amount":55,"paymentDate":1500418800000,"oneOffPayment":false}],"paymentFrequency":"weekly"},"paymentEnabled":true,"totalsByDate":[{"amount":55,"paymentDate":1499209200000},{"amount":55,"paymentDate":1499814000000},{"amount":55,"paymentDate":1500418800000}]}"""
     }
+
+    "parse correctly and sort calculated totalsByDate by Date" in {
+      val request = """{
+                      |  "workingTaxCredit": {
+                      |    "paymentSeq": [
+                      |      {
+                      |        "amount": 55.00,
+                      |        "paymentDate": 1499814000000,
+                      |        "oneOffPayment": false
+                      |      },
+                      |      {
+                      |        "amount": 55.00,
+                      |        "paymentDate": 1500418800000,
+                      |        "oneOffPayment": false
+                      |      },
+                      |      {
+                      |        "amount": 55.00,
+                      |        "paymentDate": 1499209200000,
+                      |        "oneOffPayment": false
+                      |      }
+                      |    ],
+                      |    "paymentFrequency": "weekly"
+                      |  },
+                      |  "childTaxCredit": {
+                      |    "paymentSeq": [
+                      |      {
+                      |        "amount": 55.00,
+                      |        "paymentDate": 1500418800000,
+                      |        "oneOffPayment": false
+                      |      },
+                      |      {
+                      |        "amount": 55.00,
+                      |        "paymentDate": 1499814000000,
+                      |        "oneOffPayment": false
+                      |      },
+                      |      {
+                      |        "amount": 55.00,
+                      |        "paymentDate": 1499209200000,
+                      |        "oneOffPayment": false
+                      |      }
+                      |    ],
+                      |    "paymentFrequency": "weekly"
+                      |  },
+                      |  "paymentEnabled": true
+                      |}""".stripMargin
+
+      val response = Json.parse(request).validate[PaymentSummary]
+      val paymentSummary = response match {
+        case success: JsSuccess[PaymentSummary] => {
+          success.get
+        }
+      }
+      paymentSummary.paymentEnabled shouldBe true
+      paymentSummary.childTaxCredit.isDefined shouldBe true
+      paymentSummary.workingTaxCredit.isDefined shouldBe true
+      paymentSummary.totalsByDate.isDefined shouldBe true
+
+      print( Json.stringify(Json.toJson(paymentSummary)))
+      Json.stringify(Json.toJson(paymentSummary)) shouldBe """{"workingTaxCredit":{"paymentSeq":[{"amount":55,"paymentDate":1499814000000,"oneOffPayment":false},{"amount":55,"paymentDate":1500418800000,"oneOffPayment":false},{"amount":55,"paymentDate":1499209200000,"oneOffPayment":false}],"paymentFrequency":"weekly"},"childTaxCredit":{"paymentSeq":[{"amount":55,"paymentDate":1500418800000,"oneOffPayment":false},{"amount":55,"paymentDate":1499814000000,"oneOffPayment":false},{"amount":55,"paymentDate":1499209200000,"oneOffPayment":false}],"paymentFrequency":"weekly"},"paymentEnabled":true,"totalsByDate":[{"amount":110,"paymentDate":1499209200000},{"amount":110,"paymentDate":1499814000000},{"amount":110,"paymentDate":1500418800000}]}"""
+    }
+
   }
 }

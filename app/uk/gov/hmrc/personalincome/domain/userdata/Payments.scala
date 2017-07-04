@@ -40,7 +40,10 @@ case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCred
     val ctc = childTaxCredit.map(_.paymentSeq).getOrElse(List())
     val all: Seq[Payment] = wtc.union(ctc)
     if (all.isEmpty) None
-    else Option(all.map(_.paymentDate).distinct.map(date => Total(all.filter(_.paymentDate.equals(date)).foldLeft(0.0)(_ + _.amount),date)).toList)
+    else {
+      val distinctDate  = all.map(_.paymentDate).distinct.sortBy(_.toDate)
+      Option(distinctDate.map(date => Total(all.filter(_.paymentDate.equals(date)).foldLeft(0.0)(_ + _.amount),date)).toList)
+    }
   }
 }
 
