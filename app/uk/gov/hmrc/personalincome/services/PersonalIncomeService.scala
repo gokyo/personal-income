@@ -192,6 +192,8 @@ trait RenewalStatus {
   val defaultRenewalStatus = "NOT_SUBMITTED"
   val      awaitingBarcode = "AWAITING_BARCODE"
   val           no_barcode = "000000000000000"
+  lazy val transform = AppContext.renewalStatusTransform
+    .map(_.map(transform => transform.copy(statusValues = transform.statusValues.map(_.toUpperCase))))
 
   def renewalStatusTransform: Option[List[RenewalStatusTransform]]
 
@@ -200,15 +202,15 @@ trait RenewalStatus {
     defaultRenewalStatus
   }
 
-  def resolveStatus(claim:Claim) = {
+  def resolveStatus(claim:Claim): String = {
     if (claim.household.barcodeReference.equals(no_barcode)) {
       awaitingBarcode
     } else {
       claim.renewal.renewalStatus.fold(defaultRenewalStatus) { renewalStatus =>
-        val config: List[RenewalStatusTransform] = AppContext.renewalStatusTransform.getOrElse(throw new IllegalArgumentException("Failed to resolve renewal status config!"))
-        config.map { item =>
-          if (item.statusValues.contains(renewalStatus)) Some(item.name) else None
-        }.flatten.headOption.getOrElse(defaultRenewalStatusReturned(renewalStatus))
+        val config: List[RenewalStatusTransform] = transform.getOrElse(throw new IllegalArgumentException("Failed to resolve renewal status config!"))
+        config.flatMap { (item: RenewalStatusTransform) =>
+          if (item.statusValues.contains(renewalStatus.toUpperCase.trim)) Some(item.name) else None
+        }.headOption.getOrElse(defaultRenewalStatusReturned(renewalStatus))
       }
     }
   }
