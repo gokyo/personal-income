@@ -83,7 +83,7 @@ override lazy val fakeApplication = FakeApplication(additionalConfiguration = co
     val MarySmith = Child("Mary", "Smith", new DateTime(AGE19), false, false, false, None)
 
     val nino = Nino( "KM569110B")
-    val address = Address("addressLine1", "addressLine2", Some("addressLine3"), Some("addressLine4"), "postcode")
+    val address = Address("addressLine1", "addressLine2", Some("addressLine3"), Some("addressLine4"), Some("postcode"))
     val personalDetails = PersonalDetails("Nuala",
                                           "O'Shea",
                                           TaxCreditsNino(nino.value),

@@ -18,7 +18,7 @@ package uk.gov.hmrc.personalincome.domain.userdata
 
 import play.api.libs.json.Json
 
-case class Address(addressLine1: String, addressLine2: String, addressLine3: Option[String], addressLine4: Option[String], postCode: String)
+case class Address(addressLine1: String, addressLine2: String, addressLine3: Option[String], addressLine4: Option[String], postCode: Option[String])
 
 object Address {
   implicit val formats = Json.format[Address]

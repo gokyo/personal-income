@@ -219,7 +219,7 @@ trait Setup extends ClaimsJson {
   val PeterSmith = Child("Peter", "Smith", new DateTime(AGE13),false,false, false, Some(new DateTime(DECEASED_DATE)))
   val SimonSmith = Child("Simon", "Smith", new DateTime(AGE13),false,false, true, Some(new DateTime(DECEASED_DATE)))
 
-  val address =  uk.gov.hmrc.personalincome.domain.userdata.Address("addressLine1", "addressLine2", Some("addressLine3"), Some("addressLine4"), "postcode")
+  val address =  uk.gov.hmrc.personalincome.domain.userdata.Address("addressLine1", "addressLine2", Some("addressLine3"), Some("addressLine4"), Some("postcode"))
 
   val personalDetails = PersonalDetails("firstname",
     "surname",
