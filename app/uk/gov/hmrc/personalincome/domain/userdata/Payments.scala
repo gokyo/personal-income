@@ -17,6 +17,7 @@
 package uk.gov.hmrc.personalincome.domain.userdata
 
 import org.joda.time.DateTime
+import play.api.Play
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
@@ -34,7 +35,15 @@ object PaymentSummaryOld {
   implicit val formats = Json.format[PaymentSummaryOld]
 }
 
-case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCredit: Option[PaymentSection], paymentEnabled: Boolean) {
+case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCredit: Option[PaymentSection], paymentEnabled: Boolean, specialCircumstances: Option[String] = None) {
+
+  def informationMessage: Option[String] = {
+    if(specialCircumstances.isDefined) {
+      Play.current.configuration.getString(s"specialCircumstanceMessage.${specialCircumstances.get}")
+    }
+    else None
+  }
+
   def totalsByDate: Option[List[Total]] = {
     val wtc = workingTaxCredit.map(_.paymentSeq).getOrElse(List())
     val ctc = childTaxCredit.map(_.paymentSeq).getOrElse(List())
@@ -72,7 +81,8 @@ object PaymentSummary {
   implicit val reads: Reads[PaymentSummary] = (
       (JsPath \ "workingTaxCredit").readNullable[PaymentSection] and
       (JsPath \ "childTaxCredit").readNullable[PaymentSection] and
-      (JsPath \ "paymentEnabled").read[Boolean]
+      (JsPath \ "paymentEnabled").read[Boolean] and
+      (JsPath \ "specialCircumstances").readNullable[String]
     )(PaymentSummary.apply _)
 
   implicit val writes: Writes[PaymentSummary] = new Writes[PaymentSummary] {
@@ -80,12 +90,13 @@ object PaymentSummary {
     def writes(paymentSummary: PaymentSummary) = {
       val paymentSummaryWrites = (
         (__ \ "workingTaxCredit").writeNullable[PaymentSection] ~
-          (__ \ "childTaxCredit").writeNullable[PaymentSection] ~
-          (__ \ "paymentEnabled").write[Boolean] ~
-          (__ \ "totalsByDate").writeNullable[List[Total]]
+        (__ \ "childTaxCredit").writeNullable[PaymentSection] ~
+        (__ \ "paymentEnabled").write[Boolean] ~
+        (__ \ "informationMessage").writeNullable[String] ~
+        (__ \ "totalsByDate").writeNullable[List[Total]]
       ).tupled
 
-      paymentSummaryWrites.writes(paymentSummary.workingTaxCredit, paymentSummary.childTaxCredit, paymentSummary.paymentEnabled, paymentSummary.totalsByDate)
+      paymentSummaryWrites.writes(paymentSummary.workingTaxCredit, paymentSummary.childTaxCredit, paymentSummary.paymentEnabled, paymentSummary.informationMessage, paymentSummary.totalsByDate)
     }
   }
 
