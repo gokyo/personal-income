@@ -18,9 +18,9 @@ package uk.gov.hmrc.personalincome.domain
 
 import play.api.libs.json.{JsSuccess, Json}
 import uk.gov.hmrc.personalincome.domain.userdata.PaymentSummary
-import uk.gov.hmrc.play.test.UnitSpec
+import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
-class PaymentSummarySpec extends UnitSpec {
+class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
 
 
   "PaymentSummary" should {
@@ -172,9 +172,131 @@ class PaymentSummarySpec extends UnitSpec {
       paymentSummary.workingTaxCredit.isDefined shouldBe true
       paymentSummary.totalsByDate.isDefined shouldBe true
 
-      print( Json.stringify(Json.toJson(paymentSummary)))
       Json.stringify(Json.toJson(paymentSummary)) shouldBe """{"workingTaxCredit":{"paymentSeq":[{"amount":55,"paymentDate":1499814000000,"oneOffPayment":false},{"amount":55,"paymentDate":1500418800000,"oneOffPayment":false},{"amount":55,"paymentDate":1499209200000,"oneOffPayment":false}],"paymentFrequency":"weekly"},"childTaxCredit":{"paymentSeq":[{"amount":55,"paymentDate":1500418800000,"oneOffPayment":false},{"amount":55,"paymentDate":1499814000000,"oneOffPayment":false},{"amount":55,"paymentDate":1499209200000,"oneOffPayment":false}],"paymentFrequency":"weekly"},"paymentEnabled":true,"totalsByDate":[{"amount":110,"paymentDate":1499209200000},{"amount":110,"paymentDate":1499814000000},{"amount":110,"paymentDate":1500418800000}]}"""
     }
 
+  }
+
+  "correctly parse the informationMessage" in {
+    val request = """{
+                    |  "workingTaxCredit": {
+                    |    "paymentSeq": [
+                    |      {
+                    |        "amount": 55.00,
+                    |        "paymentDate": 1499814000000,
+                    |        "oneOffPayment": false
+                    |      },
+                    |      {
+                    |        "amount": 55.00,
+                    |        "paymentDate": 1500418800000,
+                    |        "oneOffPayment": false
+                    |      },
+                    |      {
+                    |        "amount": 55.00,
+                    |        "paymentDate": 1499209200000,
+                    |        "oneOffPayment": false
+                    |      }
+                    |    ],
+                    |    "paymentFrequency": "weekly"
+                    |  },
+                    |  "childTaxCredit": {
+                    |    "paymentSeq": [
+                    |      {
+                    |        "amount": 55.00,
+                    |        "paymentDate": 1500418800000,
+                    |        "oneOffPayment": false
+                    |      },
+                    |      {
+                    |        "amount": 55.00,
+                    |        "paymentDate": 1499814000000,
+                    |        "oneOffPayment": false
+                    |      },
+                    |      {
+                    |        "amount": 55.00,
+                    |        "paymentDate": 1499209200000,
+                    |        "oneOffPayment": false
+                    |      }
+                    |    ],
+                    |    "paymentFrequency": "weekly"
+                    |  },
+                    |  "specialCircumstances": "FTNAE",
+                    |  "paymentEnabled": true
+                    |}""".stripMargin
+
+    val response = Json.parse(request).validate[PaymentSummary]
+    val paymentSummary = response match {
+      case success: JsSuccess[PaymentSummary] => {
+        success.get
+      }
+    }
+    paymentSummary.paymentEnabled shouldBe true
+    paymentSummary.childTaxCredit.isDefined shouldBe true
+    paymentSummary.workingTaxCredit.isDefined shouldBe true
+    paymentSummary.informationMessage.isDefined shouldBe true
+    paymentSummary.totalsByDate.isDefined shouldBe true
+
+    Json.stringify(Json.toJson(paymentSummary)) shouldBe """{"workingTaxCredit":{"paymentSeq":[{"amount":55,"paymentDate":1499814000000,"oneOffPayment":false},{"amount":55,"paymentDate":1500418800000,"oneOffPayment":false},{"amount":55,"paymentDate":1499209200000,"oneOffPayment":false}],"paymentFrequency":"weekly"},"childTaxCredit":{"paymentSeq":[{"amount":55,"paymentDate":1500418800000,"oneOffPayment":false},{"amount":55,"paymentDate":1499814000000,"oneOffPayment":false},{"amount":55,"paymentDate":1499209200000,"oneOffPayment":false}],"paymentFrequency":"weekly"},"paymentEnabled":true,"informationMessage":"We are currently working out your payments as your child is changing their education or training. This should be done by 7 September 2017. If your child is staying in education or training, update their details on GOV.UK.","totalsByDate":[{"amount":110,"paymentDate":1499209200000},{"amount":110,"paymentDate":1499814000000},{"amount":110,"paymentDate":1500418800000}]}"""
+  }
+
+
+  "correctly parse NO informationMessage if specialCircumstance value is not configured" in {
+    val request = """{
+                    |  "workingTaxCredit": {
+                    |    "paymentSeq": [
+                    |      {
+                    |        "amount": 55.00,
+                    |        "paymentDate": 1499814000000,
+                    |        "oneOffPayment": false
+                    |      },
+                    |      {
+                    |        "amount": 55.00,
+                    |        "paymentDate": 1500418800000,
+                    |        "oneOffPayment": false
+                    |      },
+                    |      {
+                    |        "amount": 55.00,
+                    |        "paymentDate": 1499209200000,
+                    |        "oneOffPayment": false
+                    |      }
+                    |    ],
+                    |    "paymentFrequency": "weekly"
+                    |  },
+                    |  "childTaxCredit": {
+                    |    "paymentSeq": [
+                    |      {
+                    |        "amount": 55.00,
+                    |        "paymentDate": 1500418800000,
+                    |        "oneOffPayment": false
+                    |      },
+                    |      {
+                    |        "amount": 55.00,
+                    |        "paymentDate": 1499814000000,
+                    |        "oneOffPayment": false
+                    |      },
+                    |      {
+                    |        "amount": 55.00,
+                    |        "paymentDate": 1499209200000,
+                    |        "oneOffPayment": false
+                    |      }
+                    |    ],
+                    |    "paymentFrequency": "weekly"
+                    |  },
+                    |  "specialCircumstances": "This key hasnt been configured",
+                    |  "paymentEnabled": true
+                    |}""".stripMargin
+
+    val response = Json.parse(request).validate[PaymentSummary]
+    val paymentSummary = response match {
+      case success: JsSuccess[PaymentSummary] => {
+        success.get
+      }
+    }
+    paymentSummary.paymentEnabled shouldBe true
+    paymentSummary.childTaxCredit.isDefined shouldBe true
+    paymentSummary.workingTaxCredit.isDefined shouldBe true
+    paymentSummary.informationMessage.isDefined shouldBe false
+    paymentSummary.totalsByDate.isDefined shouldBe true
+
+    Json.stringify(Json.toJson(paymentSummary)) shouldBe """{"workingTaxCredit":{"paymentSeq":[{"amount":55,"paymentDate":1499814000000,"oneOffPayment":false},{"amount":55,"paymentDate":1500418800000,"oneOffPayment":false},{"amount":55,"paymentDate":1499209200000,"oneOffPayment":false}],"paymentFrequency":"weekly"},"childTaxCredit":{"paymentSeq":[{"amount":55,"paymentDate":1500418800000,"oneOffPayment":false},{"amount":55,"paymentDate":1499814000000,"oneOffPayment":false},{"amount":55,"paymentDate":1499209200000,"oneOffPayment":false}],"paymentFrequency":"weekly"},"paymentEnabled":true,"totalsByDate":[{"amount":110,"paymentDate":1499209200000},{"amount":110,"paymentDate":1499814000000},{"amount":110,"paymentDate":1500418800000}]}"""
   }
 }
