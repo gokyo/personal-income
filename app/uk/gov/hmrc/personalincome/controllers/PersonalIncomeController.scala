@@ -167,7 +167,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
 
       case (None , Some(value)) => func(hc)
 
-      case (t@Some(token), None) => func(hc.copy(extraHeaders = Seq(HeaderKeys.tcrAuthToken -> token)))
+      case (Some(token), None) => func(hc.copy(extraHeaders = Seq(HeaderKeys.tcrAuthToken -> token)))
 
       case _ =>
         val default: ErrorResponse = ErrorNoAuthToken
