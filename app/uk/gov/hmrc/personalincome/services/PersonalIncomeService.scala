@@ -53,7 +53,7 @@ trait PersonalIncomeService {
 
   def submitRenewal(nino: Nino, tcrRenewal:TcrRenewal)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Response]
 
-  def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier, ex: ExecutionContext): Future[Either[TaxCreditSummaryOld,TaxCreditSummary]]
+  def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier, ex: ExecutionContext): Future[TaxCreditSummary]
 }
 
 trait LivePersonalIncomeService extends PersonalIncomeService with Auditor with RenewalStatus {
@@ -158,7 +158,7 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor with 
     }
   }
 
-  override def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier, ex: ExecutionContext): Future[Either[TaxCreditSummaryOld, TaxCreditSummary]] = {
+  override def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier, ex: ExecutionContext): Future[TaxCreditSummary] = {
     withAudit("getTaxCreditSummary", Map("nino" -> nino.value)) {
 
       val tcNino = TaxCreditsNino(nino.value)
@@ -178,12 +178,7 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor with 
         partnerDetails <- partnerDetailsFuture
         paymentSummary <- paymentSummaryFuture
         personalDetails <- personalDetailsFuture
-      } yield {
-        paymentSummary match {
-          case Left(_) => Left(TaxCreditSummaryOld(paymentSummary.left.get, personalDetails, partnerDetails, children))
-          case Right(_) => Right(TaxCreditSummary(paymentSummary.right.get, personalDetails, partnerDetails, children))
-        }
-      }
+      } yield (TaxCreditSummary(paymentSummary, personalDetails, partnerDetails, children))
     }
   }
 }
@@ -272,13 +267,9 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
     Future.successful(uk.gov.hmrc.personalincome.connectors.Success(200))
   }
 
-  override def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier, ex: ExecutionContext): Future[Either[TaxCreditSummaryOld, TaxCreditSummary]] = {
+  override def getTaxCreditSummary(nino:Nino)(implicit hc:HeaderCarrier, ex: ExecutionContext): Future[TaxCreditSummary] = {
     val resource :String = findResource(s"/resources/taxcreditsummary/${nino.value}.json").getOrElse(throw new IllegalArgumentException("Resource not found!"))
-    val response = Json.parse(resource).validate[TaxCreditSummaryOld] match {
-      case success: JsSuccess[TaxCreditSummaryOld] => Left(success.get)
-      case _ => Right(Json.parse(resource).as[TaxCreditSummary])
-    }
-    Future.successful(response)
+    Future.successful(Json.parse(resource).as[TaxCreditSummary])
   }
 
   override def getTaxCreditExclusion(nino: Nino)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Exclusion] = Future.successful(Exclusion(false))

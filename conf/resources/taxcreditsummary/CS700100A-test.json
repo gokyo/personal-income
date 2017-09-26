@@ -1,15 +1,33 @@
 {
   "paymentSummary": {
     "workingTaxCredit": {
-      "amount": 160.34,
-      "paymentDate": 1437004800000,
-      "paymentFrequency": "WEEKLY"
+      "paymentSeq": [
+        {
+          "amount": 55.00,
+          "paymentDate": 1509008158781,
+          "oneOffPayment": false
+        }
+      ],
+      "paymentFrequency": "weekly",
+      "previousPaymentSeq": [
+        {
+          "amount": 33.00,
+          "paymentDate": 1503737758781,
+          "oneOffPayment": false
+        }
+      ]
     },
     "childTaxCredit": {
-      "amount": 140.12,
-      "paymentDate": 1437004800000,
-      "paymentFrequency": "WEEKLY"
-    }
+      "paymentSeq": [
+        {
+          "amount": 59.22,
+          "paymentDate": 1509008158781,
+          "oneOffPayment": false
+        }
+      ],
+      "paymentFrequency": "weekly"
+    },
+    "paymentEnabled": true
   },
   "personalDetails": {
     "forename": "firstname",

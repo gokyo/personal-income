@@ -18,22 +18,8 @@ package uk.gov.hmrc.personalincome.domain.userdata
 
 import org.joda.time.DateTime
 import play.api.Play
-import play.api.libs.json._
 import play.api.libs.functional.syntax._
-
-case class PaymentSummaryOld(workingTaxCredit: Option[PaymentOld], childTaxCredit: Option[PaymentOld])
-
-case class PaymentOld(amount: Double, paymentDate: DateTime, paymentFrequency:Option[String])
-
-object PaymentOld {
-  implicit val formats = Json.format[PaymentOld]
-}
-
-object PaymentSummaryOld {
-  def key: String = "payments-data"
-
-  implicit val formats = Json.format[PaymentSummaryOld]
-}
+import play.api.libs.json._
 
 case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCredit: Option[PaymentSection], paymentEnabled: Boolean, specialCircumstances: Option[String] = None) {
 
@@ -45,18 +31,26 @@ case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCred
   }
 
   def totalsByDate: Option[List[Total]] = {
-    val wtc = workingTaxCredit.map(_.paymentSeq).getOrElse(List())
-    val ctc = childTaxCredit.map(_.paymentSeq).getOrElse(List())
-    val all: Seq[Payment] = wtc.union(ctc)
-    if (all.isEmpty) None
+    total(workingTaxCredit.map(_.paymentSeq).getOrElse(Seq.empty)
+      ++childTaxCredit.map(_.paymentSeq).getOrElse(Seq.empty))
+  }
+
+  def previousTotalsByDate: Option[List[Total]] = {
+    total(workingTaxCredit.map(_.previousPaymentSeq).flatten.getOrElse(Seq.empty)
+        ++childTaxCredit.map(_.previousPaymentSeq).flatten.getOrElse(Seq.empty))
+  }
+
+  private def total(payments: Seq[Payment]): Option[List[Total]] = {
+    if(payments.isEmpty) None
     else {
-      val distinctDate  = all.map(_.paymentDate).distinct.sortBy(_.toDate)
-      Option(distinctDate.map(date => Total(all.filter(_.paymentDate.equals(date)).foldLeft(0.0)(_ + _.amount),date)).toList)
+      val distinctDate  = payments.map(_.paymentDate).distinct.sortBy(_.toDate)
+      Option(distinctDate.map(date => Total(payments.filter(_.paymentDate.equals(date)).foldLeft(0.0)(_ + _.amount),date)).toList)
     }
   }
 }
 
-case class PaymentSection(paymentSeq: List[Payment], paymentFrequency: String)
+case class PaymentSection(paymentSeq: List[Payment], paymentFrequency: String,
+                          previousPaymentSeq: Option[List[Payment]] = None)
 
 case class Payment(amount: Double, paymentDate: DateTime, oneOffPayment: Boolean)
 
@@ -93,10 +87,11 @@ object PaymentSummary {
         (__ \ "childTaxCredit").writeNullable[PaymentSection] ~
         (__ \ "paymentEnabled").write[Boolean] ~
         (__ \ "informationMessage").writeNullable[String] ~
-        (__ \ "totalsByDate").writeNullable[List[Total]]
+        (__ \ "totalsByDate").writeNullable[List[Total]] ~
+        (__ \ "previousTotalsByDate").writeNullable[List[Total]]
       ).tupled
 
-      paymentSummaryWrites.writes(paymentSummary.workingTaxCredit, paymentSummary.childTaxCredit, paymentSummary.paymentEnabled, paymentSummary.informationMessage, paymentSummary.totalsByDate)
+      paymentSummaryWrites.writes(paymentSummary.workingTaxCredit, paymentSummary.childTaxCredit, paymentSummary.paymentEnabled, paymentSummary.informationMessage, paymentSummary.totalsByDate, paymentSummary.previousTotalsByDate)
     }
   }
 
