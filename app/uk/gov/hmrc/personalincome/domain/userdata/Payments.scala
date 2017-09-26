@@ -36,8 +36,8 @@ case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCred
   }
 
   def previousTotalsByDate: Option[List[Total]] = {
-    total(workingTaxCredit.map(_.previousPaymentSeq).flatten.getOrElse(Seq.empty)
-        ++childTaxCredit.map(_.previousPaymentSeq).flatten.getOrElse(Seq.empty))
+    total(workingTaxCredit.flatMap(_.previousPaymentSeq).getOrElse(Seq.empty)
+        ++childTaxCredit.flatMap(_.previousPaymentSeq).getOrElse(Seq.empty))
   }
 
   private def total(payments: Seq[Payment]): Option[List[Total]] = {
