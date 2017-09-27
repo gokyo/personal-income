@@ -44,7 +44,7 @@ case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCred
     if(payments.isEmpty) None
     else {
       val distinctDate  = payments.map(_.paymentDate).distinct.sortBy(_.toDate)
-      Option(distinctDate.map(date => Total(payments.filter(_.paymentDate.equals(date)).foldLeft(0.0)(_ + _.amount),date)).toList)
+      Option(distinctDate.map(date => Total(payments.filter(_.paymentDate.equals(date)).foldLeft(0.0)(_ + _.amount.*(100))./(100),date)).toList)
     }
   }
 }
