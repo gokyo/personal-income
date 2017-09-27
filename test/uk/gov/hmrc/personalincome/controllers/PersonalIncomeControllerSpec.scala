@@ -400,14 +400,6 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
     }
 
-    "process the request successfully and filter children older than 20 and where deceased flags are active - Backwards Compatible" in new BackwardsCompatibleSuccess {
-      val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxRenewalSummaryOldWithoutChildrenOverAge20)
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
-    }
-
     "return 401 when the nino in the request does not match the authority nino" in new AccessCheck {
       val result = await(controller.taxCreditsSummary(ninoIncorrect)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
@@ -421,26 +413,11 @@ class TestPersonalIncomeRenewalSummarySpec extends UnitSpec with WithFakeApplica
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
     }
 
-    "return 429 HTTP status when retrieval of children returns 503 - Backwards Compatible" in new BackwardsCompatible_Generate_503 {
-      val result = await(controller.taxCreditsSummary(nino)(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
-
-      status(result) shouldBe 429
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
-    }
-
     "return the summary successfully when journeyId is supplied" in new Success {
       val result = await(controller.taxCreditsSummary(nino, Some(journeyId))(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.toJson(taxRenewalSummaryWithoutChildrenOverAge20)
-      testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
-    }
-
-    "return the summary successfully when journeyId is supplied - Backwards Compatible" in new BackwardsCompatibleSuccess {
-      val result = await(controller.taxCreditsSummary(nino, Some(journeyId))(emptyRequestWithAcceptHeaderAndAuthHeader(renewalReference)))
-
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.toJson(taxRenewalSummaryOldWithoutChildrenOverAge20)
       testPersonalIncomeService.saveDetails shouldBe Map("nino" -> nino.value)
     }
 
