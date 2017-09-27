@@ -44,7 +44,8 @@ case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCred
     if(payments.isEmpty) None
     else {
       val distinctDate  = payments.map(_.paymentDate).distinct.sortBy(_.toDate)
-      Option(distinctDate.map(date => Total(payments.filter(_.paymentDate.equals(date)).foldLeft(0.0)(_ + _.amount.*(100))./(100),date)).toList)
+      Option(distinctDate.map(date => Total(payments.filter(_.paymentDate.equals(date))
+        .foldLeft(BigDecimal(0))(_ + _.amount),date)).toList)
     }
   }
 }
@@ -52,9 +53,9 @@ case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCred
 case class PaymentSection(paymentSeq: List[Payment], paymentFrequency: String,
                           previousPaymentSeq: Option[List[Payment]] = None)
 
-case class Payment(amount: Double, paymentDate: DateTime, oneOffPayment: Boolean)
+case class Payment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment: Boolean)
 
-case class Total(amount: Double, paymentDate: DateTime)
+case class Total(amount: BigDecimal, paymentDate: DateTime)
 
 object Payment {
   implicit val formats = Json.format[Payment]
