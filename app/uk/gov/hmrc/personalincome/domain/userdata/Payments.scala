@@ -87,12 +87,13 @@ object PaymentSummary {
         (__ \ "workingTaxCredit").writeNullable[PaymentSection] ~
         (__ \ "childTaxCredit").writeNullable[PaymentSection] ~
         (__ \ "paymentEnabled").write[Boolean] ~
+        (__ \ "specialCircumstances").writeNullable[String] ~
         (__ \ "informationMessage").writeNullable[String] ~
         (__ \ "totalsByDate").writeNullable[List[Total]] ~
         (__ \ "previousTotalsByDate").writeNullable[List[Total]]
       ).tupled
 
-      paymentSummaryWrites.writes(paymentSummary.workingTaxCredit, paymentSummary.childTaxCredit, paymentSummary.paymentEnabled, paymentSummary.informationMessage, paymentSummary.totalsByDate, paymentSummary.previousTotalsByDate)
+      paymentSummaryWrites.writes(paymentSummary.workingTaxCredit, paymentSummary.childTaxCredit, paymentSummary.paymentEnabled, paymentSummary.specialCircumstances, paymentSummary.informationMessage, paymentSummary.totalsByDate, paymentSummary.previousTotalsByDate)
     }
   }
 
