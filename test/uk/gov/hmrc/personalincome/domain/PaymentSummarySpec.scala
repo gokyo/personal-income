@@ -431,6 +431,7 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
       s"""{
          |$wtc, $ctc,
          |"paymentEnabled": true,
+         |"specialCircumstances":"FTNAE",
          |"informationMessage": "We are currently working out your payments as your child is changing their education or training. This should be done by 7 September 2017. If your child is staying in education or training, update their details on GOV.UK.",
          |$totalsByDate
          |}""".stripMargin))
@@ -482,6 +483,7 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
       s"""
          |{$wtc,$ctc,
          |"paymentEnabled": true,
+         |"specialCircumstances":"This key has not been configured",
          |$totalsByDate
          |}""".stripMargin))
     val response = Json.parse(request).validate[PaymentSummary]
