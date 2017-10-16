@@ -18,7 +18,24 @@
           "oneOffPayment": false
         }
       ],
-      "paymentFrequency": "weekly"
+      "paymentFrequency": "weekly",
+      "previousPaymentSeq": [
+        {
+          "amount": 33,
+          "paymentDate": 1503737758781,
+          "oneOffPayment": false
+        },
+        {
+          "amount": 43,
+          "paymentDate": 1501059358781,
+          "oneOffPayment": false
+        },
+        {
+          "amount": 53,
+          "paymentDate": 1498467358781,
+          "oneOffPayment": false
+        }
+      ]
     },
     "childTaxCredit": {
       "paymentSeq": [
@@ -53,6 +70,20 @@
       {
         "amount": 110,
         "paymentDate": 1514282158781
+      }
+    ],
+    "previousTotalsByDate": [
+      {
+        "amount": 53,
+        "paymentDate": 1498467358781
+      },
+      {
+        "amount": 43,
+        "paymentDate": 1501059358781
+      },
+      {
+        "amount": 33,
+        "paymentDate": 1503737758781
       }
     ]
   },
