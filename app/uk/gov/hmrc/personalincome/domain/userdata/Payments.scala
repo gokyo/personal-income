@@ -35,6 +35,11 @@ case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCred
       ++childTaxCredit.map(_.paymentSeq).getOrElse(Seq.empty))
   }
 
+  def previousTotalsByDate: Option[List[Total]] = {
+    total(workingTaxCredit.flatMap(_.previousPaymentSeq).getOrElse(Seq.empty)
+        ++childTaxCredit.flatMap(_.previousPaymentSeq).getOrElse(Seq.empty))
+  }
+
   private def total(payments: Seq[Payment]): Option[List[Total]] = {
     if(payments.isEmpty) None
     else {
@@ -45,7 +50,8 @@ case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCred
   }
 }
 
-case class PaymentSection(paymentSeq: List[Payment], paymentFrequency: String)
+case class PaymentSection(paymentSeq: List[Payment], paymentFrequency: String,
+                          previousPaymentSeq: Option[List[Payment]] = None)
 
 case class Payment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment: Boolean)
 
@@ -83,10 +89,11 @@ object PaymentSummary {
         (__ \ "paymentEnabled").write[Boolean] ~
         (__ \ "specialCircumstances").writeNullable[String] ~
         (__ \ "informationMessage").writeNullable[String] ~
-        (__ \ "totalsByDate").writeNullable[List[Total]]
+        (__ \ "totalsByDate").writeNullable[List[Total]] ~
+        (__ \ "previousTotalsByDate").writeNullable[List[Total]]
       ).tupled
 
-      paymentSummaryWrites.writes(paymentSummary.workingTaxCredit, paymentSummary.childTaxCredit, paymentSummary.paymentEnabled, paymentSummary.specialCircumstances, paymentSummary.informationMessage, paymentSummary.totalsByDate)
+      paymentSummaryWrites.writes(paymentSummary.workingTaxCredit, paymentSummary.childTaxCredit, paymentSummary.paymentEnabled, paymentSummary.specialCircumstances, paymentSummary.informationMessage, paymentSummary.totalsByDate, paymentSummary.previousTotalsByDate)
     }
   }
 
