@@ -93,10 +93,8 @@ object PaymentSummary {
         (__ \ "previousTotalsByDate").writeNullable[List[Total]]
       ).tupled
 
-      paymentSummaryWrites.writes(paymentSummary.workingTaxCredit, paymentSummary.childTaxCredit, paymentSummary.paymentEnabled, paymentSummary.specialCircumstances, paymentSummary.informationMessage, paymentSummary.totalsByDate, paymentSummary.previousTotalsByDate)
+      paymentSummaryWrites.writes((paymentSummary.workingTaxCredit, paymentSummary.childTaxCredit, paymentSummary.paymentEnabled, paymentSummary.specialCircumstances, paymentSummary.informationMessage, paymentSummary.totalsByDate, paymentSummary.previousTotalsByDate))
     }
   }
 
-
 }
-

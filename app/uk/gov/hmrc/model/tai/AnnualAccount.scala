@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.model.tai
 
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.model.nps2.{Iabd, NpsEmployment, TaxAccount}
 import uk.gov.hmrc.model.rti.{RtiData, RtiStatus}
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 case class AnnualAccount(
   year: TaxYear,

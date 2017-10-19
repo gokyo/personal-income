@@ -22,12 +22,12 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import it.utils.{MicroserviceLocalRunSugar, WiremockServiceLocatorSugar}
 import org.scalatest.BeforeAndAfter
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.time.{Millis, Span}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.api.controllers.DocumentationController
 import uk.gov.hmrc.play.test.UnitSpec
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
 
 /**
   * Testcase to verify the capability of integration with the API platform.

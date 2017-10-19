@@ -19,7 +19,7 @@ package uk.gov.hmrc.personalincome.domain
 import com.ning.http.util.Base64
 import play.api.libs.json.Json
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.play.http.BadRequestException
+import uk.gov.hmrc.http.BadRequestException
 
 import scala.util.Try
 

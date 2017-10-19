@@ -19,10 +19,10 @@ package uk.gov.hmrc.personalincome.connectors
 import play.api.Logger
 import play.api.http.Status._
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.http._
 import uk.gov.hmrc.personalincome.config.{ServicesCircuitBreaker, WSHttp}
 import uk.gov.hmrc.personalincome.domain.TaxSummaryDetails
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -32,7 +32,7 @@ trait TaiConnector {
 
   val externalServiceName = "tai"
 
-  def http: HttpGet with HttpPost
+  def http: CoreGet with CorePost
 
   def serviceUrl: String
 
