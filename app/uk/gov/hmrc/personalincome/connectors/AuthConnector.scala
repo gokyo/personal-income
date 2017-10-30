@@ -16,28 +16,28 @@
 
 package uk.gov.hmrc.personalincome.connectors
 
-import uk.gov.hmrc.personalincome.config.WSHttp
-import uk.gov.hmrc.personalincome.domain.Accounts
 import play.api.Play
 import play.api.libs.json.JsValue
+import uk.gov.hmrc.domain.{Nino, SaUtr}
+import uk.gov.hmrc.http.{CoreGet, HeaderCarrier}
+import uk.gov.hmrc.personalincome.config.WSHttp
+import uk.gov.hmrc.personalincome.domain.Accounts
+import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet}
 
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.domain.{Nino, SaUtr}
-import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
 
 
-class FailToMatchTaxIdOnAuth(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
-class NinoNotFoundOnAccount(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
-class AccountWithLowCL(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
-class AccountWithWeakCredStrength(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
+class FailToMatchTaxIdOnAuth(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
+class NinoNotFoundOnAccount(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
+class AccountWithLowCL(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
+class AccountWithWeakCredStrength(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
 
 trait AuthConnector {
 
   val serviceUrl: String
 
-  def http: HttpGet
+  def http: CoreGet
 
   def serviceConfidenceLevel: ConfidenceLevel
 

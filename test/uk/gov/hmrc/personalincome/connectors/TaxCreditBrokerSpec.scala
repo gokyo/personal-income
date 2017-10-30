@@ -16,30 +16,32 @@
 
 package uk.gov.hmrc.personalincome.connectors
 
+import com.typesafe.config.Config
+import org.joda.time.DateTime
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.Json
 import play.api.test.FakeApplication
+import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.hooks.HttpHook
 import uk.gov.hmrc.personalincome.config.ServicesCircuitBreaker
 import uk.gov.hmrc.personalincome.controllers.StubApplicationConfiguration
-import uk.gov.hmrc.personalincome.domain.userdata._
 import uk.gov.hmrc.personalincome.domain.TaxCreditsNino
-import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.personalincome.domain.userdata._
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http._
-import uk.gov.hmrc.play.http.hooks.HttpHook
-import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
-import org.joda.time.DateTime
+import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 
 class TaxCreditsBrokerTestConnector(response:Option[Future[HttpResponse]]=None) extends TaxCreditsBrokerConnector with ServicesConfig with ServicesCircuitBreaker {
 
-  override lazy val http: HttpGet = new HttpGet {
+  override lazy val http: CoreGet = new CoreGet with HttpGet {
     override val hooks: Seq[HttpHook] = NoneRequired
+    override def configuration: Option[Config] = None
 
-    override protected def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = response.getOrElse(throw new Exception("No response defined!"))
+    override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = response.getOrElse(throw new Exception("No response defined!"))
   }
 
   override def serviceUrl: String = "some-url"

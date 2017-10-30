@@ -18,11 +18,11 @@ package uk.gov.hmrc.personalincome.connectors
 
 import play.api.Logger
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.http.{CoreGet, CorePost, HeaderCarrier}
 import uk.gov.hmrc.personalincome.config.{ServicesCircuitBreaker, WSHttp}
 import uk.gov.hmrc.personaltaxsummary.domain.PersonalTaxSummaryContainer
 import uk.gov.hmrc.personaltaxsummary.viewmodels.{PTSEstimatedIncomeViewModel, PTSYourTaxableIncomeViewModel}
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,7 +31,7 @@ trait PersonalTaxSummaryConnector {
 
   val externalServiceName = "personal-tax-summary"
 
-  def http: HttpGet with HttpPost
+  def http: CoreGet with CorePost
 
   def serviceUrl: String
 

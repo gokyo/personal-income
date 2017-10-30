@@ -16,12 +16,11 @@
 
 package uk.gov.hmrc.personalincome.connectors
 
+import uk.gov.hmrc.http.{CoreGet, HeaderCarrier}
 import uk.gov.hmrc.personalincome.config.{ServicesCircuitBreaker, WSHttp}
 import uk.gov.hmrc.personalincome.domain.TaxCreditsNino
 import uk.gov.hmrc.personalincome.domain.userdata._
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.HttpGet
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -30,7 +29,7 @@ trait TaxCreditsBrokerConnector {
 
   val externalServiceName = "tax-credits-broker"
 
-  def http: HttpGet
+  def http: CoreGet
 
   def serviceUrl: String
 

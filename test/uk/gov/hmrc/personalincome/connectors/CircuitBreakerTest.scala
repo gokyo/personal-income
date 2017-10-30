@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.personalincome.connectors
 
+import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.Future
-import org.scalatest.concurrent.ScalaFutures
 
 trait CircuitBreakerTest {
 
@@ -27,7 +27,7 @@ trait CircuitBreakerTest {
 
   def executeCB(func: => Future[Any]) = {
     1 to 5 foreach { _ =>
-      func.failed.futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream5xxResponse]
+      func.failed.futureValue shouldBe an[uk.gov.hmrc.http.Upstream5xxResponse]
     }
     func.failed.futureValue shouldBe an[uk.gov.hmrc.circuitbreaker.UnhealthyServiceException]
   }

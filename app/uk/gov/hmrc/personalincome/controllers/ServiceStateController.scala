@@ -20,6 +20,7 @@ package uk.gov.hmrc.personalincome.controllers
 import uk.gov.hmrc.api.controllers.HeaderValidator
 import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
 import uk.gov.hmrc.personalincome.domain.{SubmissionState, TaxCreditsControl, TaxCreditsSubmissionControl, TaxCreditsSubmissions}
+import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.time.DateTimeUtils
 
@@ -29,7 +30,6 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
 
   import play.api.libs.json.Json
   import uk.gov.hmrc.personalincome.domain.TaxCreditsSubmissions.formats
-  import uk.gov.hmrc.play.http.HeaderCarrier
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -38,7 +38,7 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
 
   final def taxCreditsSubmissionState(journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
-      implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
+      implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
       errorWrapper(
         Future {
           taxCreditsSubmissionControlConfig.toTaxCreditsSubmissions
@@ -49,7 +49,7 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
 
   final def taxCreditsSubmissionStateEnabled(journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
-      implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
+      implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
       errorWrapper(
         Future {
           taxCreditsSubmissionControlConfig.toSubmissionState

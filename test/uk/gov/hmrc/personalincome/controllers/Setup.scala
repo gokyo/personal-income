@@ -25,6 +25,7 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.http.{CoreGet, CorePost, HeaderCarrier, ServiceUnavailableException}
 import uk.gov.hmrc.personalincome.config.AppContext.RenewalStatusTransform
 import uk.gov.hmrc.personalincome.config.{AppContext, MicroserviceAuditConnector}
 import uk.gov.hmrc.personalincome.connectors._
@@ -36,7 +37,6 @@ import uk.gov.hmrc.personaltaxsummary.domain.PersonalTaxSummaryContainer
 import uk.gov.hmrc.personaltaxsummary.viewmodels.{IncomeTaxViewModel, PTSEstimatedIncomeViewModel, PTSYourTaxableIncomeViewModel}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
-import uk.gov.hmrc.play.http._
 import uk.gov.hmrc.time.DateTimeUtils
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -44,7 +44,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 class TestPersonalTaxSummaryConnector(taxSummaryContainer:Option[uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer]) extends PersonalTaxSummaryTestConnector {
-  override def http: HttpGet with HttpPost = ???
+  override def http: CoreGet with CorePost = ???
 
   override def serviceUrl: String = ???
 
@@ -54,7 +54,7 @@ class TestPersonalTaxSummaryConnector(taxSummaryContainer:Option[uk.gov.hmrc.per
 }
 
 class TestTaiConnector(taxSummaryDetails:Option[TaxSummaryDetails]) extends TaiTestConnector {
-  override def http: HttpGet with HttpPost = ???
+  override def http: CoreGet with CorePost = ???
 
   override def serviceUrl: String = ???
 
@@ -64,7 +64,7 @@ class TestTaiConnector(taxSummaryDetails:Option[TaxSummaryDetails]) extends TaiT
 }
 
 class TestNtcConnector(response:Response, tcrAuthToken:Option[TcrAuthenticationToken], claimantDetails:ClaimantDetails, claims:Claims) extends NtcTestConnector {
-  override def http: HttpGet with HttpPost = ???
+  override def http: CoreGet with CorePost = ???
 
   override def serviceUrl: String = ???
 
@@ -96,7 +96,7 @@ class TestAuthConnector(nino: Option[Nino], ex:Option[Exception]=None) extends A
 
   override def serviceConfidenceLevel: ConfidenceLevel = ???
 
-  override def http: HttpGet = ???
+  override def http: CoreGet = ???
 
   override def accounts()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Accounts] = Future(Accounts(nino, None, false, false))
 

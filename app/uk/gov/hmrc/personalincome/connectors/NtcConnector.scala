@@ -17,10 +17,10 @@
 package uk.gov.hmrc.personalincome.connectors
 
 import play.Logger
+import uk.gov.hmrc.http._
 import uk.gov.hmrc.personalincome.config.{ServicesCircuitBreaker, WSHttp}
 import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,7 +36,7 @@ trait NtcConnector {
 
   val externalServiceName = "ntc"
 
-  def http: HttpGet with HttpPost
+  def http: CoreGet with CorePost
 
   def serviceUrl: String
 

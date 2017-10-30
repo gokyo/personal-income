@@ -30,7 +30,7 @@ package object rti {
 
   implicit val log: Logger = LoggerFactory.getLogger(this.getClass)
 
-  implicit val freqFormat: Format[_root_.uk.gov.hmrc.model.rti.PayFrequency.Value] = JsonExtra.enumerationFormat(PayFrequency)
+  implicit val freqFormat: Format[uk.gov.hmrc.model.rti.PayFrequency.Value] = JsonExtra.enumerationFormat(PayFrequency)
 
   implicit val stringMapFormat: Format[Map[String, BigDecimal]] = JsonExtra.mapFormat[String,BigDecimal]("type", "amount")
 

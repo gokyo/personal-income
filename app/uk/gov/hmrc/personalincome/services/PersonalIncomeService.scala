@@ -19,10 +19,11 @@ package uk.gov.hmrc.personalincome.services
 import com.github.nscala_time.time.Imports._
 import com.ning.http.util.Base64
 import play.api.Logger
-import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
+import play.api.libs.json.{JsError, Json}
 import uk.gov.hmrc.api.sandbox._
 import uk.gov.hmrc.api.service._
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.personalincome.config.AppContext.RenewalStatusTransform
 import uk.gov.hmrc.personalincome.config.{AppContext, MicroserviceAuditConnector}
 import uk.gov.hmrc.personalincome.connectors._
@@ -33,7 +34,6 @@ import uk.gov.hmrc.personalincome.viewmodelfactories.TaxSummaryContainerFactory
 import uk.gov.hmrc.personaltaxsummary.domain.{PersonalTaxSummaryContainer, TaxSummaryContainer}
 import uk.gov.hmrc.personaltaxsummary.viewmodels.IncomeTaxViewModel
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try

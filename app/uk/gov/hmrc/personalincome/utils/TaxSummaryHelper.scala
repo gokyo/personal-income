@@ -161,7 +161,7 @@ object TaxSummaryHelper {
         amount = MoneyPounds(rawAmt, 0).quantity
 
         dividendsData = if (rawAmt > 0)
-          Some(message._2, amount, message._1)
+          Some((message._2, amount, message._1))
         else
           None
 
@@ -185,7 +185,7 @@ object TaxSummaryHelper {
         amount = MoneyPounds(rawAmt, 0).quantity
 
         bankInterestData = if (rawAmt > 0)
-          Some(message._2, amount, message._1)
+          Some((message._2, amount, message._1))
         else
           None
 
@@ -208,7 +208,7 @@ object TaxSummaryHelper {
         amount = MoneyPounds(rawAmt, 0).quantity
 
         unTaxedInterestData = if (rawAmt > 0)
-          Some(message._2, amount, message._1)
+          Some((message._2, amount, message._1))
         else
           None
 
@@ -231,7 +231,7 @@ object TaxSummaryHelper {
         amount = MoneyPounds(rawAmt, 0).quantity
 
         foreignInterestData = if (rawAmt > 0)
-          Some(message._2, amount, message._1)
+          Some((message._2, amount, message._1))
         else
           None
 
@@ -255,7 +255,7 @@ object TaxSummaryHelper {
         amount = MoneyPounds(rawAmt, 0).quantity
 
         foreignDividendsData = if (rawAmt > 0)
-          Some(message._2, amount, message._1)
+          Some((message._2, amount, message._1))
         else
           None
 
@@ -330,7 +330,7 @@ object TaxSummaryHelper {
         amount = MoneyPounds(rawAmt, 0).quantity
 
         tStateBenefitData = if (rawAmt > 0)
-          Some(message._2, amount, message._1)
+          Some((message._2, amount, message._1))
         else
           None
 
@@ -375,7 +375,7 @@ object TaxSummaryHelper {
         amount :String = MoneyPounds(rawAmt, 0).quantity
 
         otherIncomeData = if (rawAmt > 0)
-          Some(message._2, amount, message._1)
+          Some((message._2, amount, message._1))
         else
           None
 
@@ -412,7 +412,7 @@ object TaxSummaryHelper {
         amount :String = MoneyPounds(rawAmt, 0).quantity
 
         otherPensionData = if (rawAmt > 0)
-          Some(message._2, amount, message._1)
+          Some((message._2, amount, message._1))
         else
           None
 
