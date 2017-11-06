@@ -6,15 +6,16 @@
   "taxRelief": false,
   "taxCodes": [],
   "potentialUnderpayment": false,
-  "additionalTaxTable": [
-    [
-      "Child Benefit",
-      "1,500.00"
-    ],
-    [
-      "Estimate of the tax you owe this year",
-      "500.00"
-    ]
+  "additionalTaxTableV2": [
+    {
+      "description": "Child Benefit",
+      "amount": "1,500.00"
+    },
+    {
+      "description": "Estimate of the tax you owe this year",
+      "amount": "500.00",
+      "url": "/check-income-tax/other"
+    }
   ],
   "additionalTaxTableTotal": "2,000.00",
   "reductionsTable": [

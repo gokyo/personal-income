@@ -28,7 +28,7 @@ case class PTSEstimatedIncomeViewModel(
                                         taxRelief: Boolean = false,
                                         taxCodes: List[String] = List(),
                                         potentialUnderpayment:Boolean = false,
-                                        additionalTaxTable: List[(String,String)] = List(),
+                                        additionalTaxTableV2: List[PTSAdditionalTaxRow] = List(),
                                         additionalTaxTableTotal: String = "",
                                         reductionsTable: List[(String,String,String)] = List(),
                                         reductionsTableTotal: String = "",
@@ -43,6 +43,7 @@ case class PTSEstimatedIncomeViewModel(
                                         newGraph:BandedGraph
                                       )
 
+case class PTSAdditionalTaxRow(description:String, amount:String)
 
 
 
@@ -105,8 +106,11 @@ object EstimatedIncomeViewModel {
   implicit val format = Json.format[EstimatedIncomeViewModel]
 }
 
-object PTSEstimatedIncomeViewModel {
+object PTSAdditionalTaxRow {
+  implicit val format = Json.format[PTSAdditionalTaxRow]
+}
 
+object PTSEstimatedIncomeViewModel {
   import TupleFormats._
 
   implicit val format = Json.format[PTSEstimatedIncomeViewModel]
