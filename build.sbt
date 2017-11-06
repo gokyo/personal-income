@@ -27,6 +27,7 @@ routesGenerator := StaticRoutesGenerator
 
 Keys.fork in IntegrationTest := false
 unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value
+unmanagedResourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(base / "it-resources")).value
 addTestReportOption(IntegrationTest, "int-test-reports")
 testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value)
 parallelExecution in IntegrationTest := false

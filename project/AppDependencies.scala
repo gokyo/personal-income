@@ -10,7 +10,7 @@ private object AppDependencies {
   private val playUI = "7.8.0"
   private val circuitBreaker = "3.2.0"
   private val hmrctestVersion = "3.0.0"
-  private val wiremockVersion = "2.9.0"
+  private val wiremockVersion = "2.10.1"
   private val mockitoVersion = "2.11.0"
   private val scalatestplusPlayVersion = "2.0.1"
   private val cucumberVersion = "1.2.5"
