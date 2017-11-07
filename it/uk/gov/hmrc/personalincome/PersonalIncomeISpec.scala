@@ -52,11 +52,11 @@ class PersonalIncomeISpec extends BaseISpec {
       (estimatedIncome \ "additionalTaxTableTotal").as[BigDecimal] shouldBe BigDecimal("2000.99")
 
       val reductionsTable = (estimatedIncome \ "reductionsTable").as[JsArray]
-      (reductionsTable(1) \ "a").as[String] shouldBe "Tax on dividends"
-      (reductionsTable(1) \ "b").as[String] shouldBe "-2,000.00"
-      (reductionsTable(1) \ "c").as[String] shouldBe "Interest from company dividends is taxed at the dividend ordinary rate (10%) before it is paid to you."
+      (reductionsTable(1) \ "description").as[String] shouldBe "Tax on dividends"
+      (reductionsTable(1) \ "amount").as[BigDecimal] shouldBe BigDecimal(-2000)
+      (reductionsTable(1) \ "additionalInfo").as[String] shouldBe "Interest from company dividends is taxed at the dividend ordinary rate (10%) before it is paid to you."
 
-      (estimatedIncome \ "reductionsTableTotal").as[String] shouldBe "-3,040.00"
+      (estimatedIncome \ "reductionsTableTotal").as[BigDecimal] shouldBe BigDecimal(-3040)
     }
 
     "return 500 when personal-tax-summary returns an unparseable amount" in {

@@ -48,10 +48,35 @@ class PersonalIncomeAdaptersSpec extends WordSpec with Matchers {
       )
     }
 
-    "throw an exception when the number in a row can't be parsed" in {
+    "throw an exception when the number in an additionalTaxTableV2 row can't be parsed" in {
       intercept[ParseException] {
         val ptsModel = defaultPTSEstimatedIncomeViewModel.copy(additionalTaxTableV2 = List(
           PTSAdditionalTaxRow(description = "Description 1", amount = "cannot be parsed as a number")
+        ))
+
+        PersonalIncomeAdapters.PTSEstimatedIncomeViewModelConverter.fromPTSModel(ptsModel)
+      }
+    }
+
+    "convert reductionsTable to ReductionsRows" in {
+      val ptsModel = defaultPTSEstimatedIncomeViewModel.copy(reductionsTable = List(
+        ("Description 1", "100.00",   "additional info 1"),
+        ("Description 2", "2,000.00", "additional info 2"),
+        ("Description 3", "3,000.12", "additional info 3")
+      ))
+
+      val model = PersonalIncomeAdapters.PTSEstimatedIncomeViewModelConverter.fromPTSModel(ptsModel)
+      model.reductionsTable shouldBe List(
+        ReductionsRow(description = "Description 1", amount = BigDecimal(100), additionalInfo = "additional info 1"),
+        ReductionsRow(description = "Description 2", amount = BigDecimal(2000.00), additionalInfo = "additional info 2"),
+        ReductionsRow(description = "Description 3", amount = BigDecimal("3000.12"), additionalInfo = "additional info 3")
+      )
+    }
+
+    "throw an exception when the number in an reductionsTable row can't be parsed" in {
+      intercept[ParseException] {
+        val ptsModel = defaultPTSEstimatedIncomeViewModel.copy(reductionsTable = List(
+          ("Description 1", "cannot be parsed as a number", "additional info 1")
         ))
 
         PersonalIncomeAdapters.PTSEstimatedIncomeViewModelConverter.fromPTSModel(ptsModel)

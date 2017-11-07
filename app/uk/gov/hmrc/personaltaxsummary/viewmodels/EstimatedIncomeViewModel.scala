@@ -18,7 +18,6 @@ package uk.gov.hmrc.personaltaxsummary.viewmodels
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.personalincome.domain._
-import uk.gov.hmrc.personaltaxsummary.domain.MessageWrapper
 
 case class PTSEstimatedIncomeViewModel(
                                         increasesTax: Boolean = false,
@@ -58,8 +57,8 @@ case class EstimatedIncomeViewModel(
                                      potentialUnderpayment: Boolean = false,
                                      additionalTaxTable: List[AdditionalTaxRow] = List(),
                                      additionalTaxTableTotal: BigDecimal = BigDecimal(0),
-                                     reductionsTable: List[MessageWrapper] = List(),
-                                     reductionsTableTotal: String = "",
+                                     reductionsTable: List[ReductionsRow] = List(),
+                                     reductionsTableTotal: BigDecimal = BigDecimal(0),
                                      graph: BandedGraph,
                                      hasChanges: Boolean = false,
                                      ukDividends: Option[TaxComponent],
@@ -71,6 +70,7 @@ case class EstimatedIncomeViewModel(
                                    )
 
 case class AdditionalTaxRow(description: String, amount: BigDecimal)
+case class ReductionsRow(description: String, amount: BigDecimal, additionalInfo: String)
 
 case class BandedGraph(
                         id:String,
@@ -104,6 +104,10 @@ object BandedGraph {
 
 object AdditionalTaxRow {
   implicit val format = Json.format[AdditionalTaxRow]
+}
+
+object ReductionsRow {
+  implicit val format = Json.format[ReductionsRow]
 }
 
 object EstimatedIncomeViewModel {

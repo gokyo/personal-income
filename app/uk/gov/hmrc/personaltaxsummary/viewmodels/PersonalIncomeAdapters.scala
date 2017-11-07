@@ -36,10 +36,10 @@ object PersonalIncomeAdapters {
         pts.taxRelief,
         pts.taxCodes,
         pts.potentialUnderpayment,
-        fromPTSAdditionalTaxRows(pts.additionalTaxTableV2),
+        pts.additionalTaxTableV2.map(ptsRow => AdditionalTaxRow(ptsRow.description, moneyParser.parse(ptsRow.amount))),
         moneyParser.parse(pts.additionalTaxTableTotal),
-        applyForList3(pts.reductionsTable),
-        pts.reductionsTableTotal,
+        pts.reductionsTable.map { case (description, amount, additionalInfo) => ReductionsRow(description, moneyParser.parse(amount), additionalInfo) },
+        moneyParser.parse(pts.reductionsTableTotal),
         pts.graph,
         pts.hasChanges,
         pts.ukDividends,
@@ -49,10 +49,6 @@ object PersonalIncomeAdapters {
         pts.hasPSA,
         pts.hasSSR
       )
-    }
-
-    private def fromPTSAdditionalTaxRows(ptsRows: List[PTSAdditionalTaxRow])(implicit moneyParser: MoneyParser): List[AdditionalTaxRow] = {
-      ptsRows.map(ptsRow => AdditionalTaxRow(ptsRow.description, moneyParser.parse(ptsRow.amount)))
     }
   }
 
