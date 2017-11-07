@@ -43,13 +43,13 @@ class PersonalIncomeISpec extends BaseISpec {
       val estimatedIncome = response.json \ "estimatedIncomeWrapper" \ "estimatedIncome"
 
       val additionalTaxTable = (estimatedIncome \ "additionalTaxTable").as[JsArray]
-      (additionalTaxTable(0) \ "a").as[String] shouldBe "Child Benefit"
-      (additionalTaxTable(0) \ "b").as[String] shouldBe "1,500.00"
+      (additionalTaxTable(0) \ "description").as[String] shouldBe "Child Benefit"
+      (additionalTaxTable(0) \ "amount").as[BigDecimal] shouldBe BigDecimal("1500.99")
 
-      (additionalTaxTable(1) \ "a").as[String] shouldBe "Estimate of the tax you owe this year"
-      (additionalTaxTable(1) \ "b").as[String] shouldBe "500.00"
+      (additionalTaxTable(1) \ "description").as[String] shouldBe "Estimate of the tax you owe this year"
+      (additionalTaxTable(1) \ "amount").as[BigDecimal] shouldBe BigDecimal(500)
 
-      (estimatedIncome \ "additionalTaxTableTotal").as[String] shouldBe "2,000.00"
+      (estimatedIncome \ "additionalTaxTableTotal").as[BigDecimal] shouldBe BigDecimal("2000.99")
 
       val reductionsTable = (estimatedIncome \ "reductionsTable").as[JsArray]
       (reductionsTable(1) \ "a").as[String] shouldBe "Tax on dividends"
@@ -57,6 +57,21 @@ class PersonalIncomeISpec extends BaseISpec {
       (reductionsTable(1) \ "c").as[String] shouldBe "Interest from company dividends is taxed at the dividend ordinary rate (10%) before it is paid to you."
 
       (estimatedIncome \ "reductionsTableTotal").as[String] shouldBe "-3,040.00"
+    }
+
+    "return 500 when personal-tax-summary returns an unparseable amount" in {
+      val nino = Nino("AA000000A")
+      val year = 2017
+      AuthStub.authRecordExists(nino)
+      TaiStub.taxSummaryExists(nino, year)
+      PersonalTaxSummaryStub.estimatedIncomeExistsWithUnparseableAmount(nino)
+      PersonalTaxSummaryStub.yourTaxableIncomeExists(nino)
+
+      val response = await(wsUrl(s"/income/${nino.value}/tax-summary/$year")
+        .withHeaders("Accept" -> "application/vnd.hmrc.1.0+json")
+        .get())
+
+      response.status shouldBe 500
     }
   }
 

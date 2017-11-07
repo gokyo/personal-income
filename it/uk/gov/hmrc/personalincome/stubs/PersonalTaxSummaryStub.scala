@@ -23,11 +23,17 @@ import uk.gov.hmrc.personalincome.getResourceAsString
 object PersonalTaxSummaryStub {
 
   def estimatedIncomeExists(nino: Nino): Unit =
+    estimatedIncomeExistsWithBody(nino, getResourceAsString(s"stubs/personal-tax-summary-$nino-estimated-income.json"))
+
+  def estimatedIncomeExistsWithUnparseableAmount(nino: Nino): Unit =
+    estimatedIncomeExistsWithBody(nino, getResourceAsString(s"stubs/personal-tax-summary-$nino-estimated-income-unparseable-amount.json"))
+
+  def estimatedIncomeExistsWithBody(nino: Nino, responseBody: String): Unit =
     stubFor(post(urlPathEqualTo(s"/personal-tax/$nino/buildestimatedincome"))
       .willReturn(aResponse()
         .withStatus(200)
         .withHeader("Content-Type", "application/json")
-        .withBody(getResourceAsString(s"stubs/personal-tax-summary-$nino-estimated-income.json"))))
+        .withBody(responseBody)))
 
   def yourTaxableIncomeExists(nino: Nino): Unit =
     stubFor(post(urlPathEqualTo(s"/personal-tax/$nino/buildyourtaxableincome"))

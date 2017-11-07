@@ -29,9 +29,9 @@ case class PTSEstimatedIncomeViewModel(
                                         taxCodes: List[String] = List(),
                                         potentialUnderpayment:Boolean = false,
                                         additionalTaxTableV2: List[PTSAdditionalTaxRow] = List(),
-                                        additionalTaxTableTotal: String = "",
+                                        additionalTaxTableTotal: String = "0",
                                         reductionsTable: List[(String,String,String)] = List(),
-                                        reductionsTableTotal: String = "",
+                                        reductionsTableTotal: String = "0",
                                         graph: BandedGraph,
                                         hasChanges: Boolean = false,
                                         ukDividends: Option[TaxComponent],
@@ -56,8 +56,8 @@ case class EstimatedIncomeViewModel(
                                      taxRelief: Boolean = false,
                                      taxCodes: List[String] = List(),
                                      potentialUnderpayment: Boolean = false,
-                                     additionalTaxTable: List[MessageWrapper] = List(),
-                                     additionalTaxTableTotal: String = "",
+                                     additionalTaxTable: List[AdditionalTaxRow] = List(),
+                                     additionalTaxTableTotal: BigDecimal = BigDecimal(0),
                                      reductionsTable: List[MessageWrapper] = List(),
                                      reductionsTableTotal: String = "",
                                      graph: BandedGraph,
@@ -70,6 +70,7 @@ case class EstimatedIncomeViewModel(
                                      hasSSR: Boolean = false
                                    )
 
+case class AdditionalTaxRow(description: String, amount: BigDecimal)
 
 case class BandedGraph(
                         id:String,
@@ -99,6 +100,10 @@ object Band {
 
 object BandedGraph {
   implicit val format = Json.format[BandedGraph]
+}
+
+object AdditionalTaxRow {
+  implicit val format = Json.format[AdditionalTaxRow]
 }
 
 object EstimatedIncomeViewModel {

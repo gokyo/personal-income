@@ -18,7 +18,6 @@ package uk.gov.hmrc.personaltaxsummary.viewmodels
 
 object PersonalIncomeAdapters {
 
-  import uk.gov.hmrc.personaltaxsummary.domain.MessageWrapper
   import uk.gov.hmrc.personaltaxsummary.domain.MessageWrapper.applyForList3
 
   trait Converter[T, R] {
@@ -27,6 +26,8 @@ object PersonalIncomeAdapters {
 
   object PTSEstimatedIncomeViewModelConverter extends Converter[PTSEstimatedIncomeViewModel, EstimatedIncomeViewModel] {
     def fromPTSModel(pts: PTSEstimatedIncomeViewModel): EstimatedIncomeViewModel = {
+      implicit val moneyParser = new MoneyParser
+
       EstimatedIncomeViewModel(
         pts.increasesTax,
         pts.incomeTaxEstimate,
@@ -35,8 +36,8 @@ object PersonalIncomeAdapters {
         pts.taxRelief,
         pts.taxCodes,
         pts.potentialUnderpayment,
-        pts.additionalTaxTableV2.map(row => MessageWrapper(row.description, row.amount)),
-        pts.additionalTaxTableTotal,
+        fromPTSAdditionalTaxRows(pts.additionalTaxTableV2),
+        moneyParser.parse(pts.additionalTaxTableTotal),
         applyForList3(pts.reductionsTable),
         pts.reductionsTableTotal,
         pts.graph,
@@ -48,6 +49,10 @@ object PersonalIncomeAdapters {
         pts.hasPSA,
         pts.hasSSR
       )
+    }
+
+    private def fromPTSAdditionalTaxRows(ptsRows: List[PTSAdditionalTaxRow])(implicit moneyParser: MoneyParser): List[AdditionalTaxRow] = {
+      ptsRows.map(ptsRow => AdditionalTaxRow(ptsRow.description, moneyParser.parse(ptsRow.amount)))
     }
   }
 

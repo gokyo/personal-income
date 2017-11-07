@@ -16,8 +16,9 @@
 
 package uk.gov.hmrc.personaltaxsummary.viewmodels
 
+import java.text.ParseException
+
 import org.scalatest.{Matchers, WordSpec}
-import uk.gov.hmrc.personaltaxsummary.domain.MessageWrapper
 
 class PersonalIncomeAdaptersSpec extends WordSpec with Matchers {
 
@@ -32,19 +33,29 @@ class PersonalIncomeAdaptersSpec extends WordSpec with Matchers {
 
   "PTSEstimatedIncomeViewModelConverter" should {
 
-    "convert additionalTaxTableV2 to MessageWrappers" in {
+    "convert additionalTaxTableV2 to AdditionalTaxRows" in {
       val ptsModel = defaultPTSEstimatedIncomeViewModel.copy(additionalTaxTableV2 = List(
         PTSAdditionalTaxRow(description = "Description 1", amount = "100.00"),
         PTSAdditionalTaxRow(description = "Description 2", amount = "2,000.00"),
-        PTSAdditionalTaxRow(description = "Description 3", amount = "3,000.00")
+        PTSAdditionalTaxRow(description = "Description 3", amount = "3,000.12")
       ))
 
       val model = PersonalIncomeAdapters.PTSEstimatedIncomeViewModelConverter.fromPTSModel(ptsModel)
       model.additionalTaxTable shouldBe List(
-        MessageWrapper("Description 1", "100.00"),
-        MessageWrapper("Description 2", "2,000.00"),
-        MessageWrapper("Description 3", "3,000.00")
+        AdditionalTaxRow("Description 1", BigDecimal(100)),
+        AdditionalTaxRow("Description 2", BigDecimal(2000.00)),
+        AdditionalTaxRow("Description 3", BigDecimal("3000.12"))
       )
+    }
+
+    "throw an exception when the number in a row can't be parsed" in {
+      intercept[ParseException] {
+        val ptsModel = defaultPTSEstimatedIncomeViewModel.copy(additionalTaxTableV2 = List(
+          PTSAdditionalTaxRow(description = "Description 1", amount = "cannot be parsed as a number")
+        ))
+
+        PersonalIncomeAdapters.PTSEstimatedIncomeViewModelConverter.fromPTSModel(ptsModel)
+      }
     }
   }
 }
