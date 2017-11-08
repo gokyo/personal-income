@@ -1,0 +1,21 @@
+{
+  "taxFreeAmount": 2260,
+  "incomeTax": 48244,
+  "income": 145435,
+  "taxCodeList": [
+  ],
+  "employmentPension": {
+    "totalEmploymentPensionAmt": 0,
+    "hasEmployment": false,
+    "isOccupationalPension": false
+  },
+  "investmentIncomeData": [],
+  "investmentIncomeTotal": 0,
+  "otherIncomeData": [],
+  "otherIncomeTotal": 0,
+  "benefitsData": [],
+  "benefitsTotal": 0,
+  "taxableBenefitsData": [],
+  "taxableBenefitsTotal": 0,
+  "hasChanges": false
+}

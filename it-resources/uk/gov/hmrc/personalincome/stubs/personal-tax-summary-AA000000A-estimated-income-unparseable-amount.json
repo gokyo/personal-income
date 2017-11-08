@@ -1,0 +1,65 @@
+{
+  "increasesTax": false,
+  "incomeTaxEstimate": 0,
+  "incomeEstimate": 0,
+  "taxFreeEstimate": 0,
+  "taxRelief": false,
+  "taxCodes": [],
+  "potentialUnderpayment": false,
+  "additionalTaxTableV2": [
+    {
+      "description": "Child Benefit",
+      "amount": "unparseable"
+    },
+    {
+      "description": "Estimate of the tax you owe this year",
+      "amount": "500.00",
+      "url": "/check-income-tax/other"
+    }
+  ],
+  "additionalTaxTableTotal": "2,000.99",
+  "reductionsTable": [
+    [
+      "Tax on other income",
+      "-40.00",
+      "Tax on other income not collected through your tax code, for example tax paid through Self Assessment."
+    ],
+    [
+      "Tax on dividends",
+      "-2,000.00",
+      "Interest from company dividends is taxed at the dividend ordinary rate (10%) before it is paid to you."
+    ],
+    [
+      "Tax on interest from savings and investments",
+      "-1,000.00",
+      "This is the interest that has been taxed by the basic rate of 20% by your bank, building society or financial institution before it is paid to you."
+    ]
+  ],
+  "reductionsTableTotal": "-3,040.00",
+  "graph": {
+    "id": "1",
+    "bands": [],
+    "minBand": 0,
+    "nextBand": 0,
+    "incomeTotal": 0,
+    "zeroIncomeAsPercentage": 0,
+    "zeroIncomeTotal": 0,
+    "incomeAsPercentage": 0,
+    "taxTotal": 0
+  },
+  "hasChanges": false,
+  "nextYearTaxTotal": 0,
+  "hasPSA": false,
+  "hasSSR": false,
+  "newGraph": {
+    "id": "1",
+    "bands": [],
+    "minBand": 0,
+    "nextBand": 0,
+    "incomeTotal": 0,
+    "zeroIncomeAsPercentage": 0,
+    "zeroIncomeTotal": 0,
+    "incomeAsPercentage": 0,
+    "taxTotal": 0
+  }
+}

@@ -18,7 +18,6 @@ package uk.gov.hmrc.personaltaxsummary.viewmodels
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.personalincome.domain._
-import uk.gov.hmrc.personaltaxsummary.domain.MessageWrapper
 
 case class PTSEstimatedIncomeViewModel(
                                         increasesTax: Boolean = false,
@@ -28,10 +27,10 @@ case class PTSEstimatedIncomeViewModel(
                                         taxRelief: Boolean = false,
                                         taxCodes: List[String] = List(),
                                         potentialUnderpayment:Boolean = false,
-                                        additionalTaxTable: List[(String,String)] = List(),
-                                        additionalTaxTableTotal: String = "",
+                                        additionalTaxTableV2: List[PTSAdditionalTaxRow] = List(),
+                                        additionalTaxTableTotal: String = "0",
                                         reductionsTable: List[(String,String,String)] = List(),
-                                        reductionsTableTotal: String = "",
+                                        reductionsTableTotal: String = "0",
                                         graph: BandedGraph,
                                         hasChanges: Boolean = false,
                                         ukDividends: Option[TaxComponent],
@@ -43,6 +42,7 @@ case class PTSEstimatedIncomeViewModel(
                                         newGraph:BandedGraph
                                       )
 
+case class PTSAdditionalTaxRow(description:String, amount:String)
 
 
 
@@ -55,10 +55,10 @@ case class EstimatedIncomeViewModel(
                                      taxRelief: Boolean = false,
                                      taxCodes: List[String] = List(),
                                      potentialUnderpayment: Boolean = false,
-                                     additionalTaxTable: List[MessageWrapper] = List(),
-                                     additionalTaxTableTotal: String = "",
-                                     reductionsTable: List[MessageWrapper] = List(),
-                                     reductionsTableTotal: String = "",
+                                     additionalTaxTable: List[AdditionalTaxRow] = List(),
+                                     additionalTaxTableTotal: BigDecimal = BigDecimal(0),
+                                     reductionsTable: List[ReductionsRow] = List(),
+                                     reductionsTableTotal: BigDecimal = BigDecimal(0),
                                      graph: BandedGraph,
                                      hasChanges: Boolean = false,
                                      ukDividends: Option[TaxComponent],
@@ -69,6 +69,8 @@ case class EstimatedIncomeViewModel(
                                      hasSSR: Boolean = false
                                    )
 
+case class AdditionalTaxRow(description: String, amount: BigDecimal)
+case class ReductionsRow(description: String, amount: BigDecimal, additionalInfo: String)
 
 case class BandedGraph(
                         id:String,
@@ -100,13 +102,24 @@ object BandedGraph {
   implicit val format = Json.format[BandedGraph]
 }
 
+object AdditionalTaxRow {
+  implicit val format = Json.format[AdditionalTaxRow]
+}
+
+object ReductionsRow {
+  implicit val format = Json.format[ReductionsRow]
+}
+
 object EstimatedIncomeViewModel {
 
   implicit val format = Json.format[EstimatedIncomeViewModel]
 }
 
-object PTSEstimatedIncomeViewModel {
+object PTSAdditionalTaxRow {
+  implicit val format = Json.format[PTSAdditionalTaxRow]
+}
 
+object PTSEstimatedIncomeViewModel {
   import TupleFormats._
 
   implicit val format = Json.format[PTSEstimatedIncomeViewModel]
