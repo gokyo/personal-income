@@ -500,6 +500,4 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
 
     Json.stringify(Json.toJson(paymentSummary)) shouldBe expectedResponse
   }
-
-
 }
