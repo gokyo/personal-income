@@ -66,11 +66,11 @@ object TaxSummaryContainerFactory {
   def getPotentialUnderpayment(taxDetails: TaxSummaryDetailsResponse): Option[BigDecimal] = {
     val incomesWithUnderpayment = taxDetails.increasesTax
       .flatMap(_.incomes.map(incomes =>
-        TaxSummaryHelper.sortedTaxableIncomes(incomes.taxCodeIncomes).filter(_.tax.potentialUnderpayment.isDefined)))
+        TaxSummaryHelper.sortedTaxableIncomes(incomes.taxCodeIncomes).filter(_.tax.totalInYearAdjustment.isDefined)))
       .getOrElse(Nil)
 
     incomesWithUnderpayment.foldLeft(BigDecimal(0))((total, income) =>
-      income.tax.potentialUnderpayment.getOrElse(BigDecimal(0)) + total)
+      income.tax.totalInYearAdjustment.getOrElse(BigDecimal(0)) + total)
     match {
       case x if x > 0 => Some(x)
       case _ => None
