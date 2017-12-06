@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.personalincome.domain
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory.parseString
 import org.joda.time.DateTime
 import play.api.test.FakeApplication
 import uk.gov.hmrc.play.test.UnitSpec
@@ -24,14 +25,15 @@ import uk.gov.hmrc.time.DateTimeUtils
 
 class TaxCreditsSubmissionControlSpec extends UnitSpec {
 
-  val specConfig = ConfigFactory.parseString(
+  val specConfig = parseString(
     """microservice {
       |  services {
       |    ntc {
       |      submission {
-      |        shutter = false
+      |        renewalsSubmissionShuttered = false
       |        startDate = "2016-04-01T00:00:00.000Z"
       |        endDate = "2016-07-31T23:59:59.999Z"
+      |        endViewRenewalsDate = "2016-11-30T23:59:59.999Z"
       |      }
       |    }
       |  }
@@ -47,7 +49,7 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
   "TaxCreditsSubmissionControl" should {
     "test config initialise" in {
       val sc = taxCreditsSubmissionControlConfig().submissionControl
-      sc.shutter shouldBe false
+      sc.renewalsSubmissionShuttered shouldBe false
 
       val start = sc.startDate
       start.getDayOfMonth shouldBe 1
@@ -66,7 +68,7 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
       lazy val fakeApplication = FakeApplication()
 
       val sc = TaxCreditsSubmissionControl.submissionControl
-      sc.shutter shouldBe false
+      sc.renewalsSubmissionShuttered shouldBe false
 
       val start = sc.startDate
       start.getDayOfMonth shouldBe 1
@@ -84,8 +86,9 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
 
       val withinSubmissionPeriod = new DateTime("2016-04-10T00:00:00.000Z")
       val tcs = taxCreditsSubmissionControlConfig(withinSubmissionPeriod).toTaxCreditsSubmissions
-      tcs.shuttered shouldBe false
-      tcs.inSubmissionPeriod shouldBe true
+      tcs.renewalsSubmissionShuttered shouldBe false
+      tcs.inSubmitRenewalsPeriod shouldBe true
+      tcs.inViewRenewalsPeriod shouldBe true
     }
 
     "be within active submission period for exact START date" in {
@@ -93,7 +96,8 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
       val exactStartDate = new DateTime("2016-04-01T00:00:00.000Z")
       val tcs = taxCreditsSubmissionControlConfig(exactStartDate).toTaxCreditsSubmissions
 
-      tcs.inSubmissionPeriod shouldBe true
+      tcs.inSubmitRenewalsPeriod shouldBe true
+      tcs.inViewRenewalsPeriod shouldBe true
     }
 
     "be within active submission period for exact END date" in {
@@ -101,7 +105,8 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
       val exactStartDate = new DateTime("2016-07-31T23:59:59.999Z")
       val tcs = taxCreditsSubmissionControlConfig(exactStartDate).toTaxCreditsSubmissions
 
-      tcs.inSubmissionPeriod shouldBe true
+      tcs.inSubmitRenewalsPeriod shouldBe true
+      tcs.inViewRenewalsPeriod shouldBe true
     }
 
     "be BEFORE active submission period" in {
@@ -109,15 +114,35 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
       val beforeSubmissionPeriod = new DateTime("2016-03-30T23:59:59.999Z")
       val tcs = taxCreditsSubmissionControlConfig(beforeSubmissionPeriod).toTaxCreditsSubmissions
 
-      tcs.inSubmissionPeriod shouldBe false
+      tcs.inSubmitRenewalsPeriod shouldBe false
+      tcs.inViewRenewalsPeriod shouldBe false
     }
 
-    "be AFTER active submission period" in {
+    "be after active submission period but in the view-only period" in {
 
-      val beforeSubmissionPeriod = new DateTime("2016-08-01T00:00:00.000Z")
-      val tcs = taxCreditsSubmissionControlConfig(beforeSubmissionPeriod).toTaxCreditsSubmissions
+      val currentDate = new DateTime("2016-08-01T00:00:00.000Z")
+      val tcs = taxCreditsSubmissionControlConfig(currentDate).toTaxCreditsSubmissions
 
-      tcs.inSubmissionPeriod shouldBe false
+      tcs.inSubmitRenewalsPeriod shouldBe false
+      tcs.inViewRenewalsPeriod shouldBe true
+    }
+
+    "be within the view-only period until the view-only end date" in {
+
+      val currentDate = new DateTime("2016-11-30T23:59:59.999Z")
+      val tcs = taxCreditsSubmissionControlConfig(currentDate).toTaxCreditsSubmissions
+
+      tcs.inSubmitRenewalsPeriod shouldBe false
+      tcs.inViewRenewalsPeriod shouldBe true
+    }
+
+    "be in the closed period after the view-only end date" in {
+
+      val currentDate = new DateTime("2016-12-01T00:00:00.000Z")
+      val tcs = taxCreditsSubmissionControlConfig(currentDate).toTaxCreditsSubmissions
+
+      tcs.inSubmitRenewalsPeriod shouldBe false
+      tcs.inViewRenewalsPeriod shouldBe false
     }
   }
 

@@ -17,7 +17,7 @@ Tax Credits Submission State
 
 ```json
 {
-    "renewalsSubmissionShuttered":true,
+    "renewalsSubmissionShuttered":false,
     "inSubmitRenewalsPeriod":true,
     "inViewRenewalsPeriod":true
 }

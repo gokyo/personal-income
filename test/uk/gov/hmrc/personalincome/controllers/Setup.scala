@@ -153,7 +153,9 @@ class TestAccountAccessControlWithAccept(testAccessCheck:AccountAccessControl) e
 
 class TestTaxCreditsSubmission(taxCreditsSubmissions: TaxCreditsSubmissions) extends TaxCreditsControl {
   override def toTaxCreditsSubmissions = taxCreditsSubmissions
-  override def toSubmissionState = new SubmissionState(!toTaxCreditsSubmissions.shuttered && toTaxCreditsSubmissions.inSubmissionPeriod)
+  override def toTaxCreditsRenewalsState = new TaxCreditsRenewalsState(
+    !toTaxCreditsSubmissions.renewalsSubmissionShuttered && toTaxCreditsSubmissions.inSubmitRenewalsPeriod,
+    toTaxCreditsSubmissions.inViewRenewalsPeriod)
 }
 
 
@@ -293,8 +295,8 @@ trait Setup extends ClaimsJson {
 
   val testSandboxPersonalIncomeService = SandboxPersonalIncomeService
   val sandboxCompositeAction = AccountAccessControlCheckOff
-  val testTaxCreditsSubmissionControl = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(false, true))
-  val testTaxCreditsSubmissionControlShuttered = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(true, true))
+  val testTaxCreditsSubmissionControl = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(false, true, true))
+  val testTaxCreditsSubmissionControlShuttered = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(true, true, true))
 
 }
 
@@ -477,22 +479,30 @@ trait SandboxSuccess extends Setup {
   }
 }
 
-trait ServiceStateSuccess extends Setup {
+trait TaxCreditRenewalsSubmissionPeriod extends Setup {
   val controller = new ServiceStateController {
     override val taxCreditsSubmissionControlConfig = testTaxCreditsSubmissionControl
     override val accessControl = AccountAccessControlCheckOff
   }
 }
 
-trait ServiceStateSuccessShuttered extends Setup {
+trait TaxCreditRenewalsSubmissionPeriodShuttered extends Setup {
   val controller = new ServiceStateController {
-    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(true, true))
+    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(true, true, true))
     override val accessControl = AccountAccessControlCheckOff
   }
 }
-trait ServiceStateNotInSubmissionPeriod extends Setup {
+
+trait TaxCreditRenewalsViewOnlyPeriod extends Setup {
   val controller = new ServiceStateController {
-    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(false, false))
+    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(false, false, true))
+    override val accessControl = AccountAccessControlCheckOff
+  }
+}
+
+trait TaxCreditRenewalsClosedPeriod extends Setup {
+  val controller = new ServiceStateController {
+    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(false, false, false))
     override val accessControl = AccountAccessControlCheckOff
   }
 }

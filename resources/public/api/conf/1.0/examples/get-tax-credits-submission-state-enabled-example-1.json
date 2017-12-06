@@ -1,4 +1,4 @@
 {
-        "shuttered":true,
-        "inSubmissionPeriod":true
+        "enableRenewals":true,
+        "enableViewRenewals":true
 }

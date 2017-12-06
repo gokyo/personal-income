@@ -19,7 +19,7 @@ package uk.gov.hmrc.personalincome.controllers
 
 import uk.gov.hmrc.api.controllers.HeaderValidator
 import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
-import uk.gov.hmrc.personalincome.domain.{SubmissionState, TaxCreditsControl, TaxCreditsSubmissionControl, TaxCreditsSubmissions}
+import uk.gov.hmrc.personalincome.domain.{TaxCreditsRenewalsState, TaxCreditsControl, TaxCreditsSubmissionControl, TaxCreditsSubmissions}
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.time.DateTimeUtils
@@ -52,7 +52,7 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
       implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
       errorWrapper(
         Future {
-          taxCreditsSubmissionControlConfig.toSubmissionState
+          taxCreditsSubmissionControlConfig.toTaxCreditsRenewalsState
         }.map{
           submissionState => Ok(Json.toJson(submissionState))
         })
@@ -63,8 +63,8 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
 object SandboxServiceStateController extends ServiceStateController with DateTimeUtils {
 
   override val taxCreditsSubmissionControlConfig = new TaxCreditsControl {
-    override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true)
-    override def toSubmissionState = new SubmissionState(true)
+    override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true, true)
+    override def toTaxCreditsRenewalsState = new TaxCreditsRenewalsState(true, true)
   }
   override val accessControl = AccountAccessControlCheckOff
 }
