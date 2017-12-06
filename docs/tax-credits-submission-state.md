@@ -17,15 +17,17 @@ Tax Credits Submission State
 
 ```json
 {
-    "shuttered":true,
-    "inSubmissionPeriod":true
+    "submissionShuttered":true,
+    "inSubmissionPeriod":true,
+    "inViewRenewalPeriod":true
 }
 ```
 
 | *Field* | *Description* |
 |--------|----|
-| shuttered | The tax credits service has temporarily been taken down during the submissions period |
+| submissionShuttered | The tax credits service has temporarily been taken down during the submissions period |
 | inSubmissionPeriod | The tax credits service in/outside the allowed submission period |
+| inViewRenewalPeriod | The tax credits service in/outside the allowed view renewal period |
 
 
 * **Error Response:**

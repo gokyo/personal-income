@@ -17,13 +17,15 @@ Tax Credits Submission State
 
 ```json
 {
-    "submissionState":true
+    "submissionState":true,
+    "enableViewRenewalStatus":true
 }
 ```
 
 | *Field* | *Description* |
 |--------|----|
 | submissionState | The tax credits service in/outside the allowed submission period |
+| enableViewRenewalStatus | The tax credits service in/outside the allowed view renewal period |
 
 
 * **Error Response:**
