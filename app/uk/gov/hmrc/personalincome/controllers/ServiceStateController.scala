@@ -64,7 +64,7 @@ object SandboxServiceStateController extends ServiceStateController with DateTim
 
   override val taxCreditsSubmissionControlConfig = new TaxCreditsControl {
     override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true, true)
-    override def toTaxCreditsRenewalsState = new TaxCreditsRenewalsState(true, true)
+    override def toTaxCreditsRenewalsState = new TaxCreditsRenewalsState(true, "open")
   }
   override val accessControl = AccountAccessControlCheckOff
 }

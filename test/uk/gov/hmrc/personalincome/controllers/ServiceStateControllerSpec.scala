@@ -57,25 +57,25 @@ class ServiceStateControllerSpec extends UnitSpec with WithFakeApplication with 
 
       status(result) shouldBe 200
       print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"enableRenewals":true,"enableViewRenewals":true}""")
+      contentAsJson(result) shouldBe parse("""{"enableRenewals":true,"submissionsState":"open"}""")
     }
 
-    "disable renewals submission when renewalsSubmissionShuttered is ON during the Submission Period" in new TaxCreditRenewalsSubmissionPeriodShuttered {
+    "shutter renewals submission when renewalsSubmissionShuttered is ON during the Submission Period" in new TaxCreditRenewalsSubmissionPeriodShuttered {
 
       val result: Result = await(controller.taxCreditsSubmissionStateEnabled()(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 200
       print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"enableRenewals":false,"enableViewRenewals":true}""")
+      contentAsJson(result) shouldBe parse("""{"enableRenewals":false,"submissionsState":"shuttered"}""")
     }
 
-    "disable renewals submission during the view-only period" in new TaxCreditRenewalsViewOnlyPeriod {
+    "disable renewals submission during the check_status_only period" in new TaxCreditRenewalsViewOnlyPeriod {
 
       val result: Result = await(controller.taxCreditsSubmissionStateEnabled()(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 200
       print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"enableRenewals":false,"enableViewRenewals":true}""")
+      contentAsJson(result) shouldBe parse("""{"enableRenewals":false,"submissionsState":"check_status_only"}""")
     }
 
     "disable renewals submission and viewing during the closed period" in new TaxCreditRenewalsClosedPeriod {
@@ -84,7 +84,7 @@ class ServiceStateControllerSpec extends UnitSpec with WithFakeApplication with 
 
       status(result) shouldBe 200
       print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"enableRenewals":false,"enableViewRenewals":false}""")
+      contentAsJson(result) shouldBe parse("""{"enableRenewals":false,"submissionsState":"closed"}""")
     }
   }
 
@@ -96,7 +96,7 @@ class ServiceStateControllerSpec extends UnitSpec with WithFakeApplication with 
 
       status(result) shouldBe 200
       print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"enableRenewals":true,"enableViewRenewals":true}""")
+      contentAsJson(result) shouldBe parse("""{"enableRenewals":true,"submissionsState":"open"}""")
     }
   }
 

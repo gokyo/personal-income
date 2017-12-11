@@ -190,7 +190,7 @@ object SandboxPersonalIncomeController extends PersonalIncomeController {
     override def toTaxCreditsSubmissions: TaxCreditsSubmissions = new TaxCreditsSubmissions(false, true, true )
 
     override def toTaxCreditsRenewalsState: TaxCreditsRenewalsState =
-      TaxCreditsRenewalsState(enableRenewals = true, enableViewRenewals = true)
+      TaxCreditsRenewalsState(enableRenewals = true, submissionsState = "open")
   }
   override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
 }

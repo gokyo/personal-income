@@ -18,7 +18,7 @@ Tax Credits Submission State
 ```json
 {
     "enableRenewals":true,
-    "enableViewRenewals":true
+    "submissionsState":"open"|"shuttered"|"check_status_only"|"closed"
 }
 ```
 

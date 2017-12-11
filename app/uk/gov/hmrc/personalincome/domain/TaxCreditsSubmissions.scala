@@ -22,9 +22,26 @@ import org.joda.time.DateTimeZone.UTC
 import play.api.libs.json.Json
 import uk.gov.hmrc.time.DateTimeUtils
 
-case class TaxCreditsSubmissions(renewalsSubmissionShuttered : Boolean, inSubmitRenewalsPeriod : Boolean, inViewRenewalsPeriod : Boolean)
+case class TaxCreditsSubmissions(renewalsSubmissionShuttered : Boolean, inSubmitRenewalsPeriod : Boolean, inViewRenewalsPeriod : Boolean){
+  def toTaxCreditsRenewalsState = {
+    new TaxCreditsRenewalsState(
+      !renewalsSubmissionShuttered && inSubmitRenewalsPeriod,
+      if (inSubmitRenewalsPeriod) {
+        if (renewalsSubmissionShuttered) {
+          "shuttered"
+        } else {
+          "open"
+        }
+      } else if (inViewRenewalsPeriod) {
+        "check_status_only"
+      } else{
+        "closed"
+      }
+    )
+  }
+}
 
-case class TaxCreditsRenewalsState(enableRenewals: Boolean, enableViewRenewals: Boolean)
+case class TaxCreditsRenewalsState(enableRenewals: Boolean, submissionsState: String)
 
 object TaxCreditsSubmissions extends DateTimeUtils {
   implicit val formats = Json.format[TaxCreditsSubmissions]
@@ -71,9 +88,7 @@ trait TaxCreditsSubmissionControlConfig extends TaxCreditsControl with LoadConfi
   }
 
   def toTaxCreditsRenewalsState : TaxCreditsRenewalsState = {
-    new TaxCreditsRenewalsState(
-      !toTaxCreditsSubmissions.renewalsSubmissionShuttered && toTaxCreditsSubmissions.inSubmitRenewalsPeriod,
-      toTaxCreditsSubmissions.inViewRenewalsPeriod )
+    toTaxCreditsSubmissions.toTaxCreditsRenewalsState
   }
 }
 

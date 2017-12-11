@@ -153,9 +153,7 @@ class TestAccountAccessControlWithAccept(testAccessCheck:AccountAccessControl) e
 
 class TestTaxCreditsSubmission(taxCreditsSubmissions: TaxCreditsSubmissions) extends TaxCreditsControl {
   override def toTaxCreditsSubmissions = taxCreditsSubmissions
-  override def toTaxCreditsRenewalsState = new TaxCreditsRenewalsState(
-    !toTaxCreditsSubmissions.renewalsSubmissionShuttered && toTaxCreditsSubmissions.inSubmitRenewalsPeriod,
-    toTaxCreditsSubmissions.inViewRenewalsPeriod)
+  override def toTaxCreditsRenewalsState = taxCreditsSubmissions.toTaxCreditsRenewalsState
 }
 
 

@@ -1,4 +1,4 @@
 {
         "enableRenewals":true,
-        "enableViewRenewals":true
+        "submissionsState":"open"|"shuttered"|"check_status_only"|"closed"
 }
