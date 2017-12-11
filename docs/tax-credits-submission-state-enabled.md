@@ -24,8 +24,7 @@ Tax Credits Submission State
 
 | *Field* | *Description* |
 |--------|----|
-| submissionState | The tax credits service in/outside the allowed submission period. | 
-| | Deprecated but temporarily retained for backwards compatability | 
+| submissionState | The tax credits service in/outside the allowed submission period. Deprecated but temporarily retained for backwards compatability | 
 | submissionsState | Defines what actions a user can currently perform |
 
 

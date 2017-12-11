@@ -1,5 +1,5 @@
 {
-        "renewalsSubmissionShuttered": false,
+        "submissionShuttered": false,
         "inSubmitRenewalsPeriod": true,
         "inViewRenewalsPeriod": true
 }

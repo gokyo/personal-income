@@ -30,7 +30,7 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
       |  services {
       |    ntc {
       |      submission {
-      |        renewalsSubmissionShuttered = false
+      |        submissionShuttered = false
       |        startDate = "2016-04-01T00:00:00.000Z"
       |        endDate = "2016-07-31T23:59:59.999Z"
       |        endViewRenewalsDate = "2016-11-30T23:59:59.999Z"
@@ -49,7 +49,7 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
   "TaxCreditsSubmissionControl" should {
     "test config initialise" in {
       val sc = taxCreditsSubmissionControlConfig().submissionControl
-      sc.renewalsSubmissionShuttered shouldBe false
+      sc.submissionShuttered shouldBe false
 
       val start = sc.startDate
       start.getDayOfMonth shouldBe 1
@@ -68,7 +68,7 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
       lazy val fakeApplication = FakeApplication()
 
       val sc = TaxCreditsSubmissionControl.submissionControl
-      sc.renewalsSubmissionShuttered shouldBe false
+      sc.submissionShuttered shouldBe false
 
       val start = sc.startDate
       start.getDayOfMonth shouldBe 1
@@ -86,7 +86,7 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
 
       val withinSubmissionPeriod = new DateTime("2016-04-10T00:00:00.000Z")
       val tcs = taxCreditsSubmissionControlConfig(withinSubmissionPeriod).toTaxCreditsSubmissions
-      tcs.renewalsSubmissionShuttered shouldBe false
+      tcs.submissionShuttered shouldBe false
       tcs.inSubmitRenewalsPeriod shouldBe true
       tcs.inViewRenewalsPeriod shouldBe true
     }

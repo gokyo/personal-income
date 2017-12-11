@@ -22,19 +22,19 @@ import org.joda.time.DateTimeZone.UTC
 import play.api.libs.json.Json
 import uk.gov.hmrc.time.DateTimeUtils
 
-case class TaxCreditsSubmissions(renewalsSubmissionShuttered : Boolean, inSubmitRenewalsPeriod : Boolean, inViewRenewalsPeriod : Boolean){
+case class TaxCreditsSubmissions(submissionShuttered : Boolean, inSubmitRenewalsPeriod : Boolean, inViewRenewalsPeriod : Boolean){
   def toTaxCreditsRenewalsState = {
     new TaxCreditsRenewalsState(
-      !renewalsSubmissionShuttered && inSubmitRenewalsPeriod,
+      !submissionShuttered && inSubmitRenewalsPeriod,
       if (inSubmitRenewalsPeriod) {
-        if (renewalsSubmissionShuttered) {
+        if (submissionShuttered) {
           "shuttered"
         } else {
           "open"
         }
       } else if (inViewRenewalsPeriod) {
         "check_status_only"
-      } else{
+      } else {
         "closed"
       }
     )
@@ -71,7 +71,7 @@ trait TaxCreditsSubmissionControlConfig extends TaxCreditsControl with LoadConfi
 
   private implicit val nativeVersionReader: ValueReader[TaxCreditsSubmissionControl] = ValueReader.relative { nativeVersion =>
     TaxCreditsSubmissionControl(
-      config.as[Boolean](s"$submission.renewalsSubmissionShuttered"),
+      config.as[Boolean](s"$submission.submissionShuttered"),
       parse(config.as[String](s"$submission.startDate")).toDateTime(UTC).withTimeAtStartOfDay(),
       parse(config.as[String](s"$submission.endDate")).toDateTime(UTC),
       parse(config.as[String](s"$submission.endViewRenewalsDate")).toDateTime(UTC)
@@ -84,7 +84,7 @@ trait TaxCreditsSubmissionControlConfig extends TaxCreditsControl with LoadConfi
     val currentTime = now.getMillis
     val allowSubmissions = currentTime >= submissionControl.startMs && currentTime <= submissionControl.endMs
     val allowViewSubmissions = currentTime >= submissionControl.startMs && currentTime <= submissionControl.endViewMs
-    new TaxCreditsSubmissions(submissionControl.renewalsSubmissionShuttered, allowSubmissions, allowViewSubmissions)
+    new TaxCreditsSubmissions(submissionControl.submissionShuttered, allowSubmissions, allowViewSubmissions)
   }
 
   def toTaxCreditsRenewalsState : TaxCreditsRenewalsState = {
@@ -94,7 +94,7 @@ trait TaxCreditsSubmissionControlConfig extends TaxCreditsControl with LoadConfi
 
 
 sealed case class TaxCreditsSubmissionControl(
-  renewalsSubmissionShuttered : Boolean, startDate : DateTime, endDate : DateTime, endViewRenewalsDate : DateTime){
+  submissionShuttered : Boolean, startDate : DateTime, endDate : DateTime, endViewRenewalsDate : DateTime){
   val startMs : Long = startDate.getMillis
   val endMs : Long = endDate.getMillis
   val endViewMs : Long = endViewRenewalsDate.getMillis

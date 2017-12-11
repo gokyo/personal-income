@@ -33,7 +33,7 @@ class ServiceStateControllerSpec extends UnitSpec with WithFakeApplication with 
 
       status(result) shouldBe 200
       print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"renewalsSubmissionShuttered":false,"inSubmitRenewalsPeriod":true,"inViewRenewalsPeriod":true}""")
+      contentAsJson(result) shouldBe parse("""{"submissionShuttered":false,"inSubmitRenewalsPeriod":true,"inViewRenewalsPeriod":true}""")
     }
   }
 
@@ -45,13 +45,13 @@ class ServiceStateControllerSpec extends UnitSpec with WithFakeApplication with 
 
       status(result) shouldBe 200
       print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"renewalsSubmissionShuttered":false,"inSubmitRenewalsPeriod":true,"inViewRenewalsPeriod":true}""")
+      contentAsJson(result) shouldBe parse("""{"submissionShuttered":false,"inSubmitRenewalsPeriod":true,"inViewRenewalsPeriod":true}""")
     }
   }
 
   "taxCreditsSubmissionStateEnabled Live" should {
 
-    "enable renewals submission when renewalsSubmissionShuttered is OFF during the Submission Period" in new TaxCreditRenewalsSubmissionPeriod {
+    "enable renewals submission when submissionShuttered is OFF during the Submission Period" in new TaxCreditRenewalsSubmissionPeriod {
 
       val result: Result = await(controller.taxCreditsSubmissionStateEnabled()(emptyRequestWithAcceptHeader))
 
@@ -60,7 +60,7 @@ class ServiceStateControllerSpec extends UnitSpec with WithFakeApplication with 
       contentAsJson(result) shouldBe parse("""{"submissionState":true,"submissionsState":"open"}""")
     }
 
-    "shutter renewals submission when renewalsSubmissionShuttered is ON during the Submission Period" in new TaxCreditRenewalsSubmissionPeriodShuttered {
+    "shutter renewals submission when submissionShuttered is ON during the Submission Period" in new TaxCreditRenewalsSubmissionPeriodShuttered {
 
       val result: Result = await(controller.taxCreditsSubmissionStateEnabled()(emptyRequestWithAcceptHeader))
 

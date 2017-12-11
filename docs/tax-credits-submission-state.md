@@ -17,7 +17,7 @@ Tax Credits Submission State
 
 ```json
 {
-    "renewalsSubmissionShuttered":false,
+    "submissionShuttered":false,
     "inSubmitRenewalsPeriod":true,
     "inViewRenewalsPeriod":true
 }
@@ -25,7 +25,7 @@ Tax Credits Submission State
 
 | *Field* | *Description* |
 |--------|----|
-| renewalsSubmissionShuttered | The tax credits service has temporarily been taken down during the submissions period |
+| submissionShuttered | The tax credits service has temporarily been taken down during the submissions period |
 | inSubmitRenewalsPeriod | The tax credits service in/outside the allowed submission period |
 | inViewRenewalsPeriod | The tax credits service in/outside the allowed view renewals period |
 
