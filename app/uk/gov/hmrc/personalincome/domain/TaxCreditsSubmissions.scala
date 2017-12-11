@@ -41,7 +41,7 @@ case class TaxCreditsSubmissions(renewalsSubmissionShuttered : Boolean, inSubmit
   }
 }
 
-case class TaxCreditsRenewalsState(enableRenewals: Boolean, submissionsState: String)
+case class TaxCreditsRenewalsState(submissionState: Boolean, submissionsState: String)
 
 object TaxCreditsSubmissions extends DateTimeUtils {
   implicit val formats = Json.format[TaxCreditsSubmissions]

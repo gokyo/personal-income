@@ -57,7 +57,7 @@ class ServiceStateControllerSpec extends UnitSpec with WithFakeApplication with 
 
       status(result) shouldBe 200
       print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"enableRenewals":true,"submissionsState":"open"}""")
+      contentAsJson(result) shouldBe parse("""{"submissionState":true,"submissionsState":"open"}""")
     }
 
     "shutter renewals submission when renewalsSubmissionShuttered is ON during the Submission Period" in new TaxCreditRenewalsSubmissionPeriodShuttered {
@@ -66,7 +66,7 @@ class ServiceStateControllerSpec extends UnitSpec with WithFakeApplication with 
 
       status(result) shouldBe 200
       print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"enableRenewals":false,"submissionsState":"shuttered"}""")
+      contentAsJson(result) shouldBe parse("""{"submissionState":false,"submissionsState":"shuttered"}""")
     }
 
     "disable renewals submission during the check_status_only period" in new TaxCreditRenewalsViewOnlyPeriod {
@@ -75,7 +75,7 @@ class ServiceStateControllerSpec extends UnitSpec with WithFakeApplication with 
 
       status(result) shouldBe 200
       print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"enableRenewals":false,"submissionsState":"check_status_only"}""")
+      contentAsJson(result) shouldBe parse("""{"submissionState":false,"submissionsState":"check_status_only"}""")
     }
 
     "disable renewals submission and viewing during the closed period" in new TaxCreditRenewalsClosedPeriod {
@@ -84,7 +84,7 @@ class ServiceStateControllerSpec extends UnitSpec with WithFakeApplication with 
 
       status(result) shouldBe 200
       print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"enableRenewals":false,"submissionsState":"closed"}""")
+      contentAsJson(result) shouldBe parse("""{"submissionState":false,"submissionsState":"closed"}""")
     }
   }
 
@@ -96,7 +96,7 @@ class ServiceStateControllerSpec extends UnitSpec with WithFakeApplication with 
 
       status(result) shouldBe 200
       print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"enableRenewals":true,"submissionsState":"open"}""")
+      contentAsJson(result) shouldBe parse("""{"submissionState":true,"submissionsState":"open"}""")
     }
   }
 

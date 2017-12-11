@@ -17,16 +17,16 @@ Tax Credits Submission State
 
 ```json
 {
-    "enableRenewals":true,
+    "submissionState":true,
     "submissionsState":"open"|"shuttered"|"check_status_only"|"closed"
 }
 ```
 
 | *Field* | *Description* |
 |--------|----|
-| enableRenewals | The tax credits service in/outside the allowed submission period. | 
-| | For now backwards compatability issues prevent us from renaming enableRenewals to enableSubmitRenewals |
-| enableViewRenewals | The tax credits service in/outside the allowed view renewals period |
+| submissionState | The tax credits service in/outside the allowed submission period. | 
+| | Deprecated but temporarily retained for backwards compatability | 
+| submissionsState | Defines what actions a user can currently perform |
 
 
 * **Error Response:**
