@@ -125,7 +125,7 @@ trait PersonalIncomeController extends BaseController with HeaderValidator with 
     implicit request =>
       implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
 
-      val enabled = taxCreditsSubmissionControlConfig.toSubmissionState.submissionState
+      val enabled = taxCreditsSubmissionControlConfig.toTaxCreditsRenewalsState.submissionState
 
       request.body.validate[TcrRenewal].fold(
         errors => {
@@ -187,9 +187,10 @@ object SandboxPersonalIncomeController extends PersonalIncomeController {
   override val service = SandboxPersonalIncomeService
   override val accessControl = AccountAccessControlCheckOff
   override val taxCreditsSubmissionControlConfig: TaxCreditsControl = new TaxCreditsControl {
-    override def toTaxCreditsSubmissions: TaxCreditsSubmissions = new TaxCreditsSubmissions(false, true)
+    override def toTaxCreditsSubmissions: TaxCreditsSubmissions = new TaxCreditsSubmissions(false, true, true )
 
-    override def toSubmissionState: SubmissionState = SubmissionState(submissionState = true)
+    override def toTaxCreditsRenewalsState: TaxCreditsRenewalsState =
+      TaxCreditsRenewalsState(submissionState = true, submissionsState = "open")
   }
   override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
 }

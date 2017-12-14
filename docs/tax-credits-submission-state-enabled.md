@@ -17,13 +17,15 @@ Tax Credits Submission State
 
 ```json
 {
-    "submissionState":true
+    "submissionState":true,
+    "submissionsState":"open"|"shuttered"|"check_status_only"|"closed"
 }
 ```
 
 | *Field* | *Description* |
 |--------|----|
-| submissionState | The tax credits service in/outside the allowed submission period |
+| submissionState | The tax credits service in/outside the allowed submission period. Deprecated but temporarily retained for backwards compatability | 
+| submissionsState | Defines what actions a user can currently perform |
 
 
 * **Error Response:**

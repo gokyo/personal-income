@@ -1,4 +1,4 @@
 {
-        "shuttered":true,
-        "inSubmissionPeriod":true
+        "submissionState":true|false,
+        "submissionsState":"open"|"shuttered"|"check_status_only"|"closed"
 }

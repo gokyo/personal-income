@@ -16,20 +16,39 @@
 
 package uk.gov.hmrc.personalincome.domain
 
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.DateTime
+import org.joda.time.DateTime.parse
+import org.joda.time.DateTimeZone.UTC
 import play.api.libs.json.Json
 import uk.gov.hmrc.time.DateTimeUtils
 
-case class TaxCreditsSubmissions(shuttered : Boolean, inSubmissionPeriod : Boolean)
+case class TaxCreditsSubmissions(submissionShuttered : Boolean, inSubmitRenewalsPeriod : Boolean, inViewRenewalsPeriod : Boolean){
+  def toTaxCreditsRenewalsState = {
+    new TaxCreditsRenewalsState(
+      !submissionShuttered && inSubmitRenewalsPeriod,
+      if (inSubmitRenewalsPeriod) {
+        if (submissionShuttered) {
+          "shuttered"
+        } else {
+          "open"
+        }
+      } else if (inViewRenewalsPeriod) {
+        "check_status_only"
+      } else {
+        "closed"
+      }
+    )
+  }
+}
 
-case class SubmissionState(submissionState: Boolean)
+case class TaxCreditsRenewalsState(submissionState: Boolean, submissionsState: String)
 
 object TaxCreditsSubmissions extends DateTimeUtils {
   implicit val formats = Json.format[TaxCreditsSubmissions]
 }
 
-object SubmissionState {
-  implicit val formats = Json.format[SubmissionState]
+object TaxCreditsRenewalsState {
+  implicit val formats = Json.format[TaxCreditsRenewalsState]
 }
 
 trait LoadConfig {
@@ -41,20 +60,21 @@ trait LoadConfig {
 
 trait TaxCreditsControl {
   def toTaxCreditsSubmissions: TaxCreditsSubmissions
-  def toSubmissionState: SubmissionState
+  def toTaxCreditsRenewalsState: TaxCreditsRenewalsState
 }
 
 trait TaxCreditsSubmissionControlConfig extends TaxCreditsControl with LoadConfig with DateTimeUtils {
-  import net.ceedubs.ficus.readers.ValueReader
   import net.ceedubs.ficus.Ficus._
+  import net.ceedubs.ficus.readers.ValueReader
 
   private val submission = "microservice.services.ntc.submission"
 
   private implicit val nativeVersionReader: ValueReader[TaxCreditsSubmissionControl] = ValueReader.relative { nativeVersion =>
     TaxCreditsSubmissionControl(
-      config.as[Boolean](s"$submission.shutter"),
-      DateTime.parse(config.as[String](s"$submission.startDate")).toDateTime(DateTimeZone.UTC).withTimeAtStartOfDay(),
-      DateTime.parse(config.as[String](s"$submission.endDate")).toDateTime(DateTimeZone.UTC)
+      config.as[Boolean](s"$submission.submissionShuttered"),
+      parse(config.as[String](s"$submission.startDate")).toDateTime(UTC),
+      parse(config.as[String](s"$submission.endDate")).toDateTime(UTC),
+      parse(config.as[String](s"$submission.endViewRenewalsDate")).toDateTime(UTC)
     )
   }
 
@@ -63,18 +83,21 @@ trait TaxCreditsSubmissionControlConfig extends TaxCreditsControl with LoadConfi
   def toTaxCreditsSubmissions : TaxCreditsSubmissions = {
     val currentTime = now.getMillis
     val allowSubmissions = currentTime >= submissionControl.startMs && currentTime <= submissionControl.endMs
-    new TaxCreditsSubmissions(submissionControl.shutter, allowSubmissions)
+    val allowViewSubmissions = currentTime >= submissionControl.startMs && currentTime <= submissionControl.endViewMs
+    new TaxCreditsSubmissions(submissionControl.submissionShuttered, allowSubmissions, allowViewSubmissions)
   }
 
-  def toSubmissionState : SubmissionState = {
-    new SubmissionState(!toTaxCreditsSubmissions.shuttered && toTaxCreditsSubmissions.inSubmissionPeriod)
+  def toTaxCreditsRenewalsState : TaxCreditsRenewalsState = {
+    toTaxCreditsSubmissions.toTaxCreditsRenewalsState
   }
 }
 
 
-sealed case class TaxCreditsSubmissionControl(shutter : Boolean, startDate : DateTime, endDate : DateTime){
+sealed case class TaxCreditsSubmissionControl(
+  submissionShuttered : Boolean, startDate : DateTime, endDate : DateTime, endViewRenewalsDate : DateTime){
   val startMs : Long = startDate.getMillis
   val endMs : Long = endDate.getMillis
+  val endViewMs : Long = endViewRenewalsDate.getMillis
 }
 
 object TaxCreditsSubmissionControl extends TaxCreditsSubmissionControlConfig {
