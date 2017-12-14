@@ -72,7 +72,7 @@ trait TaxCreditsSubmissionControlConfig extends TaxCreditsControl with LoadConfi
   private implicit val nativeVersionReader: ValueReader[TaxCreditsSubmissionControl] = ValueReader.relative { nativeVersion =>
     TaxCreditsSubmissionControl(
       config.as[Boolean](s"$submission.submissionShuttered"),
-      parse(config.as[String](s"$submission.startDate")).toDateTime(UTC).withTimeAtStartOfDay(),
+      parse(config.as[String](s"$submission.startDate")).toDateTime(UTC),
       parse(config.as[String](s"$submission.endDate")).toDateTime(UTC),
       parse(config.as[String](s"$submission.endViewRenewalsDate")).toDateTime(UTC)
     )
