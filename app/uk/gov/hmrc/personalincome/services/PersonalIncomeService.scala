@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.personalincome.services
 
-import com.github.nscala_time.time.Imports._
 import com.ning.http.util.Base64
 import play.api.Logger
 import play.api.libs.json.{JsError, Json}
@@ -30,13 +29,13 @@ import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.controllers.HeaderKeys
 import uk.gov.hmrc.personalincome.domain.userdata._
 import uk.gov.hmrc.personalincome.domain.{TcrAuthCheck, _}
+import uk.gov.hmrc.personalincome.utils.ClaimsDateConverter
 import uk.gov.hmrc.personalincome.viewmodelfactories.TaxSummaryContainerFactory
 import uk.gov.hmrc.personaltaxsummary.domain.{PersonalTaxSummaryContainer, TaxSummaryContainer}
 import uk.gov.hmrc.personaltaxsummary.viewmodels.IncomeTaxViewModel
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 trait PersonalIncomeService {
 
@@ -57,6 +56,8 @@ trait PersonalIncomeService {
 }
 
 trait LivePersonalIncomeService extends PersonalIncomeService with Auditor with RenewalStatus {
+  private val dateConverter: ClaimsDateConverter = new ClaimsDateConverter
+
   def authConnector: AuthConnector
 
   def personalTaxSummaryConnector: PersonalTaxSummaryConnector
@@ -109,9 +110,6 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor with 
     }
   }
 
-  private val formatA = DateTimeFormat.forPattern("yyyy-MM-dd")
-  private val formatB = DateTimeFormat.forPattern("yyyyMMdd")
-
   override def claimantClaims(nino: Nino)(implicit headerCarrier: HeaderCarrier, ex: ExecutionContext): Future[Claims] = {
     withAudit("claimantClaims", Map("nino" -> nino.value)) {
 
@@ -121,14 +119,11 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor with 
         match1 || match2
       }
 
-      def dateConversion(date: Option[String], conversion: String => DateTime): Option[String] = {
-        val notFound: Option[String] = None
-        date.fold(notFound) { found =>
-          Try {
-            Some(conversion(found).toString("dd/MM/yyyy"))
-          }.getOrElse {
-            Logger.error(s"Failed to convert input date $found for NINO ${nino.value}. Removing date from response!")
-            notFound
+      def reformatDateAndLogErrors(maybeDateString: Option[String]): Option[String] = {
+        maybeDateString.flatMap{ dateString =>
+          dateConverter.convertDateFormat(dateString).orElse{
+            Logger.error(s"Failed to convert input date $dateString for NINO ${nino.value}. Removing date from response!")
+            None
           }
         }
       }
@@ -137,13 +132,13 @@ trait LivePersonalIncomeService extends PersonalIncomeService with Auditor with 
         claims.references.fold(Claims(None)) { items => {
           val references = items.filter(a => claimMatch(a))
             .map { claim =>
-              Claim(claim.household.copy(householdCeasedDate = dateConversion(claim.household.householdCeasedDate, formatB.parseDateTime)),
+              Claim(claim.household.copy(householdCeasedDate = reformatDateAndLogErrors(claim.household.householdCeasedDate)),
                 Renewal(
-                  dateConversion(claim.renewal.awardStartDate, formatA.parseDateTime),
-                  dateConversion(claim.renewal.awardEndDate, formatA.parseDateTime),
+                  reformatDateAndLogErrors(claim.renewal.awardStartDate),
+                  reformatDateAndLogErrors(claim.renewal.awardEndDate),
                   Some(resolveStatus(claim)),
-                  dateConversion(claim.renewal.renewalNoticeIssuedDate, formatB.parseDateTime),
-                  dateConversion(claim.renewal.renewalNoticeFirstSpecifiedDate, formatB.parseDateTime)))
+                  reformatDateAndLogErrors(claim.renewal.renewalNoticeIssuedDate),
+                  reformatDateAndLogErrors(claim.renewal.renewalNoticeFirstSpecifiedDate)))
             }
             Claims(Some(references))
           }
