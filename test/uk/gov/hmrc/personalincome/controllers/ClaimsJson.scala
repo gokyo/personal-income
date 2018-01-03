@@ -299,7 +299,7 @@ trait ClaimsJson {
                                     |  ]
                                     |}""".stripMargin
 
-  val claimsJsonWithDatesFormattedHyphonatedYYYYMMDD = """{
+  val claimsJsonWithDatesFormattedHyphenatedYYYYMMDD = """{
                                     |  "references": [
                                     |    {
                                     |      "household": {

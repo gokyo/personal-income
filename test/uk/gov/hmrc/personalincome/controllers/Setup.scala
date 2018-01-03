@@ -277,7 +277,7 @@ trait Setup extends ClaimsJson {
   val matchedClaims = Json.toJson(Json.parse(matchedClaimsJson)).as[Claims]
   val claimsWithInvalidDate = Json.toJson(Json.parse(claimsJsonWithInvalidDates)).as[Claims]
   val claimsWithDatesFormattedYYYYMMDD = Json.toJson(Json.parse(claimsJsonWithDatesFormattedYYYYMMDD)).as[Claims]
-  val claimsWithDatesFormattedyphonatedYYYYMMDD = Json.toJson(Json.parse(claimsJsonWithDatesFormattedHyphonatedYYYYMMDD)).as[Claims]
+  val claimsWithDatesFormattedHyphenatedYYYYMMDD = Json.toJson(Json.parse(claimsJsonWithDatesFormattedHyphenatedYYYYMMDD)).as[Claims]
   val matchedClaimsWithInvalidDate = Json.toJson(Json.parse(matchedClaimsJsonWithInvalidDates)).as[Claims]
 
 
@@ -335,8 +335,8 @@ trait SuccessWithDatesFormattedYYYYMMDD extends Setup {
   }
 }
 
-trait SuccessWithDatesFormattedHyphonatedYYYYMMDD extends Setup {
-  override val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithDatesFormattedyphonatedYYYYMMDD)
+trait SuccessWithDatesFormattedHyphenatedYYYYMMDD extends Setup {
+  override val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithDatesFormattedHyphenatedYYYYMMDD)
   override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
     authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
 

@@ -179,7 +179,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
       contentAsJson(result) shouldBe Json.parse(matchedClaimsJsonWithAllDates)
     }
 
-    "return claimant claims successfully where dates are formatted yyyy-MM-dd" in new SuccessWithDatesFormattedHyphonatedYYYYMMDD {
+    "return claimant claims successfully where dates are formatted yyyy-MM-dd" in new SuccessWithDatesFormattedHyphenatedYYYYMMDD {
       val result = await(controller.claimantDetails(nino, None, Some("claims"))(emptyRequestWithAcceptHeader))
 
       status(result) shouldBe 200
