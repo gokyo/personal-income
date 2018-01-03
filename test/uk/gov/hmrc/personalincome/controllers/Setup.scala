@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -276,6 +276,8 @@ trait Setup extends ClaimsJson {
   val claims = Json.toJson(Json.parse(claimsJson)).as[Claims]
   val matchedClaims = Json.toJson(Json.parse(matchedClaimsJson)).as[Claims]
   val claimsWithInvalidDate = Json.toJson(Json.parse(claimsJsonWithInvalidDates)).as[Claims]
+  val claimsWithDatesFormattedYYYYMMDD = Json.toJson(Json.parse(claimsJsonWithDatesFormattedYYYYMMDD)).as[Claims]
+  val claimsWithDatesFormattedHyphenatedYYYYMMDD = Json.toJson(Json.parse(claimsJsonWithDatesFormattedHyphenatedYYYYMMDD)).as[Claims]
   val matchedClaimsWithInvalidDate = Json.toJson(Json.parse(matchedClaimsJsonWithInvalidDates)).as[Claims]
 
 
@@ -309,6 +311,32 @@ trait Success extends Setup {
 
 trait SuccessWithInvalidDates extends Setup {
   override val  ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithInvalidDate)
+  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+    authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+  }
+}
+
+trait SuccessWithDatesFormattedYYYYMMDD extends Setup {
+  override val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithDatesFormattedYYYYMMDD)
+  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+    authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+
+  val controller = new PersonalIncomeController {
+    override val service: PersonalIncomeService = testPersonalIncomeService
+    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+  }
+}
+
+trait SuccessWithDatesFormattedHyphenatedYYYYMMDD extends Setup {
+  override val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithDatesFormattedHyphenatedYYYYMMDD)
   override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
     authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,6 +170,20 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends UnitSpec with WithFak
 
       status(result) shouldBe 200
       contentAsJson(result) shouldBe Json.parse(matchedClaimsJsonWithInvalidDates)
+    }
+
+    "return claimant claims successfully where dates are formatted yyyyMMdd" in new SuccessWithDatesFormattedYYYYMMDD {
+      val result = await(controller.claimantDetails(nino, None, Some("claims"))(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.parse(matchedClaimsJsonWithAllDates)
+    }
+
+    "return claimant claims successfully where dates are formatted yyyy-MM-dd" in new SuccessWithDatesFormattedHyphenatedYYYYMMDD {
+      val result = await(controller.claimantDetails(nino, None, Some("claims"))(emptyRequestWithAcceptHeader))
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.parse(matchedClaimsJsonWithAllDates)
     }
 
     "return 404 when no claims matched the supplied nino" in new NotFoundClaimant {

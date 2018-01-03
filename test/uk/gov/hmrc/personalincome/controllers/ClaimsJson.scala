@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -273,6 +273,58 @@ trait ClaimsJson {
                      |  ]
                      |}""".stripMargin
 
+  val claimsJsonWithDatesFormattedYYYYMMDD = """{
+                                    |  "references": [
+                                    |    {
+                                    |      "household": {
+                                    |        "barcodeReference": "000000000000000",
+                                    |        "applicationID": "198765432134566",
+                                    |        "applicant1": {
+                                    |          "nino": "CS700100A",
+                                    |          "title": "Mr",
+                                    |          "firstForename": "Jon",
+                                    |          "secondForename": "",
+                                    |          "surname": "Densmore"
+                                    |        },
+                                    |        "householdCeasedDate": "20180102",
+                                    |        "householdEndReason": "Some reason"
+                                    |      },
+                                    |      "renewal": {
+                                    |        "awardStartDate": "20180102",
+                                    |        "awardEndDate": "20180102",
+                                    |        "renewalNoticeIssuedDate": "20180102",
+                                    |        "renewalNoticeFirstSpecifiedDate": "20180102"
+                                    |      }
+                                    |    }
+                                    |  ]
+                                    |}""".stripMargin
+
+  val claimsJsonWithDatesFormattedHyphenatedYYYYMMDD = """{
+                                    |  "references": [
+                                    |    {
+                                    |      "household": {
+                                    |        "barcodeReference": "000000000000000",
+                                    |        "applicationID": "198765432134566",
+                                    |        "applicant1": {
+                                    |          "nino": "CS700100A",
+                                    |          "title": "Mr",
+                                    |          "firstForename": "Jon",
+                                    |          "secondForename": "",
+                                    |          "surname": "Densmore"
+                                    |        },
+                                    |        "householdCeasedDate": "2018-01-02",
+                                    |        "householdEndReason": "Some reason"
+                                    |      },
+                                    |      "renewal": {
+                                    |        "awardStartDate": "2018-01-02",
+                                    |        "awardEndDate": "2018-01-02",
+                                    |        "renewalNoticeIssuedDate": "2018-01-02",
+                                    |        "renewalNoticeFirstSpecifiedDate": "2018-01-02"
+                                    |      }
+                                    |    }
+                                    |  ]
+                                    |}""".stripMargin
+
   val matchedClaimsJsonWithInvalidDates = """{
                             |  "references": [
                             |    {
@@ -298,4 +350,30 @@ trait ClaimsJson {
                             |  ]
                             |}""".stripMargin
 
+  val matchedClaimsJsonWithAllDates = """{
+                            |  "references": [
+                            |    {
+                            |      "household": {
+                            |        "barcodeReference": "000000000000000",
+                            |        "applicationID": "198765432134566",
+                            |        "applicant1": {
+                            |          "nino": "CS700100A",
+                            |          "title": "Mr",
+                            |          "firstForename": "Jon",
+                            |          "secondForename": "",
+                            |          "surname": "Densmore"
+                            |        },
+                            |        "householdCeasedDate": "02/01/2018",
+                            |        "householdEndReason": "Some reason"
+                            |      },
+                            |      "renewal": {
+                            |        "awardEndDate": "02/01/2018",
+                            |        "awardStartDate": "02/01/2018",
+                            |        "renewalStatus": "AWAITING_BARCODE",
+                            |        "renewalNoticeIssuedDate": "02/01/2018",
+                            |        "renewalNoticeFirstSpecifiedDate": "02/01/2018"
+                            |      }
+                            |    }
+                            |  ]
+                            |}""".stripMargin
 }
