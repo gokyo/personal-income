@@ -18,8 +18,10 @@ package uk.gov.hmrc.personalincome.domain.userdata
 
 import org.joda.time.DateTime
 import play.api.Play
+import play.api.libs.functional.FunctionalBuilder
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.personalincome.domain.userdata.PaymentReadWriteUtils.{paymentReads, paymentWrites}
 
 case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCredit: Option[PaymentSection], paymentEnabled: Boolean, specialCircumstances: Option[String] = None) {
 
@@ -75,12 +77,38 @@ case class PastPayment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment:
 
 case class Total(amount: BigDecimal, paymentDate: DateTime)
 
+object PaymentReadWriteUtils {
+  val paymentReads: FunctionalBuilder[Reads]#CanBuild3[BigDecimal, DateTime, Boolean] =
+    (JsPath \ "amount").read[BigDecimal] and
+    (JsPath \ "paymentDate").read[DateTime] and
+    (JsPath \ "oneOffPayment").read[Boolean]
+
+  val paymentWrites: OWrites[(BigDecimal, DateTime, Boolean, Option[String])] = (
+    (__ \ "amount").write[BigDecimal] ~
+      (__ \ "paymentDate").write[DateTime] ~
+      (__ \ "oneOffPayment").write[Boolean] ~
+      (__ \ "explanatoryText").writeNullable[String]
+    ).tupled
+}
+
 object FuturePayment {
-  implicit val formats = Json.format[FuturePayment]
+  implicit val reads: Reads[FuturePayment] = paymentReads(FuturePayment.apply _)
+
+  implicit val writes: Writes[FuturePayment] = new Writes[FuturePayment] {
+    def writes(payment: FuturePayment) = {
+      paymentWrites.writes((payment.amount, payment.paymentDate, payment.oneOffPayment, payment.explanatoryText))
+    }
+  }
 }
 
 object PastPayment {
-  implicit val formats = Json.format[PastPayment]
+  implicit val reads: Reads[PastPayment] = paymentReads(PastPayment.apply _)
+
+  implicit val writes: Writes[PastPayment] = new Writes[PastPayment] {
+    def writes(payment: PastPayment) = {
+      paymentWrites.writes((payment.amount, payment.paymentDate, payment.oneOffPayment, payment.explanatoryText))
+    }
+  }
 }
 
 object PaymentSection {

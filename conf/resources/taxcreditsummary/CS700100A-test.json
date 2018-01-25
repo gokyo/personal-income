@@ -13,7 +13,8 @@
         {
           "amount": 33.00,
           "paymentDate": 1503737758781,
-          "oneOffPayment": false
+          "oneOffPayment": true,
+          "explanatoryText" : "This was because of a recent change and was to help you get the right amount of tax credits."
         }
       ]
     },

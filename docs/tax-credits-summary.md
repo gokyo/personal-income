@@ -29,15 +29,62 @@ The Tax Credits Summary object
 {
   "paymentSummary": {
     "workingTaxCredit": {
-      "amount": 160.34,
-      "paymentDate": 1437004800000,
-      "paymentFrequency": "WEEKLY"
+      "paymentSeq": [
+        {
+          "amount": 55,
+          "paymentDate": 1511690158781,
+          "oneOffPayment": false
+        },
+        {
+          "amount": 55,
+          "paymentDate": 1514282158781,
+          "oneOffPayment": true,
+          "explanatoryText" : "This is because of a recent change and is to help you get the right amount of tax credits."
+        }
+      ],
+      "paymentFrequency": "weekly",
+      "previousPaymentSeq": [
+        {
+          "amount": 43,
+          "paymentDate": 1501059358781,
+          "oneOffPayment": false
+        },
+        {
+          "amount": 53,
+          "paymentDate": 1498467358781,
+          "oneOffPayment": true,
+          "explanatoryText" : "This was because of a recent change and was to help you get the right amount of tax credits."
+        }
+      ]
     },
     "childTaxCredit": {
-      "amount": 140.12,
-      "paymentDate": 1437004800000,
-      "paymentFrequency": "WEEKLY"
-    }
+      "paymentSeq": [
+        {
+          "amount": 59.22,
+          "paymentDate": 1509008158781,
+          "oneOffPayment": false
+        },
+        {
+          "amount": 55,
+          "paymentDate": 1514282158781,
+          "oneOffPayment": true,
+          "explanatoryText" : "This is because of a recent change and is to help you get the right amount of tax credits."
+         }
+      ],
+      "paymentFrequency": "weekly"
+      "previousPaymentSeq": [
+        {
+          "amount": 43,
+          "paymentDate": 1501059358781,
+          "oneOffPayment": false
+        },
+        {
+          "amount": 53,
+          "paymentDate": 1498467358781,
+          "oneOffPayment": true,
+          "explanatoryText" : "This was because of a recent change and was to help you get the right amount of tax credits."
+        }
+      ]
   },
   "personalDetails": {
     "forename": "firstname",
