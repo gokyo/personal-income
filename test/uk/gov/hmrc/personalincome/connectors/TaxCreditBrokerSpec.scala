@@ -57,8 +57,8 @@ override lazy val fakeApplication = FakeApplication(additionalConfiguration = co
     val weekly = "WEEKLY"
     val expectedNextDueDate = DateTime.parse("2015-07-16")
 
-    val expectedPaymentWTC = Payment(160.34, expectedNextDueDate, false)
-    val expectedPaymentCTC = Payment(140.12, expectedNextDueDate, false)
+    val expectedPaymentWTC = FuturePayment(160.34, expectedNextDueDate, false)
+    val expectedPaymentCTC = FuturePayment(140.12, expectedNextDueDate, false)
     val paymentSectionCTC = PaymentSection(List(expectedPaymentCTC), "weekly")
     val paymentSectionWTC = PaymentSection(List(expectedPaymentWTC), "weekly")
     val paymentSummary = PaymentSummary(Some(paymentSectionWTC), Some(paymentSectionCTC), true)

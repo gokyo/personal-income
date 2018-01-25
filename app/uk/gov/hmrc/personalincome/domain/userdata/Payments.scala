@@ -50,15 +50,37 @@ case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCred
   }
 }
 
-case class PaymentSection(paymentSeq: List[Payment], paymentFrequency: String,
-                          previousPaymentSeq: Option[List[Payment]] = None)
+case class PaymentSection(paymentSeq: List[FuturePayment], paymentFrequency: String,
+                          previousPaymentSeq: Option[List[PastPayment]] = None)
 
-case class Payment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment: Boolean)
+trait Payment {
+  val amount: BigDecimal
+  val paymentDate: DateTime
+  val oneOffPayment: Boolean
+  def oneOffPaymentText: String = ???
+
+  def explanatoryText: Option[String] = {
+    if (oneOffPayment) Some(oneOffPaymentText)
+    else None
+  }
+}
+
+case class FuturePayment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment: Boolean) extends Payment{
+  override def oneOffPaymentText: String = "This is because of a recent change and is to help you get the right amount of tax credits."
+}
+
+case class PastPayment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment: Boolean) extends Payment {
+  override def oneOffPaymentText: String = "This was because of a recent change and was to help you get the right amount of tax credits."
+}
 
 case class Total(amount: BigDecimal, paymentDate: DateTime)
 
-object Payment {
-  implicit val formats = Json.format[Payment]
+object FuturePayment {
+  implicit val formats = Json.format[FuturePayment]
+}
+
+object PastPayment {
+  implicit val formats = Json.format[PastPayment]
 }
 
 object PaymentSection {
