@@ -25,19 +25,34 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
 
   val now = DateTime.now
   def date(n: Int, func:(Int) ⇒ DateTime): Long = func(n).getMillis
-  def payment(amount: Double, paymentDate: Long, oneOffPayment: Boolean): String = {
+
+  def payment(amount: Double, paymentDate: Long, oneOffPayment: Boolean, holidayType: Option[String] = None, explanatoryText: Option[String] = None): String = {
+    val bankHolidayJson = if (holidayType.isDefined) s"""| "holidayType": "${holidayType.get}", """ else ""
+    val explanatoryTextJson = if (explanatoryText.isDefined) s"""|, "explanatoryText": "${explanatoryText.get}" """ else ""
+
     s"""{
        | "amount": $amount,
        | "paymentDate": $paymentDate,
-       | "oneOffPayment": $oneOffPayment
+       | "oneOffPayment": $oneOffPayment,
+       $bankHolidayJson
+       | "earlyPayment": ${holidayType.isDefined}
+       $explanatoryTextJson
        |}""".stripMargin
   }
+
   def total(amount: Double, paymentDate: Long): String = {
     s"""{
        |"amount": $amount,
        |"paymentDate": $paymentDate
        |}""".stripMargin
   }
+
+  private val futureEarlyPaymentText = Some("Your payment is early because of UK bank holidays.")
+  private val pastEarlyPaymentText = Some("Your payment was early because of UK bank holidays.")
+  private val futureOneOffPaymentText = Some("This is because of a recent change and is to help you get the right amount of tax credits.")
+  private val pastOneOffPaymentText = Some("This was because of a recent change and was to help you get the right amount of tax credits.")
+
+  private val bankHoliday = Some("bankHolidsy")
 
   "PaymentSummary" should {
     "parse correctly if no wtc or ctc is provided" in {
@@ -63,8 +78,8 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
            |"childTaxCredit": {
            |  "paymentSeq": [
            |    ${payment(55.00, date(1, now.plusMonths), false)},
-           |    ${payment(55.00, date(2, now.plusMonths), false)},
-           |    ${payment(55.00, date(3, now.plusMonths), false)}
+           |    ${payment(55.00, date(2, now.plusMonths), true, None, futureOneOffPaymentText)},
+           |    ${payment(55.00, date(3, now.plusMonths), false, bankHoliday, futureEarlyPaymentText)}
            |  ],
            |  "paymentFrequency": "weekly"
            |}
@@ -101,8 +116,8 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
            |"workingTaxCredit": {
            |  "paymentSeq": [
            |    ${payment(55.00, date(1, now.plusMonths), false)},
-           |    ${payment(55.00, date(2, now.plusMonths), false)},
-           |    ${payment(55.00, date(3, now.plusMonths), false)}
+           |    ${payment(55.00, date(2, now.plusMonths), true, None, futureOneOffPaymentText)},
+           |    ${payment(55.00, date(3, now.plusMonths), false, bankHoliday, futureEarlyPaymentText)}
            |  ],
            |  "paymentFrequency": "weekly"
            |}
@@ -139,8 +154,8 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
            |"workingTaxCredit": {
            |  "paymentSeq": [
            |    ${payment(55.00, date(1, now.plusMonths), false)},
-           |    ${payment(55.00, date(2, now.plusMonths), false)},
-           |    ${payment(55.00, date(3, now.plusMonths), false)}
+           |    ${payment(55.00, date(2, now.plusMonths), true, None, futureOneOffPaymentText)},
+           |    ${payment(55.00, date(3, now.plusMonths), false, bankHoliday, futureEarlyPaymentText)}
            |  ],
            |  "paymentFrequency": "weekly"
            |}
@@ -151,8 +166,8 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
            |"childTaxCredit": {
            |  "paymentSeq": [
            |    ${payment(55.00, date(1, now.plusMonths), false)},
-           |    ${payment(55.00, date(2, now.plusMonths), false)},
-           |    ${payment(55.00, date(3, now.plusMonths), false)}
+           |    ${payment(55.00, date(2, now.plusMonths), true, None, futureOneOffPaymentText)},
+           |    ${payment(55.00, date(3, now.plusMonths), false, bankHoliday, futureEarlyPaymentText)}
            |  ],
            |  "paymentFrequency": "weekly"
            |}
@@ -190,14 +205,14 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
            |"workingTaxCredit": {
            |  "paymentSeq": [
            |    ${payment(55.00, date(1, now.plusMonths), false)},
-           |    ${payment(55.00, date(2, now.plusMonths), false)},
-           |    ${payment(55.00, date(3, now.plusMonths), false)}
+           |    ${payment(55.00, date(2, now.plusMonths), true, None, futureOneOffPaymentText)},
+           |    ${payment(55.00, date(3, now.plusMonths), false, bankHoliday, futureEarlyPaymentText)}
            |  ],
            |  "paymentFrequency": "weekly",
            |  "previousPaymentSeq": [
            |    ${payment(33.00, date(1, now.minusMonths), false)},
-           |    ${payment(43.00, date(2, now.minusMonths), false)},
-           |    ${payment(53.00, date(3, now.minusMonths), false)}
+           |    ${payment(43.00, date(2, now.minusMonths), true, None, pastOneOffPaymentText)},
+           |    ${payment(53.00, date(3, now.minusMonths), false, bankHoliday, pastEarlyPaymentText)}
            |  ]
            |}
          """.stripMargin
@@ -207,8 +222,8 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
            |"childTaxCredit": {
            |  "paymentSeq": [
            |    ${payment(55.00, date(1, now.plusMonths), false)},
-           |    ${payment(55.00, date(2, now.plusMonths), false)},
-           |    ${payment(55.00, date(3, now.plusMonths), false)}
+           |    ${payment(55.00, date(2, now.plusMonths), true, None, futureOneOffPaymentText)},
+           |    ${payment(55.00, date(3, now.plusMonths), false, bankHoliday, futureEarlyPaymentText)}
            |  ],
            |  "paymentFrequency": "weekly"
            |}
@@ -254,8 +269,8 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
            |"workingTaxCredit": {
            |  "paymentSeq": [
            |    ${payment(55.00, date(1, now.plusMonths), false)},
-           |    ${payment(55.00, date(2, now.plusMonths), false)},
-           |    ${payment(55.00, date(3, now.plusMonths), false)}
+           |    ${payment(55.00, date(2, now.plusMonths), true, None, futureOneOffPaymentText)},
+           |    ${payment(55.00, date(3, now.plusMonths), false, bankHoliday, futureEarlyPaymentText)}
            |  ],
            |  "paymentFrequency": "weekly"
            |}
@@ -266,14 +281,14 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
            |"childTaxCredit": {
            |  "paymentSeq": [
            |    ${payment(55.00, date(1, now.plusMonths), false)},
-           |    ${payment(55.00, date(2, now.plusMonths), false)},
-           |    ${payment(55.00, date(3, now.plusMonths), false)}
+           |    ${payment(55.00, date(2, now.plusMonths), true, None, futureOneOffPaymentText)},
+           |    ${payment(55.00, date(3, now.plusMonths), false, bankHoliday, futureEarlyPaymentText)}
            |  ],
            |  "paymentFrequency": "weekly",
            |  "previousPaymentSeq": [
            |    ${payment(33.00, date(1, now.minusMonths), false)},
-           |    ${payment(43.00, date(2, now.minusMonths), false)},
-           |    ${payment(53.00, date(3, now.minusMonths), false)}
+           |    ${payment(43.00, date(2, now.minusMonths), true, None, pastOneOffPaymentText)},
+           |    ${payment(53.00, date(3, now.minusMonths), false, bankHoliday, pastEarlyPaymentText)}
            |  ]
            |}
          """.stripMargin
@@ -319,16 +334,16 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
            |    ${payment(21.33, date(1, now.plusMonths), false)},
            |    ${payment(33.33, date(2, now.plusMonths), false)},
            |    ${payment(33.33, date(2, now.plusMonths), false)},
-           |    ${payment(22.95, date(2, now.plusMonths), false)},
-           |    ${payment(89.61, date(3, now.plusMonths), false)}
+           |    ${payment(22.95, date(2, now.plusMonths), true, None, futureOneOffPaymentText)},
+           |    ${payment(89.61, date(3, now.plusMonths), false, bankHoliday, futureEarlyPaymentText)}
            |  ],
            |  "paymentFrequency": "weekly",
            |  "previousPaymentSeq": [
            |    ${payment(33.12, date(2, now.minusMonths), false)},
            |    ${payment(33.56, date(2, now.minusMonths), false)},
            |    ${payment(53.65, date(5, now.minusMonths), false)},
-           |    ${payment(50.35, date(5, now.minusMonths), false)},
-           |    ${payment(53.00, date(5, now.minusMonths), false)}
+           |    ${payment(50.35, date(5, now.minusMonths), true, None, pastOneOffPaymentText)},
+           |    ${payment(53.00, date(5, now.minusMonths), false, bankHoliday, pastEarlyPaymentText)}
            |  ]
            |}
          """.stripMargin
@@ -341,8 +356,8 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
            |    ${payment(100.55, date(2, now.plusMonths), false)},
            |    ${payment(5.33, date(2, now.plusMonths), false)},
            |    ${payment(100.55, date(3, now.plusMonths), false)},
-           |    ${payment(2.66, date(3, now.plusMonths), false)},
-           |    ${payment(2.67, date(3, now.plusMonths), false)}
+           |    ${payment(2.66, date(3, now.plusMonths), true, None, futureOneOffPaymentText)},
+           |    ${payment(2.67, date(3, now.plusMonths), false, bankHoliday, futureEarlyPaymentText)}
            |  ],
            |  "paymentFrequency": "weekly",
            |  "previousPaymentSeq": [
@@ -353,8 +368,8 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
            |    ${payment(213.00, date(2, now.minusMonths), false)},
            |    ${payment(213.00, date(2, now.minusMonths), false)},
            |    ${payment(360.99, date(2, now.minusMonths), false)},
-           |    ${payment(153.12, date(3, now.minusMonths), false)},
-           |    ${payment(846.87, date(3, now.minusMonths), false)}
+           |    ${payment(153.12, date(3, now.minusMonths), true, None, pastOneOffPaymentText)},
+           |    ${payment(846.87, date(3, now.minusMonths), false, bankHoliday, pastEarlyPaymentText)}
            |  ]
            |}
          """.stripMargin
@@ -400,8 +415,8 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
          |"workingTaxCredit": {
          |  "paymentSeq": [
          |    ${payment(50.00, date(1, now.plusMonths), false)},
-         |    ${payment(82.00, date(2, now.plusMonths), false)},
-         |    ${payment(82.00, date(3, now.plusMonths), false)}
+         |    ${payment(82.00, date(2, now.plusMonths), true, None, futureOneOffPaymentText)},
+         |    ${payment(82.00, date(3, now.plusMonths), false, bankHoliday, futureEarlyPaymentText)}
          |  ],
          |  "paymentFrequency": "weekly"
          |}
@@ -411,8 +426,8 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
          |"childTaxCredit": {
          |  "paymentSeq": [
          |    ${payment(25.00, date(1, now.plusMonths), false)},
-         |    ${payment(25.00, date(2, now.plusMonths), false)},
-         |    ${payment(50.00, date(3, now.plusMonths), false)}
+         |    ${payment(25.00, date(2, now.plusMonths), true, None, futureOneOffPaymentText)},
+         |    ${payment(50.00, date(3, now.plusMonths), false, bankHoliday, futureEarlyPaymentText)}
          |  ],
          |  "paymentFrequency": "weekly"
          |}
@@ -500,17 +515,39 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
 
     Json.stringify(Json.toJson(paymentSummary)) shouldBe expectedResponse
   }
+
   "Future Payment " should {
     "return the correct explanatory text for a one-off payment" in {
       FuturePayment(1, now, oneOffPayment = false).explanatoryText shouldBe None
       FuturePayment(1, now, oneOffPayment = true).explanatoryText shouldBe
         Some("This is because of a recent change and is to help you get the right amount of tax credits.")
     }
+
+    "return the correct explanatory text for a bank holiday payment" in {
+      FuturePayment(1, now, oneOffPayment = false, holidayType = Some("bankHoliday")).explanatoryText shouldBe
+        futureEarlyPaymentText
+    }
+
+    "return the one-off payment explanatory text for a one-off payment made early due to a bank holiday" in {
+      FuturePayment(1, now, oneOffPayment = true, holidayType = Some("bankHoliday")).explanatoryText shouldBe
+        Some("This is because of a recent change and is to help you get the right amount of tax credits.")
+    }
   }
+
   "Past Payment " should {
     "return the correct explanatory text for a one-off payment" in {
       PastPayment(1, now, oneOffPayment = false).explanatoryText shouldBe None
       PastPayment(1, now, oneOffPayment = true).explanatoryText shouldBe
+        Some("This was because of a recent change and was to help you get the right amount of tax credits.")
+    }
+
+    "return the correct explanatory text for a bank holiday payment" in {
+      PastPayment(1, now, oneOffPayment = false, holidayType = Some("bankHoliday")).explanatoryText shouldBe
+        Some("Your payment was early because of UK bank holidays.")
+    }
+
+    "return the one-off payment explanatory text for a one-off payment made early due to a bank holiday" in {
+      PastPayment(1, now, oneOffPayment = true, holidayType = Some("bankHoliday")).explanatoryText shouldBe
         Some("This was because of a recent change and was to help you get the right amount of tax credits.")
     }
   }
