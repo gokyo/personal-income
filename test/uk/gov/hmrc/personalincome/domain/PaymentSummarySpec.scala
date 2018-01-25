@@ -18,7 +18,7 @@ package uk.gov.hmrc.personalincome.domain
 
 import org.joda.time.DateTime
 import play.api.libs.json.{JsSuccess, Json}
-import uk.gov.hmrc.personalincome.domain.userdata.PaymentSummary
+import uk.gov.hmrc.personalincome.domain.userdata.{FuturePayment, PastPayment, PaymentSummary}
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
 class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
@@ -499,5 +499,19 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
     paymentSummary.totalsByDate.isDefined shouldBe true
 
     Json.stringify(Json.toJson(paymentSummary)) shouldBe expectedResponse
+  }
+  "Future Payment " should {
+    "return the correct explanatory text for a one-off payment" in {
+      FuturePayment(1, now, oneOffPayment = false).explanatoryText shouldBe None
+      FuturePayment(1, now, oneOffPayment = true).explanatoryText shouldBe
+        Some("This is because of a recent change and is to help you get the right amount of tax credits.")
+    }
+  }
+  "Past Payment " should {
+    "return the correct explanatory text for a one-off payment" in {
+      PastPayment(1, now, oneOffPayment = false).explanatoryText shouldBe None
+      PastPayment(1, now, oneOffPayment = true).explanatoryText shouldBe
+        Some("This was because of a recent change and was to help you get the right amount of tax credits.")
+    }
   }
 }

@@ -15,7 +15,8 @@
         {
           "amount": 55,
           "paymentDate": 1514282158781,
-          "oneOffPayment": false
+          "oneOffPayment": true,
+          "explanatoryText" : "This is because of a recent change and is to help you get the right amount of tax credits."
         }
       ],
       "paymentFrequency": "weekly",
@@ -33,7 +34,8 @@
         {
           "amount": 53,
           "paymentDate": 1498467358781,
-          "oneOffPayment": false
+          "oneOffPayment": true,
+          "explanatoryText" : "This was because of a recent change and was to help you get the right amount of tax credits."
         }
       ]
     },
@@ -52,7 +54,8 @@
         {
           "amount": 55,
           "paymentDate": 1514282158781,
-          "oneOffPayment": false
+          "oneOffPayment": true,
+          "explanatoryText" : "This is because of a recent change and is to help you get the right amount of tax credits."
         }
       ],
       "paymentFrequency": "weekly"

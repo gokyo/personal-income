@@ -18,8 +18,10 @@ package uk.gov.hmrc.personalincome.domain.userdata
 
 import org.joda.time.DateTime
 import play.api.Play
+import play.api.libs.functional.FunctionalBuilder
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.personalincome.domain.userdata.PaymentReadWriteUtils.{paymentReads, paymentWrites}
 
 case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCredit: Option[PaymentSection], paymentEnabled: Boolean, specialCircumstances: Option[String] = None) {
 
@@ -50,15 +52,63 @@ case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCred
   }
 }
 
-case class PaymentSection(paymentSeq: List[Payment], paymentFrequency: String,
-                          previousPaymentSeq: Option[List[Payment]] = None)
+case class PaymentSection(paymentSeq: List[FuturePayment], paymentFrequency: String,
+                          previousPaymentSeq: Option[List[PastPayment]] = None)
 
-case class Payment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment: Boolean)
+trait Payment {
+  val amount: BigDecimal
+  val paymentDate: DateTime
+  val oneOffPayment: Boolean
+  def oneOffPaymentText: String = ???
+
+  def explanatoryText: Option[String] = {
+    if (oneOffPayment) Some(oneOffPaymentText)
+    else None
+  }
+}
+
+case class FuturePayment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment: Boolean) extends Payment{
+  override def oneOffPaymentText: String = "This is because of a recent change and is to help you get the right amount of tax credits."
+}
+
+case class PastPayment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment: Boolean) extends Payment {
+  override def oneOffPaymentText: String = "This was because of a recent change and was to help you get the right amount of tax credits."
+}
 
 case class Total(amount: BigDecimal, paymentDate: DateTime)
 
-object Payment {
-  implicit val formats = Json.format[Payment]
+object PaymentReadWriteUtils {
+  val paymentReads: FunctionalBuilder[Reads]#CanBuild3[BigDecimal, DateTime, Boolean] =
+    (JsPath \ "amount").read[BigDecimal] and
+    (JsPath \ "paymentDate").read[DateTime] and
+    (JsPath \ "oneOffPayment").read[Boolean]
+
+  val paymentWrites: OWrites[(BigDecimal, DateTime, Boolean, Option[String])] = (
+    (__ \ "amount").write[BigDecimal] ~
+      (__ \ "paymentDate").write[DateTime] ~
+      (__ \ "oneOffPayment").write[Boolean] ~
+      (__ \ "explanatoryText").writeNullable[String]
+    ).tupled
+}
+
+object FuturePayment {
+  implicit val reads: Reads[FuturePayment] = paymentReads(FuturePayment.apply _)
+
+  implicit val writes: Writes[FuturePayment] = new Writes[FuturePayment] {
+    def writes(payment: FuturePayment) = {
+      paymentWrites.writes((payment.amount, payment.paymentDate, payment.oneOffPayment, payment.explanatoryText))
+    }
+  }
+}
+
+object PastPayment {
+  implicit val reads: Reads[PastPayment] = paymentReads(PastPayment.apply _)
+
+  implicit val writes: Writes[PastPayment] = new Writes[PastPayment] {
+    def writes(payment: PastPayment) = {
+      paymentWrites.writes((payment.amount, payment.paymentDate, payment.oneOffPayment, payment.explanatoryText))
+    }
+  }
 }
 
 object PaymentSection {
