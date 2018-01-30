@@ -59,34 +59,44 @@ trait Payment {
   val amount: BigDecimal
   val paymentDate: DateTime
   val oneOffPayment: Boolean
+  val holidayType: Option[String]
+  val earlyPayment: Boolean = holidayType.isDefined
+
   def oneOffPaymentText: String = ???
+  def bankHolidayPaymentText: String = ???
 
   def explanatoryText: Option[String] = {
     if (oneOffPayment) Some(oneOffPaymentText)
+    else if (earlyPayment) Some(bankHolidayPaymentText)
     else None
   }
 }
 
-case class FuturePayment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment: Boolean) extends Payment{
+case class FuturePayment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment: Boolean, holidayType: Option[String] = None) extends Payment{
   override def oneOffPaymentText: String = "This is because of a recent change and is to help you get the right amount of tax credits."
+  override def bankHolidayPaymentText: String = "Your payment is early because of UK bank holidays."
 }
 
-case class PastPayment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment: Boolean) extends Payment {
+case class PastPayment(amount: BigDecimal, paymentDate: DateTime, oneOffPayment: Boolean, holidayType: Option[String] = None) extends Payment {
   override def oneOffPaymentText: String = "This was because of a recent change and was to help you get the right amount of tax credits."
+  override def bankHolidayPaymentText: String = "Your payment was early because of UK bank holidays."
 }
 
 case class Total(amount: BigDecimal, paymentDate: DateTime)
 
 object PaymentReadWriteUtils {
-  val paymentReads: FunctionalBuilder[Reads]#CanBuild3[BigDecimal, DateTime, Boolean] =
+  val paymentReads: FunctionalBuilder[Reads]#CanBuild4[BigDecimal, DateTime, Boolean, Option[String]] =
     (JsPath \ "amount").read[BigDecimal] and
     (JsPath \ "paymentDate").read[DateTime] and
-    (JsPath \ "oneOffPayment").read[Boolean]
+    (JsPath \ "oneOffPayment").read[Boolean] and
+    (JsPath \ "holidayType").readNullable[String]
 
-  val paymentWrites: OWrites[(BigDecimal, DateTime, Boolean, Option[String])] = (
+  val paymentWrites: OWrites[(BigDecimal, DateTime, Boolean, Option[String], Boolean, Option[String])] = (
     (__ \ "amount").write[BigDecimal] ~
       (__ \ "paymentDate").write[DateTime] ~
       (__ \ "oneOffPayment").write[Boolean] ~
+      (__ \ "holidayType").writeNullable[String] ~
+      (__ \ "earlyPayment").write[Boolean] ~
       (__ \ "explanatoryText").writeNullable[String]
     ).tupled
 }
@@ -96,7 +106,8 @@ object FuturePayment {
 
   implicit val writes: Writes[FuturePayment] = new Writes[FuturePayment] {
     def writes(payment: FuturePayment) = {
-      paymentWrites.writes((payment.amount, payment.paymentDate, payment.oneOffPayment, payment.explanatoryText))
+      paymentWrites.writes((
+        payment.amount, payment.paymentDate, payment.oneOffPayment, payment.holidayType, payment.earlyPayment, payment.explanatoryText))
     }
   }
 }
@@ -106,7 +117,8 @@ object PastPayment {
 
   implicit val writes: Writes[PastPayment] = new Writes[PastPayment] {
     def writes(payment: PastPayment) = {
-      paymentWrites.writes((payment.amount, payment.paymentDate, payment.oneOffPayment, payment.explanatoryText))
+      paymentWrites.writes((
+        payment.amount, payment.paymentDate, payment.oneOffPayment, payment.holidayType, payment.earlyPayment, payment.explanatoryText))
     }
   }
 }

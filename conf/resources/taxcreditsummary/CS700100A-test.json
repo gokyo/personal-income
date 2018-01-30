@@ -23,7 +23,10 @@
         {
           "amount": 59.22,
           "paymentDate": 1509008158781,
-          "oneOffPayment": false
+          "oneOffPayment": false,
+          "holidayType": "bankHoliday",
+          "earlyPayment": true,
+          "explanatoryText" : "Your payment was early because of UK bank holidays."
         }
       ],
       "paymentFrequency": "weekly"
