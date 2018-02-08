@@ -17,16 +17,17 @@
 package uk.gov.hmrc.personalincome.controllers
 
 
+import com.google.inject.{Inject, Singleton}
 import uk.gov.hmrc.api.controllers.HeaderValidator
-import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
-import uk.gov.hmrc.personalincome.domain.{TaxCreditsRenewalsState, TaxCreditsControl, TaxCreditsSubmissionControl, TaxCreditsSubmissions}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
+import uk.gov.hmrc.personalincome.domain.{TaxCreditsControl, TaxCreditsRenewalsState, TaxCreditsSubmissionControl, TaxCreditsSubmissions}
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.time.DateTimeUtils
 
 import scala.concurrent.Future
 
-trait ServiceStateController extends BaseController with HeaderValidator with ErrorHandling {
+trait ServiceStateController extends BaseController with HeaderValidator with ErrorHandling with AuthorisedFunctions{
 
   import play.api.libs.json.Json
   import uk.gov.hmrc.personalincome.domain.TaxCreditsSubmissions.formats
@@ -34,9 +35,8 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val taxCreditsSubmissionControlConfig : TaxCreditsControl
-  val accessControl:AccountAccessControlWithHeaderCheck
 
-  final def taxCreditsSubmissionState(journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+  final def taxCreditsSubmissionState(journeyId: Option[String]=None) = validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
       implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
       errorWrapper(
@@ -47,7 +47,7 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
         })
   }
 
-  final def taxCreditsSubmissionStateEnabled(journeyId: Option[String]=None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
+  final def taxCreditsSubmissionStateEnabled(journeyId: Option[String]=None) = validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
       implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
       errorWrapper(
@@ -59,17 +59,16 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
   }
 }
 
-
-object SandboxServiceStateController extends ServiceStateController with DateTimeUtils {
+@Singleton
+class SandboxServiceStateController @Inject()(override val authConnector: AuthConnector) extends ServiceStateController with DateTimeUtils {
 
   override val taxCreditsSubmissionControlConfig = new TaxCreditsControl {
     override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true, true)
     override def toTaxCreditsRenewalsState = new TaxCreditsRenewalsState(true, "open")
   }
-  override val accessControl = AccountAccessControlCheckOff
 }
 
-object LiveServiceStateController extends ServiceStateController {
+@Singleton
+class LiveServiceStateController @Inject() (override val authConnector: AuthConnector) extends ServiceStateController {
   override val taxCreditsSubmissionControlConfig = TaxCreditsSubmissionControl
-  override val accessControl = AccountAccessControlWithHeaderCheck
 }

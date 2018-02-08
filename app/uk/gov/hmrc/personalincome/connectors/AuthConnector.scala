@@ -28,78 +28,78 @@ import uk.gov.hmrc.play.config.ServicesConfig
 import scala.concurrent.{ExecutionContext, Future}
 
 
-class FailToMatchTaxIdOnAuth(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
-class NinoNotFoundOnAccount(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
-class AccountWithLowCL(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
-class AccountWithWeakCredStrength(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
+//class FailToMatchTaxIdOnAuth(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
+//class NinoNotFoundOnAccount(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
+//class AccountWithLowCL(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
+//class AccountWithWeakCredStrength(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
 
-trait AuthConnector {
-
-  val serviceUrl: String
-
-  def http: CoreGet
-
-  def serviceConfidenceLevel: ConfidenceLevel
-
-  val credStrengthStrong = "strong"
-
-  def accounts()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Accounts] = {
-    http.GET(s"$serviceUrl/auth/authority") map {
-      resp =>
-        val json = resp.json
-        val accounts = json \ "accounts"
-        val utr = (accounts \ "sa" \ "utr").asOpt[String]
-        val nino = (accounts \ "paye" \ "nino").asOpt[String]
-
-        Accounts(nino.map(Nino(_)), utr.map(SaUtr(_)), upliftRequired(json), twoFactorRequired(json))
-    }
-  }
-
-  def grantAccess(taxId:Option[Nino])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
-
-    http.GET(s"$serviceUrl/auth/authority") map {
-      resp => {
-        val json = resp.json
-        confirmConfiendenceLevel(json)
-        val nino = (json \ "accounts" \ "paye" \ "nino").asOpt[String]
-
-        if (nino.isEmpty)
-          throw new NinoNotFoundOnAccount("The user must have a National Insurance Number")
-
-        if (taxId.nonEmpty && !taxId.get.value.equals(nino.get))
-          throw new FailToMatchTaxIdOnAuth("The nino in the URL failed to match auth!")
-      }
-    }
-  }
-
-  private def confirmConfiendenceLevel(jsValue : JsValue) =
-    if (upliftRequired(jsValue)) {
-      throw new AccountWithLowCL("The user does not have sufficient CL permissions to access this service")
-    }
-
-  private def upliftRequired(jsValue : JsValue) = {
-    val usersCL = (jsValue \ "confidenceLevel").as[Int]
-    serviceConfidenceLevel.level > usersCL
-  }
-
-  private def confirmCredStrength(jsValue : JsValue) =
-    if (twoFactorRequired(jsValue)) {
-      throw new AccountWithWeakCredStrength("The user does not have sufficient credential strength permissions to access this service")
-    }
-
-  private def twoFactorRequired(jsValue : JsValue) = {
-    val credStrength = (jsValue \ "credentialStrength").as[String]
-    credStrength != credStrengthStrong
-  }
-
-}
-
-object AuthConnector extends AuthConnector with ServicesConfig {
-
-  import play.api.Play.current
-
-  val serviceUrl = baseUrl("auth")
-  val http = WSHttp
-  val serviceConfidenceLevel: ConfidenceLevel = ConfidenceLevel.fromInt(Play.configuration.getInt("controllers.confidenceLevel")
-    .getOrElse(throw new RuntimeException("The service has not been configured with a confidence level")))
-}
+//trait AuthConnector {
+//
+//  val serviceUrl: String
+//
+//  def http: CoreGet
+//
+//  def serviceConfidenceLevel: ConfidenceLevel
+//
+//  val credStrengthStrong = "strong"
+//
+//  def accounts()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Accounts] = {
+//    http.GET(s"$serviceUrl/auth/authority") map {
+//      resp =>
+//        val json = resp.json
+//        val accounts = json \ "accounts"
+//        val utr = (accounts \ "sa" \ "utr").asOpt[String]
+//        val nino = (accounts \ "paye" \ "nino").asOpt[String]
+//
+//        Accounts(nino.map(Nino(_)), utr.map(SaUtr(_)), upliftRequired(json), twoFactorRequired(json))
+//    }
+//  }
+//
+//  def grantAccess(taxId:Option[Nino])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+//
+//    http.GET(s"$serviceUrl/auth/authority") map {
+//      resp => {
+//        val json = resp.json
+//        confirmConfiendenceLevel(json)
+//        val nino = (json \ "accounts" \ "paye" \ "nino").asOpt[String]
+//
+//        if (nino.isEmpty)
+//          throw new NinoNotFoundOnAccount("The user must have a National Insurance Number")
+//
+//        if (taxId.nonEmpty && !taxId.get.value.equals(nino.get))
+//          throw new FailToMatchTaxIdOnAuth("The nino in the URL failed to match auth!")
+//      }
+//    }
+//  }
+//
+//  private def confirmConfiendenceLevel(jsValue : JsValue) =
+//    if (upliftRequired(jsValue)) {
+//      throw new AccountWithLowCL("The user does not have sufficient CL permissions to access this service")
+//    }
+//
+//  private def upliftRequired(jsValue : JsValue) = {
+//    val usersCL = (jsValue \ "confidenceLevel").as[Int]
+//    serviceConfidenceLevel.level > usersCL
+//  }
+//
+//  private def confirmCredStrength(jsValue : JsValue) =
+//    if (twoFactorRequired(jsValue)) {
+//      throw new AccountWithWeakCredStrength("The user does not have sufficient credential strength permissions to access this service")
+//    }
+//
+//  private def twoFactorRequired(jsValue : JsValue) = {
+//    val credStrength = (jsValue \ "credentialStrength").as[String]
+//    credStrength != credStrengthStrong
+//  }
+//
+//}
+//
+//object AuthConnector extends AuthConnector with ServicesConfig {
+//
+//  import play.api.Play.current
+//
+//  val serviceUrl = baseUrl("auth")
+//  val http = WSHttp
+//  val serviceConfidenceLevel: ConfidenceLevel = ConfidenceLevel.fromInt(Play.configuration.getInt("controllers.confidenceLevel")
+//    .getOrElse(throw new RuntimeException("The service has not been configured with a confidence level")))
+//}

@@ -16,18 +16,13 @@
 
 package uk.gov.hmrc.personalincome.controllers.action
 
-import com.typesafe.config.Config
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ActionBuilder, Request, Result, Results}
 import uk.gov.hmrc.api.controllers._
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.hooks.HttpHook
-import uk.gov.hmrc.http.{CoreGet, HeaderCarrier, HttpGet, HttpResponse}
-import uk.gov.hmrc.personalincome.connectors._
-import uk.gov.hmrc.personalincome.controllers.ErrorUnauthorizedNoNino
+import uk.gov.hmrc.personalincome.controllers._
 import uk.gov.hmrc.play.HeaderCarrierConverter
-import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
 
 import scala.concurrent.Future
 
@@ -35,37 +30,38 @@ case object ErrorUnauthorizedMicroService extends ErrorResponse(401, "UNAUTHORIZ
 case object ErrorUnauthorizedWeakCredStrength extends ErrorResponse(401, "WEAK_CRED_STRENGTH", "Credential Strength on account does not allow access")
 
 
-trait AccountAccessControl extends Results {
+trait AccountAccessControl extends Results with Authorisation {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val authConnector: AuthConnector
-
   case object ErrorUnauthorized extends ErrorResponse(401, "UNAUTHORIZED", "Invalid request")
+
+  val requiresAuth: Boolean = true
 
   def invokeAuthBlock[A](request: Request[A], block: (Request[A]) => Future[Result], taxId:Option[Nino]) = {
     implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
 
-    authConnector.grantAccess(taxId).flatMap { access =>
+
+    grantAccess(taxId.getOrElse(Nino(""))).flatMap { access ⇒
         block(request)
     }.recover {
-      case ex: uk.gov.hmrc.http.Upstream4xxResponse =>
+      case ex: uk.gov.hmrc.http.Upstream4xxResponse ⇒
         Logger.info("Unauthorized! Failed to grant access since 4xx response!")
         Unauthorized(Json.toJson(ErrorUnauthorizedMicroService))
 
-      case ex: NinoNotFoundOnAccount =>
+      case ex: NinoNotFoundOnAccount ⇒
         Logger.info("Unauthorized! NINO not found on account!")
         Unauthorized(Json.toJson(ErrorUnauthorizedNoNino))
 
-      case ex: FailToMatchTaxIdOnAuth =>
+      case ex: FailToMatchTaxIdOnAuth ⇒
         Logger.info("Unauthorized! Failure to match URL NINO against Auth NINO")
         Status(ErrorUnauthorized.httpStatusCode)(Json.toJson(ErrorUnauthorized))
 
-      case ex: AccountWithLowCL =>
+      case ex: AccountWithLowCL ⇒
         Logger.info("Unauthorized! Account with low CL!")
         Unauthorized(Json.toJson(ErrorUnauthorizedLowCL))
 
-      case ex: AccountWithWeakCredStrength =>
+      case ex: AccountWithWeakCredStrength ⇒
         Logger.info("Unauthorized! Account with weak cred strength!")
         Unauthorized(Json.toJson(ErrorUnauthorizedWeakCredStrength))
     }
@@ -73,50 +69,16 @@ trait AccountAccessControl extends Results {
 
 }
 
-trait AccountAccessControlWithHeaderCheck extends HeaderValidator {
-  val checkAccess=true
-  val accessControl:AccountAccessControl
+trait AccessControl extends HeaderValidator with AccountAccessControl {
 
-  def validateAcceptWithAuth(rules: Option[String] => Boolean, taxId: Option[Nino]) = new ActionBuilder[Request] {
+  def validateAcceptWithAuth(rules: Option[String] ⇒ Boolean, taxId: Option[Nino]) = new ActionBuilder[Request] {
 
-    def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
+    def invokeBlock[A](request: Request[A], block: (Request[A]) ⇒ Future[Result]) = {
       if (rules(request.headers.get("Accept"))) {
-        if (checkAccess) accessControl.invokeAuthBlock(request, block, taxId)
+        if(requiresAuth) invokeAuthBlock(request, block, taxId)
         else block(request)
       }
       else Future.successful(Status(ErrorAcceptHeaderInvalid.httpStatusCode)(Json.toJson(ErrorAcceptHeaderInvalid)))
     }
   }
-}
-
-object Auth {
-  val authConnector: AuthConnector = AuthConnector
-}
-
-object AccountAccessControl extends AccountAccessControl {
-  val authConnector: AuthConnector = Auth.authConnector
-}
-
-object AccountAccessControlWithHeaderCheck extends AccountAccessControlWithHeaderCheck {
-  val accessControl: AccountAccessControl = AccountAccessControl
-}
-
-object AccountAccessControlOff extends AccountAccessControl {
-  val authConnector: AuthConnector = new AuthConnector {
-    override val serviceUrl: String = "NO SERVICE"
-
-    override def serviceConfidenceLevel: ConfidenceLevel = ConfidenceLevel.L0
-
-    override def http: CoreGet = new CoreGet with HttpGet {
-      override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = Future.failed(new IllegalArgumentException("Sandbox mode!"))
-      override val hooks: Seq[HttpHook] = NoneRequired
-      override def configuration: Option[Config] = None
-    }
-  }
-}
-
-object AccountAccessControlCheckOff extends AccountAccessControlWithHeaderCheck {
-  override val checkAccess=false
-
-  val accessControl: AccountAccessControl = AccountAccessControlOff
 }
