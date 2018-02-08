@@ -14,34 +14,32 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.personalincome.controllers
-
 import java.util.UUID
 
 import com.ning.http.util.Base64
 import org.joda.time.DateTime
+import org.mockito.Mockito
 import play.api.Play
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.{CoreGet, CorePost, HeaderCarrier, ServiceUnavailableException}
 import uk.gov.hmrc.personalincome.config.AppContext.RenewalStatusTransform
 import uk.gov.hmrc.personalincome.config.{AppContext, MicroserviceAuditConnector}
 import uk.gov.hmrc.personalincome.connectors._
-import uk.gov.hmrc.personalincome.controllers.action.{AccountAccessControl, AccountAccessControlCheckOff, AccountAccessControlWithHeaderCheck}
+import uk.gov.hmrc.personalincome.controllers.{ClaimsJson, HeaderKeys, LivePersonalIncomeController, PersonalIncomeController}
 import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.domain.userdata._
 import uk.gov.hmrc.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService, SandboxPersonalIncomeService}
 import uk.gov.hmrc.personaltaxsummary.domain.PersonalTaxSummaryContainer
 import uk.gov.hmrc.personaltaxsummary.viewmodels.{IncomeTaxViewModel, PTSEstimatedIncomeViewModel, PTSYourTaxableIncomeViewModel}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
-import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
 import uk.gov.hmrc.time.DateTimeUtils
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
-
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class TestPersonalTaxSummaryConnector(taxSummaryContainer:Option[uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer]) extends PersonalTaxSummaryTestConnector {
   override def http: CoreGet with CorePost = ???
@@ -91,23 +89,6 @@ class TestNtcConnector(response:Response, tcrAuthToken:Option[TcrAuthenticationT
 
 }
 
-class TestAuthConnector(nino: Option[Nino], ex:Option[Exception]=None) extends AuthConnector {
-  override val serviceUrl: String = "someUrl"
-
-  override def serviceConfidenceLevel: ConfidenceLevel = ???
-
-  override def http: CoreGet = ???
-
-  override def accounts()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Accounts] = Future(Accounts(nino, None, false, false))
-
-  override def grantAccess(taxId:Option[Nino])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
-    ex match {
-      case None => Future(Unit)
-      case Some(failure) => Future.failed(failure)
-    }
-  }
-}
-
 class TestTaxCreditBrokerConnector(payment: PaymentSummary, personal: PersonalDetails, partner: PartnerDetails,
                                      children: Option[Children], exclusion:Option[Exclusion]) extends TaxCreditsBrokerTestConnector {
   private def serviceUnavailable = throw new ServiceUnavailableException("controlled error")
@@ -121,7 +102,6 @@ class TestTaxCreditBrokerConnector(payment: PaymentSummary, personal: PersonalDe
 
 class TestPersonalIncomeService(testPersonalTaxSummaryConnector:TestPersonalTaxSummaryConnector,
                                 testTaiConnector:TestTaiConnector,
-                                testAuthConnector:TestAuthConnector,
                                 testNtcConnector:NtcConnector,
                                 testTaxCreditBrokerConnector:TaxCreditsBrokerConnector,
                                 testAuditConnector: uk.gov.hmrc.play.audit.http.connector.AuditConnector) extends LivePersonalIncomeService {
@@ -137,18 +117,9 @@ class TestPersonalIncomeService(testPersonalTaxSummaryConnector:TestPersonalTaxS
 
   override val personalTaxSummaryConnector = testPersonalTaxSummaryConnector
   override val taiConnector = testTaiConnector
-  override val authConnector = testAuthConnector
   override val ntcConnector = testNtcConnector
   override val taxCreditBrokerConnector: TaxCreditsBrokerConnector = testTaxCreditBrokerConnector
   override val auditConnector = testAuditConnector
-}
-
-class TestAccessCheck(testAuthConnector: TestAuthConnector) extends AccountAccessControl {
-  override val authConnector: AuthConnector = testAuthConnector
-}
-
-class TestAccountAccessControlWithAccept(testAccessCheck:AccountAccessControl) extends AccountAccessControlWithHeaderCheck {
-  override val accessControl: AccountAccessControl = testAccessCheck
 }
 
 class TestTaxCreditsSubmission(taxCreditsSubmissions: TaxCreditsSubmissions) extends TaxCreditsControl {
@@ -267,7 +238,6 @@ trait Setup extends ClaimsJson {
   )
   lazy val jsonRenewalRequestNoAcceptHeader = fakeRequest(renewalJsonBody)
 
-  val authConnector = new TestAuthConnector(Some(nino))
   val personalTaxSummaryConnector = new TestPersonalTaxSummaryConnector(Some(taxSummaryContainerNew))
   val taiConnector = new TestTaiConnector(Some(taxSummaryDetails))
   val tcrAuthToken = TcrAuthenticationToken("some-auth-token")
@@ -288,251 +258,233 @@ trait Setup extends ClaimsJson {
   val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails,
     Some(children), Some(exclusion))
 
-  val testAccess = new TestAccessCheck(authConnector)
-  val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
-  val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
-    authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+  val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector, ntcConnector,
+    taxCreditBrokerConnector, MicroserviceAuditConnector)
 
   val testSandboxPersonalIncomeService = SandboxPersonalIncomeService
-  val sandboxCompositeAction = AccountAccessControlCheckOff
   val testTaxCreditsSubmissionControl = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(false, true, true))
   val testTaxCreditsSubmissionControlShuttered = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(true, true, true))
 
 }
+//
+//trait Success extends Setup {
+//  val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//}
+//
+//trait SuccessWithInvalidDates extends Setup {
+//  override val  ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithInvalidDate)
+//  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+//    ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+//
+//  val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//}
+//
+//trait SuccessWithDatesFormattedYYYYMMDD extends Setup {
+//  override val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithDatesFormattedYYYYMMDD)
+//  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+//    ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+//
+//  val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//}
+//
+//trait SuccessWithDatesFormattedHyphenatedYYYYMMDD extends Setup {
+//  override val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithDatesFormattedHyphenatedYYYYMMDD)
+//  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+//    ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+//
+//  val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//}
 
-trait Success extends Setup {
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-}
-
-trait SuccessWithInvalidDates extends Setup {
-  override val  ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithInvalidDate)
-  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
-    authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
-
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-}
-
-trait SuccessWithDatesFormattedYYYYMMDD extends Setup {
-  override val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithDatesFormattedYYYYMMDD)
-  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
-    authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
-
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-}
-
-trait SuccessWithDatesFormattedHyphenatedYYYYMMDD extends Setup {
-  override val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, claimsWithDatesFormattedHyphenatedYYYYMMDD)
-  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
-    authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
-
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-}
-
-trait NotFoundClaimant extends Setup {
-
-  def buildClaims = {
-    val applicantNotFound: Option[Applicant] = None
-
-    val updated = claims.references.get.map{ item =>
-      val applicant1 = item.household.applicant1
-      val newApp = applicant1.copy(nino = "AM242413B")
-      val secondApp: Option[Applicant] = item.household.applicant2.fold(applicantNotFound){ found => Some(found.copy(nino = "AM242413B")) }
-      val newHousehold = item.household.copy(applicant1 = newApp, applicant2 = secondApp)
-      item.copy(household = newHousehold, renewal = item.renewal)
-    }
-
-    Claims(Some(updated))
-  }
-
-  override val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, buildClaims)
-
-  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
-    authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
-
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-}
+// trait NotFoundClaimant extends Setup {
+//
+//  def buildClaims = {
+//    val applicantNotFound: Option[Applicant] = None
+//
+//    val updated = claims.references.get.map{ item =>
+//      val applicant1 = item.household.applicant1
+//      val newApp = applicant1.copy(nino = "AM242413B")
+//      val secondApp: Option[Applicant] = item.household.applicant2.fold(applicantNotFound){ found => Some(found.copy(nino = "AM242413B")) }
+//      val newHousehold = item.household.copy(applicant1 = newApp, applicant2 = secondApp)
+//      item.copy(household = newHousehold, renewal = item.renewal)
+//    }
+//
+//    Claims(Some(updated))
+//  }
+//
+//  override val ntcConnector = new TestNtcConnector(Success(200), Some(tcrAuthToken), claimentDetails, buildClaims)
+//
+//  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+//    ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+//
+//  val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//}
+//
 
 trait AccessCheck extends Setup {
-  override val authConnector = new TestAuthConnector(None, Some(new FailToMatchTaxIdOnAuth("controlled explosion")))
-  override val testAccess = new TestAccessCheck(authConnector)
-  override val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
+//  val authConnector = Mockito.mock()
 
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
+//  val controller = new LivePersonalIncomeController() {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+
+//    override def authConnector: AuthConnector =
+//  }
 }
 
-
-trait SuccessRenewalDisabled extends Setup {
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControlShuttered
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-}
-
-trait Generate_503 extends Setup {
-  override val taiConnector = new TestTaiConnector(None)
-
-  override val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, None, None)
-
-  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-}
-
-trait NotFound extends Setup {
-  override val personalTaxSummaryConnector: TestPersonalTaxSummaryConnector = new TestPersonalTaxSummaryConnector(None)
-  override val taiConnector = new TestTaiConnector(None)
-  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-}
-
-trait GateKeeper extends Setup {
-  override val personalTaxSummaryConnector: TestPersonalTaxSummaryConnector = new TestPersonalTaxSummaryConnector(Some(taxSummaryContainerGKNew))
-  override val taiConnector = new TestTaiConnector(Some(taxSummaryDetails.copy(gateKeeper=Some(GateKeeper(true, List.empty)))))
-  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
-
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-}
-
-trait AuthWithLowCL extends Setup {
-  val routeToIv = true
-  val routeToTwoFactor = false
-
-  override val authConnector = new TestAuthConnector(None) {
-    lazy val exception = new AccountWithLowCL("Forbidden to access since low CL")
-
-    override def grantAccess(taxId:Option[Nino])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(exception)
-  }
-
-  override val testAccess = new TestAccessCheck(authConnector)
-  override val taiConnector = new TestTaiConnector(Some(taxSummaryDetails))
-  override val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
-  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
-
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-
-}
-
-trait AuthWithoutNino extends Setup {
-
-  override val authConnector =  new TestAuthConnector(None) {
-    lazy val exception = new NinoNotFoundOnAccount("NINO not found!")
-
-    override def grantAccess(taxId:Option[Nino])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(exception)
-  }
-
-  override val testAccess = new TestAccessCheck(authConnector)
-  override val taiConnector = new TestTaiConnector(Some(taxSummaryDetails))
-  override val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
-  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector, authConnector, ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
-
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-}
-
-trait Ntc400Result extends Success {
-
-  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector, authConnector, ntcConnector400, taxCreditBrokerConnector, MicroserviceAuditConnector)
-
-  override val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-}
-
-trait SandboxSuccess extends Setup {
-  val controller = new PersonalIncomeController {
-    override val service: PersonalIncomeService = testSandboxPersonalIncomeService
-    override val accessControl: AccountAccessControlWithHeaderCheck = sandboxCompositeAction
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
-    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
-  }
-}
-
-trait TaxCreditRenewalsSubmissionPeriod extends Setup {
-  val controller = new ServiceStateController {
-    override val taxCreditsSubmissionControlConfig = testTaxCreditsSubmissionControl
-    override val accessControl = AccountAccessControlCheckOff
-  }
-}
-
-trait TaxCreditRenewalsSubmissionPeriodShuttered extends Setup {
-  val controller = new ServiceStateController {
-    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(true, true, true))
-    override val accessControl = AccountAccessControlCheckOff
-  }
-}
-
-trait TaxCreditRenewalsViewOnlyPeriod extends Setup {
-  val controller = new ServiceStateController {
-    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(false, false, true))
-    override val accessControl = AccountAccessControlCheckOff
-  }
-}
-
-trait TaxCreditRenewalsClosedPeriod extends Setup {
-  val controller = new ServiceStateController {
-    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(false, false, false))
-    override val accessControl = AccountAccessControlCheckOff
-  }
-}
-
-trait SandboxServiceStateSuccess extends Setup {
-  val controller = SandboxServiceStateController
-}
+//
+//trait SuccessRenewalDisabled extends Setup {
+//  val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControlShuttered
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//}
+//
+//trait Generate_503 extends Setup {
+//  override val taiConnector = new TestTaiConnector(None)
+//
+//  override val taxCreditBrokerConnector = new TestTaxCreditBrokerConnector(paymentSummary, personalDetails, partnerDetails, None, None)
+//
+//  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+//    ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+//  val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//}
+//
+//trait NotFound extends Setup {
+//  override val personalTaxSummaryConnector: TestPersonalTaxSummaryConnector = new TestPersonalTaxSummaryConnector(None)
+//  override val taiConnector = new TestTaiConnector(None)
+//  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+//    ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+//  val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//}
+//
+//trait GateKeeper extends Setup {
+//  override val personalTaxSummaryConnector: TestPersonalTaxSummaryConnector = new TestPersonalTaxSummaryConnector(Some(taxSummaryContainerGKNew))
+//  override val taiConnector = new TestTaiConnector(Some(taxSummaryDetails.copy(gateKeeper=Some(GateKeeper(true, List.empty)))))
+//  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+//    ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+//
+//  val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//}
+//
+//trait AuthWithLowCL extends Setup {
+//  val routeToIv = true
+//  val routeToTwoFactor = false
+//
+////  override val authConnector = new TestAuthConnector(None) {
+////    lazy val exception = new AccountWithLowCL("Forbidden to access since low CL")
+////
+////    override def grantAccess(taxId:Option[Nino])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(exception)
+////  }
+//
+//  override val taiConnector = new TestTaiConnector(Some(taxSummaryDetails))
+//  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+//    ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+//
+//  val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//
+//}
+//
+//trait AuthWithoutNino extends Setup {
+//
+////  override val authConnector =  new TestAuthConnector(None) {
+////    lazy val exception = new NinoNotFoundOnAccount("NINO not found!")
+////
+////    override def grantAccess(taxId:Option[Nino])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = Future.failed(exception)
+////  }
+//
+//  override val taiConnector = new TestTaiConnector(Some(taxSummaryDetails))
+//  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+//    ntcConnector, taxCreditBrokerConnector, MicroserviceAuditConnector)
+//
+//  val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//}
+//
+//trait Ntc400Result extends Success {
+//
+//  override val testPersonalIncomeService = new TestPersonalIncomeService(personalTaxSummaryConnector, taiConnector,
+//    ntcConnector400, taxCreditBrokerConnector, MicroserviceAuditConnector)
+//
+//  override val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//}
+//
+//trait SandboxSuccess extends Setup {
+//  val controller = new PersonalIncomeController {
+//    override val service: PersonalIncomeService = testSandboxPersonalIncomeService
+//    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = testTaxCreditsSubmissionControl
+//    override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
+//  }
+//}
+//
+//trait TaxCreditRenewalsSubmissionPeriod extends Setup {
+//  val controller = new ServiceStateController {
+//    override val taxCreditsSubmissionControlConfig = testTaxCreditsSubmissionControl
+//  }
+//}
+//
+//trait TaxCreditRenewalsSubmissionPeriodShuttered extends Setup {
+//  val controller = new ServiceStateController {
+//    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(true, true, true))
+//  }
+//}
+//
+//trait TaxCreditRenewalsViewOnlyPeriod extends Setup {
+//  val controller = new ServiceStateController {
+//    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(false, false, true))
+//  }
+//}
+//
+//trait TaxCreditRenewalsClosedPeriod extends Setup {
+//  val controller = new ServiceStateController {
+//    override val taxCreditsSubmissionControlConfig = new TestTaxCreditsSubmission(new TaxCreditsSubmissions(false, false, false))
+//  }
+//}
+//
+//trait SandboxServiceStateSuccess extends Setup {
+//  val controller = SandboxServiceStateController
+//}
