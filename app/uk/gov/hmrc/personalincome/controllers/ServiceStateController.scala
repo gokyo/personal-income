@@ -17,9 +17,11 @@
 package uk.gov.hmrc.personalincome.controllers
 
 
+import javax.inject.Named
+
 import com.google.inject.{Inject, Singleton}
 import uk.gov.hmrc.api.controllers.HeaderValidator
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.personalincome.domain.{TaxCreditsControl, TaxCreditsRenewalsState, TaxCreditsSubmissionControl, TaxCreditsSubmissions}
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -27,7 +29,7 @@ import uk.gov.hmrc.time.DateTimeUtils
 
 import scala.concurrent.Future
 
-trait ServiceStateController extends BaseController with HeaderValidator with ErrorHandling with AuthorisedFunctions{
+trait ServiceStateController extends BaseController with HeaderValidator with ErrorHandling {
 
   import play.api.libs.json.Json
   import uk.gov.hmrc.personalincome.domain.TaxCreditsSubmissions.formats
@@ -60,7 +62,7 @@ trait ServiceStateController extends BaseController with HeaderValidator with Er
 }
 
 @Singleton
-class SandboxServiceStateController @Inject()(override val authConnector: AuthConnector) extends ServiceStateController with DateTimeUtils {
+class SandboxServiceStateController() extends ServiceStateController with DateTimeUtils {
 
   override val taxCreditsSubmissionControlConfig = new TaxCreditsControl {
     override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true, true)
@@ -69,6 +71,6 @@ class SandboxServiceStateController @Inject()(override val authConnector: AuthCo
 }
 
 @Singleton
-class LiveServiceStateController @Inject() (override val authConnector: AuthConnector) extends ServiceStateController {
+class LiveServiceStateController() extends ServiceStateController {
   override val taxCreditsSubmissionControlConfig = TaxCreditsSubmissionControl
 }

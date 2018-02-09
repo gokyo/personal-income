@@ -189,7 +189,7 @@ trait ConfigLoad {
 
 @Singleton
 class SandboxPersonalIncomeController @Inject()(override val authConnector: AuthConnector,
-                                                override val confLevel: Int) extends PersonalIncomeController {
+                                                @Named("controllers.confidenceLevel") override val confLevel: Int) extends PersonalIncomeController {
   override lazy val requiresAuth: Boolean = false
   override val service = SandboxPersonalIncomeService
   override val taxCreditsSubmissionControlConfig: TaxCreditsControl = new TaxCreditsControl {

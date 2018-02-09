@@ -36,7 +36,7 @@ trait AccountAccessControl extends Results with Authorisation {
 
   case object ErrorUnauthorized extends ErrorResponse(401, "UNAUTHORIZED", "Invalid request")
 
-  val requiresAuth: Boolean = true
+  lazy val requiresAuth: Boolean = true
 
   def invokeAuthBlock[A](request: Request[A], block: (Request[A]) => Future[Result], taxId:Option[Nino]) = {
     implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
