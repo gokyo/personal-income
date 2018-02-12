@@ -17,65 +17,43 @@
 package uk.gov.hmrc.personalincome.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import uk.gov.hmrc.domain.Nino
 
 object AuthStub {
 
-  private val oid: String = "123456789abcdef012345678"
-
-  def authRecordExists(nino: Nino, confidenceLevel: Int = 200, credentialStrength: String = "strong"): Unit = {
-    stubFor(get(urlEqualTo("/auth/authority"))
+  def grantAccess(nino: String, confidenceLevel: Int = 200): Unit = {
+    stubFor(post(urlEqualTo("/auth/authorise"))
+      .atPriority(0)
+      .withRequestBody(equalToJson(
+        s"""
+           |{
+           |  "authorise": [
+           |    {
+           |      "enrolment": "HMRC-NI",
+           |      "identifiers": [
+           |        {
+           |          "key": "NINO",
+           |          "value": "$nino"
+           |        }
+           |      ],
+           |      "state": "Activated"
+           |    }
+           |  ],
+           |  "retrieve": [
+           |    "nino",
+           |    "confidenceLevel"
+           |  ]
+           |}
+          """.stripMargin,
+        true,
+        false))
       .willReturn(aResponse()
         .withStatus(200)
         .withBody(
           s"""
              |{
-             |  "uri": "/auth/oid/$oid",
-             |  "confidenceLevel": $confidenceLevel,
-             |  "credentialStrength": "$credentialStrength",
-             |  "nino": "${nino.value}",
-             |  "userDetailsLink": "http://localhost:9978/user-details/id/59db4a285800005800576244",
-             |  "legacyOid": "$oid",
-             |  "new-session": "/auth/oid/$oid/session",
-             |  "ids": "/auth/oid/$oid/ids",
-             |  "credentials": {
-             |    "gatewayId": "ghfkjlgkhl"
-             |  },
-             |  "accounts": {
-             |    "fandf": {
-             |      "nino": "${nino.value}",
-             |      "link": "/fandf/${nino.value}"
-             |    },
-             |    "tai": {
-             |      "nino": "${nino.value}",
-             |      "link": "/tai/${nino.value}"
-             |    },
-             |    "nisp": {
-             |      "nino": "${nino.value}",
-             |      "link": "/nisp/${nino.value}"
-             |    },
-             |    "paye": {
-             |      "nino": "${nino.value}",
-             |      "link": "/paye/${nino.value}"
-             |    },
-             |    "tcs": {
-             |      "nino": "${nino.value}",
-             |      "link": "/tcs/${nino.value}"
-             |    },
-             |    "iht": {
-             |      "nino": "${nino.value}",
-             |      "link": "/iht/${nino.value}"
-             |    }
-             |  },
-             |  "lastUpdated": "2017-10-09T10:06:34.190Z",
-             |  "loggedInAt": "2017-10-09T10:06:34.190Z",
-             |  "levelOfAssurance": "1.5",
-             |  "enrolments": "/auth/oid/$oid/enrolments",
-             |  "affinityGroup": "Individual",
-             |  "correlationId": "8be9ca431b4b8ef3f584990d130270a84c1dbfe2d3e6c23f212d1a52f4c1f926",
-             |  "credId": "cred-id"
+             |  "nino": "$nino",
+             |  "confidenceLevel": 200
              |}
-           """.stripMargin)))
+          """.stripMargin)))
   }
-
 }

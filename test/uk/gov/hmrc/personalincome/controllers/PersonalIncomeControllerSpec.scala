@@ -18,157 +18,36 @@ package uk.gov.hmrc.personalincome.controllers
 
 import java.time.LocalDate._
 
-import com.ning.http.util.Base64
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
-import org.mockito.stubbing.OngoingStubbing
-import org.scalatest.mockito.MockitoSugar
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContentAsEmpty, Result}
+import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.api.sandbox.FileResource
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.ConfidenceLevel._
-import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.auth.core.syntax.retrieved._
-import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.{HeaderCarrier, ServiceUnavailableException}
-import uk.gov.hmrc.personalincome.config.AppContext
 import uk.gov.hmrc.personalincome.connectors._
 import uk.gov.hmrc.personalincome.domain._
 import uk.gov.hmrc.personalincome.domain.userdata._
-import uk.gov.hmrc.personalincome.services.{LivePersonalIncomeService, PersonalIncomeService}
-import uk.gov.hmrc.personaltaxsummary.domain.TaxSummaryContainer
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
-import uk.gov.hmrc.time.DateTimeUtils
+import uk.gov.hmrc.personalincome.services.PersonalIncomeService
+import uk.gov.hmrc.play.test.WithFakeApplication
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-trait TestSetup extends MockitoSugar with UnitSpec with StubApplicationConfiguration {
-
-  val nino = "CS700100A"
-  val incorrectNino = Nino("SC100700A")
-  val renewalReference = RenewalReference("111111111111111")
-  val tcrAuthToken = TcrAuthenticationToken("some-auth-token")
-  val acceptHeader = "Accept" -> "application/vnd.hmrc.1.0+json"
-  lazy val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withSession(
-    "AuthToken" -> "Some Header"
-  ).withHeaders(
-    acceptHeader,
-    "Authorization" -> "Some Header"
-  )
-  lazy val requestInvalidHeaders: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withSession(
-    "AuthToken" -> "Some Header"
-  ).withHeaders(
-    "Authorization" -> "Some Header"
-  )
-
-  val noNinoFoundOnAccount = Json.parse("""{"code":"UNAUTHORIZED","message":"NINO does not exist on account"}""")
-  val lowConfidenceLevelError = Json.parse("""{"code":"LOW_CONFIDENCE_LEVEL","message":"Confidence Level on account does not allow access"}""")
-
-  trait mocks {
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-    implicit val mockAuthConnector: AuthConnector = mock[AuthConnector]
-    implicit val mockNtcConnector: NtcConnector = mock[NtcConnector]
-    implicit val mockTaiConnector: TaiConnector = mock[TaiConnector]
-    implicit val mockPersonalTaxSummaryConnector: PersonalTaxSummaryConnector = mock[PersonalTaxSummaryConnector]
-    implicit val mockTaxCreditsBrokerConnector: TaxCreditsBrokerConnector =  mock[TaxCreditsBrokerConnector]
-    implicit val mockAuditConnector: AuditConnector = mock[AuditConnector]
-    implicit val mockLivePersonalIncomeService: PersonalIncomeService = mock[LivePersonalIncomeService]
-
+class TestPersonalIncomeController(val authConnector: AuthConnector, val service: PersonalIncomeService, val confLevel: Int,
+                                   taxCreditsSubmissions: TaxCreditsSubmissions = new TaxCreditsSubmissions(false, true, true)) extends PersonalIncomeController {
+  override val taxCreditsSubmissionControlConfig: TaxCreditsControl = new TaxCreditsControl {
+    override def toTaxCreditsSubmissions: TaxCreditsSubmissions = taxCreditsSubmissions
+    override def toTaxCreditsRenewalsState: TaxCreditsRenewalsState = taxCreditsSubmissions.toTaxCreditsRenewalsState
   }
-
-  type GrantAccess = Option[String] ~ ConfidenceLevel
-  def stubAuthorisationGrantAccess(response: GrantAccess)(implicit authConnector: AuthConnector): OngoingStubbing[Future[GrantAccess]] = {
-    when(authConnector.authorise(any[Predicate](), any[Retrieval[GrantAccess]]())(any[HeaderCarrier](), any[ExecutionContext]()))
-      .thenReturn(Future.successful(response))
-  }
-
-  def stubGetSummaryResponse(response: Option[TaxSummaryContainer])(implicit personalIncomeService: PersonalIncomeService): OngoingStubbing[Future[Option[TaxSummaryContainer]]] = {
-    when(personalIncomeService.getTaxSummary(any[Nino](), any[Int](), any[Option[String]]())(any[HeaderCarrier](), any[ExecutionContext]()))
-      .thenReturn(response)
-  }
-
-  def stubAuthRenewalResponse(response: Option[TcrAuthenticationToken])(implicit personalIncomeService: PersonalIncomeService): OngoingStubbing[Future[Option[TcrAuthenticationToken]]] = {
-    when(personalIncomeService.authenticateRenewal(any[Nino](),any[RenewalReference]())(any[HeaderCarrier](), any[ExecutionContext]()))
-      .thenReturn(response)
-  }
-
-  def stubClaimantDetailsResponse(response: ClaimantDetails)(implicit personalIncomeService: PersonalIncomeService) : OngoingStubbing[Future[ClaimantDetails]] = {
-    when(personalIncomeService.claimantDetails(any[Nino]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(response)
-  }
-
-  def stubClaimantClaimsResponse(response: Claims)(implicit personalIncomeService: PersonalIncomeService) : OngoingStubbing[Future[Claims]] = {
-    when(personalIncomeService.claimantClaims(any[Nino]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(response)
-  }
-
-  def stubTaxCreditSummary(response: TaxCreditSummary)(implicit personalIncomeService: PersonalIncomeService) : OngoingStubbing[Future[TaxCreditSummary]] = {
-    when(personalIncomeService.getTaxCreditSummary(any[Nino]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(response)
-  }
-
-  def stubTaxCreditBrokerConnectorGetChildren(response: Children)(implicit taxCreditBrokerConnector: TaxCreditsBrokerConnector) : OngoingStubbing[Future[Children]]= {
-    when(taxCreditBrokerConnector.getChildren(any[TaxCreditsNino]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(response)
-  }
-
-  def stubTaxCreditBrokerConnectorGetExclusion(response: Exclusion)(implicit taxCreditBrokerConnector: TaxCreditsBrokerConnector) : OngoingStubbing[Future[Exclusion]]= {
-    when(taxCreditBrokerConnector.getExclusion(any[TaxCreditsNino]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(response)
-  }
-
-  def stubTaxCreditBrokerConnectorGetPartnerDetails(response: Option[PartnerDetails])(implicit taxCreditBrokerConnector: TaxCreditsBrokerConnector) : OngoingStubbing[Future[Option[PartnerDetails]]]= {
-    when(taxCreditBrokerConnector.getPartnerDetails(any[TaxCreditsNino]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(response)
-  }
-
-  def stubTaxCreditBrokerConnectorGetPersonalDetails(response: PersonalDetails)(implicit taxCreditBrokerConnector: TaxCreditsBrokerConnector) : OngoingStubbing[Future[PersonalDetails]]= {
-    when(taxCreditBrokerConnector.getPersonalDetails(any[TaxCreditsNino]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(response)
-  }
-
-  def stubTaxCreditBrokerConnectorGetPaymentSummary(response: PaymentSummary)(implicit taxCreditBrokerConnector: TaxCreditsBrokerConnector) : OngoingStubbing[Future[PaymentSummary]]= {
-    when(taxCreditBrokerConnector.getPaymentSummary(any[TaxCreditsNino]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(response)
-  }
-
-  def basicAuthString(encodedAuth:String): String = "Basic " + encodedAuth
-
-  def encodedAuth(nino: Nino, tcrRenewalReference:RenewalReference): String = new String(Base64.encode(s"${nino.value}:${tcrRenewalReference.value}".getBytes))
-
-  def emptyRequestWithAcceptHeaderAndAuthHeader(renewalsRef: RenewalReference, nino: Nino) = FakeRequest().withHeaders(
-    acceptHeader, HeaderKeys.tcrAuthToken -> basicAuthString(encodedAuth(nino, renewalsRef)))
-
-  def buildClaims(claims: Claims) = {
-    val applicantNotFound: Option[Applicant] = None
-    val updated = claims.references.get.map { item =>
-      val applicant1 = item.household.applicant1
-      val newApp = applicant1.copy(nino = "AM242413B")
-      val secondApp: Option[Applicant] = item.household.applicant2.fold(applicantNotFound) { found => Some(found.copy(nino = "AM242413B")) }
-      val newHousehold = item.household.copy(applicant1 = newApp, applicant2 = secondApp)
-      item.copy(household = newHousehold, renewal = item.renewal)
-    }
-    Claims(Some(updated))
-  }
-
-  class TestPersonalIncomeController(val authConnector: AuthConnector, val service: PersonalIncomeService, val confLevel: Int,
-                                     taxCreditsSubmissions: TaxCreditsSubmissions = new TaxCreditsSubmissions(false, true, true)) extends PersonalIncomeController {
-    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = new TaxCreditsControl {
-      override def toTaxCreditsSubmissions: TaxCreditsSubmissions = taxCreditsSubmissions
-      override def toTaxCreditsRenewalsState: TaxCreditsRenewalsState = taxCreditsSubmissions.toTaxCreditsRenewalsState
-    }
-    override def getConfigForClaimsMaxAge: Option[Long] = Some(1800)
-  }
-
-  class TestPersonalIncomeService(val ntcConnector: NtcConnector,
-                                  val taiConnector: TaiConnector,
-                                  val personalTaxSummaryConnector: PersonalTaxSummaryConnector,
-                                  val taxCreditBrokerConnector: TaxCreditsBrokerConnector,
-                                  val auditConnector: AuditConnector) extends LivePersonalIncomeService {
-    override val renewalStatusTransform: Option[List[AppContext.RenewalStatusTransform]] = None
-  }
+  override def getConfigForClaimsMaxAge: Option[Long] = Some(1800)
 }
 
-class TestPersonalIncomeSummarySpec extends TestSetup with WithFakeApplication {
+class TestSummarySpec extends TestSetup  with WithFakeApplication {
 
   "getSummary Live" should {
 
@@ -242,8 +121,7 @@ class TestPersonalIncomeRenewalAuthenticateSpec extends TestSetup with WithFakeA
 
     "return Http 404 (NotFound) response when hod returns either a (BadRequest) 400 or (NotFound) 404 status" in new mocks {
       val renewalReferenceNines = RenewalReference("999999999999999")
-      when(mockNtcConnector.authenticateRenewal(any[TaxCreditsNino](), any[RenewalReference]())(any[HeaderCarrier](), any[ExecutionContext]()))
-        .thenReturn(Future(None))
+      stubAuthenticateRenewal(None)
       stubAuthorisationGrantAccess(Some(nino) and L200)
       override val mockLivePersonalIncomeService: TestPersonalIncomeService = new TestPersonalIncomeService(mockNtcConnector, mockTaiConnector, mockPersonalTaxSummaryConnector, mockTaxCreditsBrokerConnector, mockAuditConnector)
       val controller = new TestPersonalIncomeController(mockAuthConnector, mockLivePersonalIncomeService, 200)
@@ -313,9 +191,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends TestSetup with WithFa
     }
 
     "return claimant claims successfully and drop invalid dates from the response" in new mocks {
-      val matchedClaims = Json.parse(claimsJsonWithInvalidDates).as[Claims]
-      when(mockNtcConnector.claimantClaims(any[TaxCreditsNino]())(any[HeaderCarrier](), any[ExecutionContext]()))
-        .thenReturn(Future(matchedClaims))
+      stubClaimantClaims(Json.parse(claimsJsonWithInvalidDates).as[Claims])
       stubAuthorisationGrantAccess(Some(nino) and L200)
       override val mockLivePersonalIncomeService: TestPersonalIncomeService = new TestPersonalIncomeService(mockNtcConnector, mockTaiConnector, mockPersonalTaxSummaryConnector, mockTaxCreditsBrokerConnector, mockAuditConnector)
       val controller = new TestPersonalIncomeController(mockAuthConnector, mockLivePersonalIncomeService, 200)
@@ -325,9 +201,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends TestSetup with WithFa
     }
 
     "return claimant claims successfully where dates are formatted yyyyMMdd" in new mocks {
-      val matchedClaims = Json.parse(claimsJsonWithDatesFormattedYYYYMMDD).as[Claims]
-      when(mockNtcConnector.claimantClaims(any[TaxCreditsNino]())(any[HeaderCarrier](), any[ExecutionContext]()))
-        .thenReturn(Future(matchedClaims))
+      stubClaimantClaims(Json.parse(claimsJsonWithDatesFormattedYYYYMMDD).as[Claims])
       stubAuthorisationGrantAccess(Some(nino) and L200)
       override val mockLivePersonalIncomeService: TestPersonalIncomeService = new TestPersonalIncomeService(mockNtcConnector, mockTaiConnector, mockPersonalTaxSummaryConnector, mockTaxCreditsBrokerConnector, mockAuditConnector)
       val controller = new TestPersonalIncomeController(mockAuthConnector, mockLivePersonalIncomeService, 200)
@@ -337,9 +211,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends TestSetup with WithFa
     }
 
     "return claimant claims successfully where dates are formatted yyyy-MM-dd" in new mocks {
-      val matchedClaims = Json.parse(claimsJsonWithDatesFormattedHyphenatedYYYYMMDD).as[Claims]
-      when(mockNtcConnector.claimantClaims(any[TaxCreditsNino]())(any[HeaderCarrier](), any[ExecutionContext]()))
-        .thenReturn(Future(matchedClaims))
+      stubClaimantClaims(Json.parse(claimsJsonWithDatesFormattedHyphenatedYYYYMMDD).as[Claims])
       stubAuthorisationGrantAccess(Some(nino) and L200)
       override val mockLivePersonalIncomeService: TestPersonalIncomeService = new TestPersonalIncomeService(mockNtcConnector, mockTaiConnector, mockPersonalTaxSummaryConnector, mockTaxCreditsBrokerConnector, mockAuditConnector)
       val controller = new TestPersonalIncomeController(mockAuthConnector, mockLivePersonalIncomeService, 200)
@@ -349,9 +221,7 @@ class TestPersonalIncomeRenewalClaimantDetailsSpec extends TestSetup with WithFa
     }
 
     "return 404 when no claims matched the supplied nino" in new mocks {
-      val matchedClaims = buildClaims(Json.toJson(Json.parse(claimsJson)).as[Claims])
-      when(mockNtcConnector.claimantClaims(any[TaxCreditsNino]())(any[HeaderCarrier](), any[ExecutionContext]()))
-        .thenReturn(Future(matchedClaims))
+      stubClaimantClaims(buildClaims(Json.toJson(Json.parse(claimsJson)).as[Claims]))
       stubAuthorisationGrantAccess(Some(nino) and L200)
       override val mockLivePersonalIncomeService: TestPersonalIncomeService = new TestPersonalIncomeService(mockNtcConnector, mockTaiConnector, mockPersonalTaxSummaryConnector, mockTaxCreditsBrokerConnector, mockAuditConnector)
       val controller = new TestPersonalIncomeController(mockAuthConnector, mockLivePersonalIncomeService, 200)
@@ -487,7 +357,7 @@ class TestPersonalIncomeRenewalSpec extends TestSetup with WithFakeApplication {
 
     "process the renewal successfully if renewals are enabled" in new mocks {
       stubAuthorisationGrantAccess(Some(nino) and L200)
-      when(mockNtcConnector.submitRenewal(any[TaxCreditsNino](), any[TcrRenewal]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(Success(200))
+      stubSubmitRenewals(Success(200))
       override val mockLivePersonalIncomeService = new TestPersonalIncomeService(mockNtcConnector, mockTaiConnector,
         mockPersonalTaxSummaryConnector, mockTaxCreditsBrokerConnector, mockAuditConnector)
       val controller = new TestPersonalIncomeController(mockAuthConnector, mockLivePersonalIncomeService, 200)
@@ -513,7 +383,7 @@ class TestPersonalIncomeRenewalSpec extends TestSetup with WithFakeApplication {
 
     "process returns a 200 successfully when journeyId is supplied"  in new mocks {
       stubAuthorisationGrantAccess(Some(nino) and L200)
-      when(mockNtcConnector.submitRenewal(any[TaxCreditsNino](), any[TcrRenewal]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(Success(200))
+      stubSubmitRenewals(Success(200))
       override val mockLivePersonalIncomeService = new TestPersonalIncomeService(mockNtcConnector, mockTaiConnector,
         mockPersonalTaxSummaryConnector, mockTaxCreditsBrokerConnector, mockAuditConnector)
       val controller = new TestPersonalIncomeController(mockAuthConnector, mockLivePersonalIncomeService, 200)
@@ -591,52 +461,14 @@ class TestPersonalIncomeRenewalSpec extends TestSetup with WithFakeApplication {
 
 class TestPersonalIncomeRenewalSummarySpec extends TestSetup with WithFakeApplication with FileResource {
 
-  val expectedNextDueDate = DateTime.parse("2015-07-16")
-  val expectedPaymentWTC = FuturePayment(160.34, expectedNextDueDate, false)
-  val expectedPaymentCTC = FuturePayment(140.12, expectedNextDueDate, false)
-  val paymentSectionCTC = PaymentSection(List(expectedPaymentCTC), "weekly")
-  val paymentSectionWTC = PaymentSection(List(expectedPaymentWTC), "weekly")
-  val paymentSummary = PaymentSummary(Some(paymentSectionWTC), Some(paymentSectionCTC), true)
-
-  val AGE16 = DateTimeUtils.now.minusYears(16)
-  val AGE15 = DateTimeUtils.now.minusYears(15)
-  val AGE13 = DateTimeUtils.now.minusYears(13)
-  val AGE21 = DateTimeUtils.now.minusYears(21)
-  val DECEASED_DATE = DateTimeUtils.now.minusYears(1)
-
-  val SarahSmith = Child("Sarah", "Smith", new DateTime(AGE16), false, false, true, None)
-  val JosephSmith = Child("Joseph", "Smith", new DateTime(AGE15), false, false, true, None)
-  val MarySmith = Child("Mary", "Smith", new DateTime(AGE13), false, false, true, None)
-  val JennySmith = Child("Jenny", "Smith", new DateTime(AGE21), false, false, true, None)
-  val PeterSmith = Child("Peter", "Smith", new DateTime(AGE13), false, false, false, Some(new DateTime(DECEASED_DATE)))
-  val SimonSmith = Child("Simon", "Smith", new DateTime(AGE13), false, false, true, Some(new DateTime(DECEASED_DATE)))
-
-  val address = uk.gov.hmrc.personalincome.domain.userdata.Address("addressLine1", "addressLine2", Some("addressLine3"), Some("addressLine4"), Some("postcode"))
-
-  val personalDetails = PersonalDetails("firstname",
-    "surname",
-    TaxCreditsNino(nino),
-    address,
-    None, None, None, None)
-
-  val partnerDetails = PartnerDetails("forename",
-    Some("othernames"),
-    "surname",
-    TaxCreditsNino(nino),
-    address,
-    None,
-    None,
-    None,
-    None)
-
   "tax credits summary live" should {
     "process the request successfully and filter children older than 20 and where deceased flags are active" in new mocks {
       stubAuthorisationGrantAccess(Some(nino) and L200)
       stubTaxCreditBrokerConnectorGetChildren(Children(Seq(SarahSmith, JosephSmith, MarySmith, JennySmith, PeterSmith, SimonSmith)))
-      stubTaxCreditBrokerConnectorGetPartnerDetails(Some(partnerDetails))
-      stubTaxCreditBrokerConnectorGetPersonalDetails(personalDetails)
+      stubTaxCreditBrokerConnectorGetPartnerDetails(Some(partnerDetails(nino)))
+      stubTaxCreditBrokerConnectorGetPersonalDetails(personalDetails(nino))
       stubTaxCreditBrokerConnectorGetPaymentSummary(paymentSummary)
-      val expectedResult = TaxCreditSummary(paymentSummary, personalDetails, Some(partnerDetails), Children(Seq(SarahSmith, JosephSmith, MarySmith)))
+      val expectedResult = TaxCreditSummary(paymentSummary, personalDetails(nino), Some(partnerDetails(nino)), Children(Seq(SarahSmith, JosephSmith, MarySmith)))
       override val mockLivePersonalIncomeService: PersonalIncomeService = new TestPersonalIncomeService(mockNtcConnector, mockTaiConnector,
         mockPersonalTaxSummaryConnector, mockTaxCreditsBrokerConnector, mockAuditConnector)
       val controller = new TestPersonalIncomeController(mockAuthConnector, mockLivePersonalIncomeService, 200)
@@ -664,10 +496,10 @@ class TestPersonalIncomeRenewalSummarySpec extends TestSetup with WithFakeApplic
     "return the summary successfully when journeyId is supplied" in new mocks {
       stubAuthorisationGrantAccess(Some(nino) and L200)
       stubTaxCreditBrokerConnectorGetChildren(Children(Seq(SarahSmith, JosephSmith, MarySmith, JennySmith, PeterSmith, SimonSmith)))
-      stubTaxCreditBrokerConnectorGetPartnerDetails(Some(partnerDetails))
-      stubTaxCreditBrokerConnectorGetPersonalDetails(personalDetails)
+      stubTaxCreditBrokerConnectorGetPartnerDetails(Some(partnerDetails(nino)))
+      stubTaxCreditBrokerConnectorGetPersonalDetails(personalDetails(nino))
       stubTaxCreditBrokerConnectorGetPaymentSummary(paymentSummary)
-      val expectedResult = TaxCreditSummary(paymentSummary, personalDetails, Some(partnerDetails), Children(Seq(SarahSmith, JosephSmith, MarySmith)))
+      val expectedResult = TaxCreditSummary(paymentSummary, personalDetails(nino), Some(partnerDetails(nino)), Children(Seq(SarahSmith, JosephSmith, MarySmith)))
       override val mockLivePersonalIncomeService: PersonalIncomeService = new TestPersonalIncomeService(mockNtcConnector, mockTaiConnector,
         mockPersonalTaxSummaryConnector, mockTaxCreditsBrokerConnector, mockAuditConnector)
       val controller = new TestPersonalIncomeController(mockAuthConnector, mockLivePersonalIncomeService, 200)

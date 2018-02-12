@@ -27,7 +27,7 @@ class PersonalIncomeISpec extends BaseISpec {
     "return a tax summary including additions and reductions" in {
       val nino = Nino("AA000000A")
       val year = 2017
-      AuthStub.authRecordExists(nino)
+      AuthStub.grantAccess(nino.value)
       TaiStub.taxSummaryExists(nino, year)
       PersonalTaxSummaryStub.estimatedIncomeExists(nino)
       PersonalTaxSummaryStub.yourTaxableIncomeExists(nino)
@@ -62,7 +62,7 @@ class PersonalIncomeISpec extends BaseISpec {
     "return 500 when personal-tax-summary returns an unparseable amount" in {
       val nino = Nino("AA000000A")
       val year = 2017
-      AuthStub.authRecordExists(nino)
+      AuthStub.grantAccess(nino.value)
       TaiStub.taxSummaryExists(nino, year)
       PersonalTaxSummaryStub.estimatedIncomeExistsWithUnparseableAmount(nino)
       PersonalTaxSummaryStub.yourTaxableIncomeExists(nino)
