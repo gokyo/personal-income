@@ -16,88 +16,74 @@
 
 package uk.gov.hmrc.personalincome.controllers
 
-import org.scalatest.concurrent.ScalaFutures
-import play.api.libs.json.Json.parse
-import play.api.mvc.Result
+import play.api.libs.json.Json
 import play.api.test.Helpers._
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
+import uk.gov.hmrc.personalincome.domain.{TaxCreditsControl, TaxCreditsRenewalsState, TaxCreditsSubmissions}
+import uk.gov.hmrc.play.test.WithFakeApplication
 
-class ServiceStateControllerSpec extends UnitSpec with WithFakeApplication with ScalaFutures with StubApplicationConfiguration {
+class ServiceStateControllerSpec extends TestSetup with WithFakeApplication {
 
+  class TestServiceStateController(taxCreditsSubmissions: TaxCreditsSubmissions = new TaxCreditsSubmissions(false, true, true)) extends ServiceStateController {
+    override val taxCreditsSubmissionControlConfig: TaxCreditsControl = new TaxCreditsControl {
+      override def toTaxCreditsSubmissions: TaxCreditsSubmissions = taxCreditsSubmissions
+      override def toTaxCreditsRenewalsState: TaxCreditsRenewalsState = taxCreditsSubmissions.toTaxCreditsRenewalsState
+    }
+  }
 
   "taxCreditsSubmissionState Live" should {
-
-    "return the submission state" in new TaxCreditRenewalsSubmissionPeriod {
-
-      val result: Result = await(controller.taxCreditsSubmissionState()(emptyRequestWithAcceptHeader))
-
+    "return the submission state" in {
+      val controller = new TestServiceStateController()
+      val result = await(controller.taxCreditsSubmissionState().apply(fakeRequest))
       status(result) shouldBe 200
-      print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"submissionShuttered":false,"inSubmitRenewalsPeriod":true,"inViewRenewalsPeriod":true}""")
+      contentAsJson(result) shouldBe Json.parse("""{"submissionShuttered":false,"inSubmitRenewalsPeriod":true,"inViewRenewalsPeriod":true}""")
     }
   }
 
   "taxCreditsSubmissionState Sandbox" should {
-
-    "return the submission state" in new SandboxServiceStateSuccess {
-
-      val result: Result = await(controller.taxCreditsSubmissionState()(emptyRequestWithAcceptHeader))
-
+    "return the submission state" in {
+      val controller = new SandboxServiceStateController()
+      val result = await(controller.taxCreditsSubmissionState().apply(fakeRequest))
       status(result) shouldBe 200
-      print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"submissionShuttered":false,"inSubmitRenewalsPeriod":true,"inViewRenewalsPeriod":true}""")
+      contentAsJson(result) shouldBe Json.parse("""{"submissionShuttered":false,"inSubmitRenewalsPeriod":true,"inViewRenewalsPeriod":true}""")
     }
   }
 
   "taxCreditsSubmissionStateEnabled Live" should {
-
-    "enable renewals submission when submissionShuttered is OFF during the Submission Period" in new TaxCreditRenewalsSubmissionPeriod {
-
-      val result: Result = await(controller.taxCreditsSubmissionStateEnabled()(emptyRequestWithAcceptHeader))
-
+    "enable renewals submission when submissionShuttered is OFF during the Submission Period" in {
+      val controller = new TestServiceStateController()
+      val result = await(controller.taxCreditsSubmissionStateEnabled()(fakeRequest))
       status(result) shouldBe 200
-      print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"submissionState":true,"submissionsState":"open"}""")
+      contentAsJson(result) shouldBe Json.parse("""{"submissionState":true,"submissionsState":"open"}""")
     }
 
-    "shutter renewals submission when submissionShuttered is ON during the Submission Period" in new TaxCreditRenewalsSubmissionPeriodShuttered {
-
-      val result: Result = await(controller.taxCreditsSubmissionStateEnabled()(emptyRequestWithAcceptHeader))
-
+    "shutter renewals submission when submissionShuttered is ON during the Submission Period" in {
+      val controller = new TestServiceStateController(new TaxCreditsSubmissions(true, true, true))
+      val result = await(controller.taxCreditsSubmissionStateEnabled()(fakeRequest))
       status(result) shouldBe 200
-      print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"submissionState":false,"submissionsState":"shuttered"}""")
+      contentAsJson(result) shouldBe Json.parse("""{"submissionState":false,"submissionsState":"shuttered"}""")
     }
 
-    "disable renewals submission during the check_status_only period" in new TaxCreditRenewalsViewOnlyPeriod {
-
-      val result: Result = await(controller.taxCreditsSubmissionStateEnabled()(emptyRequestWithAcceptHeader))
-
+    "disable renewals submission during the check_status_only period" in {
+      val controller = new TestServiceStateController(new TaxCreditsSubmissions(true, false, true))
+      val result = await(controller.taxCreditsSubmissionStateEnabled()(fakeRequest))
       status(result) shouldBe 200
-      print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"submissionState":false,"submissionsState":"check_status_only"}""")
+      contentAsJson(result) shouldBe Json.parse("""{"submissionState":false,"submissionsState":"check_status_only"}""")
     }
 
-    "disable renewals submission and viewing during the closed period" in new TaxCreditRenewalsClosedPeriod {
-
-      val result: Result = await(controller.taxCreditsSubmissionStateEnabled()(emptyRequestWithAcceptHeader))
-
+    "disable renewals submission and viewing during the closed period" in {
+      val controller = new TestServiceStateController(new TaxCreditsSubmissions(true, false, false))
+      val result = await(controller.taxCreditsSubmissionStateEnabled()(fakeRequest))
       status(result) shouldBe 200
-      print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"submissionState":false,"submissionsState":"closed"}""")
+      contentAsJson(result) shouldBe Json.parse("""{"submissionState":false,"submissionsState":"closed"}""")
     }
   }
 
   "taxCreditsSubmissionStateEnabled Sandbox" should {
-
-    "enable renewals submission and viewing" in new SandboxServiceStateSuccess {
-
-      val result: Result = await(controller.taxCreditsSubmissionStateEnabled()(emptyRequestWithAcceptHeader))
-
+    "enable renewals submission and viewing" in {
+      val controller = new SandboxServiceStateController()
+      val result = await(controller.taxCreditsSubmissionStateEnabled().apply(fakeRequest))
       status(result) shouldBe 200
-      print(contentAsJson(result))
-      contentAsJson(result) shouldBe parse("""{"submissionState":true,"submissionsState":"open"}""")
+      contentAsJson(result) shouldBe Json.parse("""{"submissionState":true,"submissionsState":"open"}""")
     }
   }
-
 }

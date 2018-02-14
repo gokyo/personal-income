@@ -58,8 +58,6 @@ trait PersonalIncomeService {
 trait LivePersonalIncomeService extends PersonalIncomeService with Auditor with RenewalStatus {
   private val dateConverter: ClaimsDateConverter = new ClaimsDateConverter
 
-  def authConnector: AuthConnector
-
   def personalTaxSummaryConnector: PersonalTaxSummaryConnector
 
   def taiConnector: TaiConnector
@@ -272,7 +270,6 @@ object SandboxPersonalIncomeService extends PersonalIncomeService with FileResou
 }
 
 object LivePersonalIncomeService extends LivePersonalIncomeService {
-  override val authConnector: AuthConnector = AuthConnector
 
   override val personalTaxSummaryConnector = PersonalTaxSummaryConnector
 
