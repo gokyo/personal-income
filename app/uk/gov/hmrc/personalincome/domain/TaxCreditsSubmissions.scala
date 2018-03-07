@@ -20,6 +20,7 @@ import org.joda.time.DateTime
 import org.joda.time.DateTime.parse
 import org.joda.time.DateTimeZone.UTC
 import play.api.libs.json.Json
+import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.time.DateTimeUtils
 
 case class TaxCreditsSubmissions(submissionShuttered : Boolean, inSubmitRenewalsPeriod : Boolean, inViewRenewalsPeriod : Boolean){
@@ -63,22 +64,17 @@ trait TaxCreditsControl {
   def toTaxCreditsRenewalsState: TaxCreditsRenewalsState
 }
 
-trait TaxCreditsSubmissionControlConfig extends TaxCreditsControl with LoadConfig with DateTimeUtils {
-  import net.ceedubs.ficus.Ficus._
-  import net.ceedubs.ficus.readers.ValueReader
+trait TaxCreditsSubmissionControlConfig extends TaxCreditsControl with ServicesConfig with DateTimeUtils {
 
   private val submission = "microservice.services.ntc.submission"
 
-  private implicit val nativeVersionReader: ValueReader[TaxCreditsSubmissionControl] = ValueReader.relative { nativeVersion =>
+  val submissionControl: TaxCreditsSubmissionControl =
     TaxCreditsSubmissionControl(
-      config.as[Boolean](s"$submission.submissionShuttered"),
-      parse(config.as[String](s"$submission.startDate")).toDateTime(UTC),
-      parse(config.as[String](s"$submission.endDate")).toDateTime(UTC),
-      parse(config.as[String](s"$submission.endViewRenewalsDate")).toDateTime(UTC)
+      getBoolean(s"$submission.submissionShuttered"),
+      parse(getString(s"$submission.startDate")).toDateTime(UTC),
+      parse(getString(s"$submission.endDate")).toDateTime(UTC),
+      parse(getString(s"$submission.endViewRenewalsDate")).toDateTime(UTC)
     )
-  }
-
-  val submissionControl: TaxCreditsSubmissionControl = config.as[TaxCreditsSubmissionControl](submission)
 
   def toTaxCreditsSubmissions : TaxCreditsSubmissions = {
     val currentTime = now.getMillis

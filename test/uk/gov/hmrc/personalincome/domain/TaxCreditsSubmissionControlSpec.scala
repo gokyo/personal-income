@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.personalincome.domain
 
-import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory.parseString
 import org.joda.time.DateTime
 import play.api.test.FakeApplication
@@ -42,8 +41,6 @@ class TaxCreditsSubmissionControlSpec extends UnitSpec {
 
   def taxCreditsSubmissionControlConfig(dt : DateTime = DateTimeUtils.now) = new TaxCreditsSubmissionControlConfig {
     override def now: DateTime = dt
-
-    override lazy val config: Config = specConfig
   }
 
   "TaxCreditsSubmissionControl" should {
