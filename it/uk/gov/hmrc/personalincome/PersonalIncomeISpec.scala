@@ -152,7 +152,7 @@ class PersonalIncomeISpec extends BaseISpec {
 
       val response = await(request(nino1).get())
       response.status shouldBe 200
-      (response.json \ "showData").as[Boolean] shouldBe false
+      (response.json \ "paymentSummary" \ "workingTaxCredit" \ "paymentFrequency").as[String] shouldBe "weekly"
     }
   }
 
