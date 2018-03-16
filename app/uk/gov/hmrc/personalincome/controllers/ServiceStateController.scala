@@ -17,11 +17,8 @@
 package uk.gov.hmrc.personalincome.controllers
 
 
-import javax.inject.Named
-
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.Singleton
 import uk.gov.hmrc.api.controllers.HeaderValidator
-import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.personalincome.domain.{TaxCreditsControl, TaxCreditsRenewalsState, TaxCreditsSubmissionControl, TaxCreditsSubmissions}
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.microservice.controller.BaseController

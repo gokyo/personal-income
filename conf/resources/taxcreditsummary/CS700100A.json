@@ -110,11 +110,10 @@
     "surname": "O'Shea",
     "nino": "CS700100A",
     "address": {
-      "addressLine1": "19 Bushey Hall Road",
-      "addressLine2": "Bushey",
-      "addressLine3": "Watford",
-      "addressLine4": "Hertfordshire",
-      "postCode": "WD23 2EE"
+      "addressLine1": "999 Big Street",
+      "addressLine2": "Worthing",
+      "addressLine3": "West Sussex",
+      "postCode": "BN99 8IG"
     }
   },
   "partnerDetails": {
@@ -123,11 +122,10 @@
     "surname": "Hunter-Smith",
     "nino": "CS700100A",
     "address": {
-      "addressLine1": "19 Bushey Hall Road",
-      "addressLine2": "Bushey",
-      "addressLine3": "Watford",
-      "addressLine4": "Hertfordshire",
-      "postCode": "WD23 2EE"
+      "addressLine1": "999 Big Street",
+      "addressLine2": "Worthing",
+      "addressLine3": "West Sussex",
+      "postCode": "BN99 8IG"
     }
   },
   "children": {

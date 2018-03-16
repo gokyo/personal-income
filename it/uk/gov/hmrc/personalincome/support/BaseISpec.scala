@@ -22,28 +22,37 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
+import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.personalincome.controllers.HeaderKeys.tcrAuthToken
+import uk.gov.hmrc.personalincome.domain.RenewalReference
+import uk.gov.hmrc.personalincome.domain.TcrAuthenticationToken.basicAuthString
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 
 class BaseISpec extends WordSpec with Matchers with OptionValues with WsScalaTestClient with GuiceOneServerPerSuite with WireMockSupport {
-  override implicit lazy val app: Application = appBuilder
-    .build()
+  override implicit lazy val app: Application = appBuilder.build()
 
-  protected def appBuilder: GuiceApplicationBuilder =
-    new GuiceApplicationBuilder()
-      .configure(
-        "auditing.enabled" -> false,
-        "microservice.services.service-locator.enabled" -> false,
-        "microservice.services.auth.port" -> wireMockPort,
-        "microservice.services.datastream.port" -> wireMockPort,
-        "microservice.services.ntc.port" -> wireMockPort,
-        "microservice.services.personal-tax-summary.port" -> wireMockPort,
-        "microservice.services.service-locator.port" -> wireMockPort,
-        "microservice.services.tai.port" -> wireMockPort,
-        "microservice.services.tax-credits-broker.port" -> wireMockPort
-      )
+  protected val nino1 = Nino("AA000000A")
+  protected val nino2 = Nino("AP412713B")
+  protected val acceptJsonHeader: (String, String) = "Accept" -> "application/vnd.hmrc.1.0+json"
+  protected val tcrAuthTokenHeader: (String, String) = tcrAuthToken -> tcrAuthenticationToken
+  protected val renewalReference: RenewalReference = RenewalReference("renewalReference")
+  protected val tcrAuthenticationToken: String = basicAuthString(nino1.value, renewalReference.value)
+
+  def config: Map[String, Any] = Map(
+    "auditing.enabled" -> false,
+    "microservice.services.service-locator.enabled" -> false,
+    "microservice.services.auth.port" -> wireMockPort,
+    "microservice.services.datastream.port" -> wireMockPort,
+    "microservice.services.ntc.port" -> wireMockPort,
+    "microservice.services.personal-tax-summary.port" -> wireMockPort,
+    "microservice.services.service-locator.port" -> wireMockPort,
+    "microservice.services.tai.port" -> wireMockPort,
+    "microservice.services.tax-credits-broker.port" -> wireMockPort)
+
+  protected def appBuilder: GuiceApplicationBuilder = new GuiceApplicationBuilder().configure(config)
 
   protected implicit lazy val wsClient: WSClient = app.injector.instanceOf[WSClient]
 

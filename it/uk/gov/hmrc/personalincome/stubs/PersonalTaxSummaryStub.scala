@@ -42,4 +42,6 @@ object PersonalTaxSummaryStub {
         .withHeader("Content-Type", "application/json")
         .withBody(getResourceAsString(s"stubs/personal-tax-summary-$nino-your-taxable-income.json"))))
 
+  def yourTaxableIncomeIsNotFound(nino: Nino): Unit =
+    stubFor(post(urlPathEqualTo(s"/personal-tax/$nino/buildyourtaxableincome")).willReturn(aResponse().withStatus(404)))
 }
