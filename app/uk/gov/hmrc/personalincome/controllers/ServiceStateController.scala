@@ -29,30 +29,18 @@ import scala.concurrent.Future
 trait ServiceStateController extends BaseController with HeaderValidator with ErrorHandling {
 
   import play.api.libs.json.Json
-  import uk.gov.hmrc.personalincome.domain.TaxCreditsSubmissions.formats
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val taxCreditsSubmissionControlConfig : TaxCreditsControl
+  val taxCreditsSubmissionControlConfig: TaxCreditsControl
 
-  final def taxCreditsSubmissionState(journeyId: Option[String]=None) = validateAccept(acceptHeaderValidationRules).async {
-    implicit request =>
-      implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
-      errorWrapper(
-        Future {
-          taxCreditsSubmissionControlConfig.toTaxCreditsSubmissions
-        }.map{
-          as => Ok(Json.toJson(as))
-        })
-  }
-
-  final def taxCreditsSubmissionStateEnabled(journeyId: Option[String]=None) = validateAccept(acceptHeaderValidationRules).async {
+  final def taxCreditsSubmissionStateEnabled(journeyId: Option[String] = None) = validateAccept(acceptHeaderValidationRules).async {
     implicit request =>
       implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
       errorWrapper(
         Future {
           taxCreditsSubmissionControlConfig.toTaxCreditsRenewalsState
-        }.map{
+        }.map {
           submissionState => Ok(Json.toJson(submissionState))
         })
   }
@@ -63,6 +51,7 @@ class SandboxServiceStateController() extends ServiceStateController with DateTi
 
   override val taxCreditsSubmissionControlConfig = new TaxCreditsControl {
     override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true, true)
+
     override def toTaxCreditsRenewalsState = new TaxCreditsRenewalsState("open")
   }
 }

@@ -60,16 +60,6 @@ class TaxCreditRenewalOpenSpec extends PersonalIncomeTaxCreditRenewalSpec{
     }
   }
 
-  "GET /income/tax-credits/submission/state" should {
-    "return open state " in {
-      val response = await(submissionStateRequest.get)
-      response.status shouldBe 200
-      (response.json \ "submissionShuttered").as[Boolean] shouldBe false
-      (response.json \ "inSubmitRenewalsPeriod").as[Boolean] shouldBe true
-      (response.json \ "inViewRenewalsPeriod").as[Boolean] shouldBe true
-    }
-  }
-
   "GET /income/tax-credits/submission/state/enabled" should {
     "return open state " in {
       val response = await(submissionStateEnabledRequest.get)
@@ -88,16 +78,6 @@ class PersonalIncomeTaxCreditRenewalClosedSpec extends PersonalIncomeTaxCreditRe
   "POST /income/:nino/tax-credits/renewal" should {
     "return OK but not renew when submissions are closed" in {
       verifyNoSubmissionForPostToTaxCreditsRenewlEndpoint
-    }
-  }
-
-  "GET /income/tax-credits/submission/state" should {
-    "return closed state " in {
-      val response = await(submissionStateRequest.get)
-      response.status shouldBe 200
-      (response.json \ "submissionShuttered").as[Boolean] shouldBe false
-      (response.json \ "inSubmitRenewalsPeriod").as[Boolean] shouldBe false
-      (response.json \ "inViewRenewalsPeriod").as[Boolean] shouldBe false
     }
   }
 
@@ -120,16 +100,6 @@ class PersonalIncomeTaxCreditRenewalShutteredSpec extends PersonalIncomeTaxCredi
     }
   }
 
-  "GET /income/tax-credits/submission/state" should {
-    "return shuttered state " in {
-      val response = await(submissionStateRequest.get)
-      response.status shouldBe 200
-      (response.json \ "submissionShuttered").as[Boolean] shouldBe true
-      (response.json \ "inSubmitRenewalsPeriod").as[Boolean] shouldBe true
-      (response.json \ "inViewRenewalsPeriod").as[Boolean] shouldBe true
-    }
-  }
-
   "GET /income/tax-credits/submission/state/enabled" should {
     "return shuttered state " in {
       val response = await(submissionStateEnabledRequest.get)
@@ -148,16 +118,6 @@ class PersonalIncomeTaxCreditRenewalCheckStatusOnlyPeriodSpec extends PersonalIn
   "POST /income/:nino/tax-credits/renewal" should {
     "return OK but not renew when submissions are view-only" in {
       verifyNoSubmissionForPostToTaxCreditsRenewlEndpoint
-    }
-  }
-
-  "GET /income/tax-credits/submission/state" should {
-    "return check-only state " in {
-      val response = await(submissionStateRequest.get)
-      response.status shouldBe 200
-      (response.json \ "submissionShuttered").as[Boolean] shouldBe false
-      (response.json \ "inSubmitRenewalsPeriod").as[Boolean] shouldBe false
-      (response.json \ "inViewRenewalsPeriod").as[Boolean] shouldBe true
     }
   }
 

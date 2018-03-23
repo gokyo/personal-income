@@ -30,24 +30,6 @@ class ServiceStateControllerSpec extends TestSetup with WithFakeApplication {
     }
   }
 
-  "taxCreditsSubmissionState Live" should {
-    "return the submission state" in {
-      val controller = new TestServiceStateController()
-      val result = await(controller.taxCreditsSubmissionState().apply(fakeRequest))
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.parse("""{"submissionShuttered":false,"inSubmitRenewalsPeriod":true,"inViewRenewalsPeriod":true}""")
-    }
-  }
-
-  "taxCreditsSubmissionState Sandbox" should {
-    "return the submission state" in {
-      val controller = new SandboxServiceStateController()
-      val result = await(controller.taxCreditsSubmissionState().apply(fakeRequest))
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.parse("""{"submissionShuttered":false,"inSubmitRenewalsPeriod":true,"inViewRenewalsPeriod":true}""")
-    }
-  }
-
   "taxCreditsSubmissionStateEnabled Live" should {
     "enable renewals submission when submissionShuttered is OFF during the Submission Period" in {
       val controller = new TestServiceStateController()
