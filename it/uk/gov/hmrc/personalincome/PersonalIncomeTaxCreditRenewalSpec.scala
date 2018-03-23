@@ -74,7 +74,6 @@ class TaxCreditRenewalOpenSpec extends PersonalIncomeTaxCreditRenewalSpec{
     "return open state " in {
       val response = await(submissionStateEnabledRequest.get)
       response.status shouldBe 200
-      (response.json \ "submissionState").as[Boolean] shouldBe true
       (response.json \ "submissionsState").as[String] shouldBe "open"
     }
   }
@@ -106,7 +105,6 @@ class PersonalIncomeTaxCreditRenewalClosedSpec extends PersonalIncomeTaxCreditRe
     "return closed state " in {
       val response = await(submissionStateEnabledRequest.get)
       response.status shouldBe 200
-      (response.json \ "submissionState").as[Boolean] shouldBe false
       (response.json \ "submissionsState").as[String] shouldBe "closed"
     }
   }
@@ -136,7 +134,6 @@ class PersonalIncomeTaxCreditRenewalShutteredSpec extends PersonalIncomeTaxCredi
     "return shuttered state " in {
       val response = await(submissionStateEnabledRequest.get)
       response.status shouldBe 200
-      (response.json \ "submissionState").as[Boolean] shouldBe false
       (response.json \ "submissionsState").as[String] shouldBe "shuttered"
     }
   }
@@ -168,7 +165,6 @@ class PersonalIncomeTaxCreditRenewalCheckStatusOnlyPeriodSpec extends PersonalIn
     "return check-only state " in {
       val response = await(submissionStateEnabledRequest.get)
       response.status shouldBe 200
-      (response.json \ "submissionState").as[Boolean] shouldBe false
       (response.json \ "submissionsState").as[String] shouldBe "check_status_only"
     }
   }

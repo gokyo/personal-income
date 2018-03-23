@@ -63,7 +63,7 @@ class SandboxServiceStateController() extends ServiceStateController with DateTi
 
   override val taxCreditsSubmissionControlConfig = new TaxCreditsControl {
     override def toTaxCreditsSubmissions = new TaxCreditsSubmissions(false, true, true)
-    override def toTaxCreditsRenewalsState = new TaxCreditsRenewalsState(true, "open")
+    override def toTaxCreditsRenewalsState = new TaxCreditsRenewalsState("open")
   }
 }
 
