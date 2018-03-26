@@ -17,7 +17,6 @@ class PersonalIncomeTaxCreditRenewalSpec extends BaseISpec{
 
   protected val now: DateTime = DateTimeUtils.now.withZone(UTC)
 
-  protected val submissionStateRequest = wsUrl(s"/income/tax-credits/submission/state").withHeaders(acceptJsonHeader)
   protected val submissionStateEnabledRequest = wsUrl(s"/income/tax-credits/submission/state/enabled").withHeaders(acceptJsonHeader)
 
   protected def submissionShuttered = false
