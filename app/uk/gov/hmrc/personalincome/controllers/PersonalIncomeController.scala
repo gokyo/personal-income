@@ -130,7 +130,7 @@ trait PersonalIncomeController extends BaseController with AccessControl with Er
       implicit request =>
         implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
 
-        val enabled = taxCreditsSubmissionControlConfig.toTaxCreditsRenewalsState.submissionState
+        val enabled = taxCreditsSubmissionControlConfig.toTaxCreditsRenewalsState.submissionsState
 
         request.body.validate[TcrRenewal].fold(
           errors => {
@@ -140,7 +140,7 @@ trait PersonalIncomeController extends BaseController with AccessControl with Er
           renewal => {
             errorWrapper(validateTcrAuthHeader(None) {
               implicit hc =>
-                if (!enabled) {
+                if (enabled != "open") {
                   Logger.info("Renewals have been disabled.")
                   Future.successful(Ok)
                 } else {
@@ -196,7 +196,7 @@ class SandboxPersonalIncomeController @Inject()(override val authConnector: Auth
     override def toTaxCreditsSubmissions: TaxCreditsSubmissions = new TaxCreditsSubmissions(false, true, true )
 
     override def toTaxCreditsRenewalsState: TaxCreditsRenewalsState =
-      TaxCreditsRenewalsState(submissionState = true, submissionsState = "open")
+      TaxCreditsRenewalsState(submissionsState = "open")
   }
   override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)
 }

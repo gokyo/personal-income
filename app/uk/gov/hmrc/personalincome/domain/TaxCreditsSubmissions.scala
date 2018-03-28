@@ -26,7 +26,6 @@ import uk.gov.hmrc.time.DateTimeUtils
 case class TaxCreditsSubmissions(submissionShuttered : Boolean, inSubmitRenewalsPeriod : Boolean, inViewRenewalsPeriod : Boolean){
   def toTaxCreditsRenewalsState = {
     new TaxCreditsRenewalsState(
-      !submissionShuttered && inSubmitRenewalsPeriod,
       if (inSubmitRenewalsPeriod) {
         if (submissionShuttered) {
           "shuttered"
@@ -42,7 +41,7 @@ case class TaxCreditsSubmissions(submissionShuttered : Boolean, inSubmitRenewals
   }
 }
 
-case class TaxCreditsRenewalsState(submissionState: Boolean, submissionsState: String)
+case class TaxCreditsRenewalsState(submissionsState: String)
 
 object TaxCreditsSubmissions extends DateTimeUtils {
   implicit val formats = Json.format[TaxCreditsSubmissions]

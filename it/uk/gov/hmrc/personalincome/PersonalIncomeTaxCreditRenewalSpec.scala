@@ -17,7 +17,6 @@ class PersonalIncomeTaxCreditRenewalSpec extends BaseISpec{
 
   protected val now: DateTime = DateTimeUtils.now.withZone(UTC)
 
-  protected val submissionStateRequest = wsUrl(s"/income/tax-credits/submission/state").withHeaders(acceptJsonHeader)
   protected val submissionStateEnabledRequest = wsUrl(s"/income/tax-credits/submission/state/enabled").withHeaders(acceptJsonHeader)
 
   protected def submissionShuttered = false
@@ -60,21 +59,10 @@ class TaxCreditRenewalOpenSpec extends PersonalIncomeTaxCreditRenewalSpec{
     }
   }
 
-  "GET /income/tax-credits/submission/state" should {
-    "return open state " in {
-      val response = await(submissionStateRequest.get)
-      response.status shouldBe 200
-      (response.json \ "submissionShuttered").as[Boolean] shouldBe false
-      (response.json \ "inSubmitRenewalsPeriod").as[Boolean] shouldBe true
-      (response.json \ "inViewRenewalsPeriod").as[Boolean] shouldBe true
-    }
-  }
-
   "GET /income/tax-credits/submission/state/enabled" should {
     "return open state " in {
       val response = await(submissionStateEnabledRequest.get)
       response.status shouldBe 200
-      (response.json \ "submissionState").as[Boolean] shouldBe true
       (response.json \ "submissionsState").as[String] shouldBe "open"
     }
   }
@@ -92,21 +80,10 @@ class PersonalIncomeTaxCreditRenewalClosedSpec extends PersonalIncomeTaxCreditRe
     }
   }
 
-  "GET /income/tax-credits/submission/state" should {
-    "return closed state " in {
-      val response = await(submissionStateRequest.get)
-      response.status shouldBe 200
-      (response.json \ "submissionShuttered").as[Boolean] shouldBe false
-      (response.json \ "inSubmitRenewalsPeriod").as[Boolean] shouldBe false
-      (response.json \ "inViewRenewalsPeriod").as[Boolean] shouldBe false
-    }
-  }
-
   "GET /income/tax-credits/submission/state/enabled" should {
     "return closed state " in {
       val response = await(submissionStateEnabledRequest.get)
       response.status shouldBe 200
-      (response.json \ "submissionState").as[Boolean] shouldBe false
       (response.json \ "submissionsState").as[String] shouldBe "closed"
     }
   }
@@ -122,21 +99,10 @@ class PersonalIncomeTaxCreditRenewalShutteredSpec extends PersonalIncomeTaxCredi
     }
   }
 
-  "GET /income/tax-credits/submission/state" should {
-    "return shuttered state " in {
-      val response = await(submissionStateRequest.get)
-      response.status shouldBe 200
-      (response.json \ "submissionShuttered").as[Boolean] shouldBe true
-      (response.json \ "inSubmitRenewalsPeriod").as[Boolean] shouldBe true
-      (response.json \ "inViewRenewalsPeriod").as[Boolean] shouldBe true
-    }
-  }
-
   "GET /income/tax-credits/submission/state/enabled" should {
     "return shuttered state " in {
       val response = await(submissionStateEnabledRequest.get)
       response.status shouldBe 200
-      (response.json \ "submissionState").as[Boolean] shouldBe false
       (response.json \ "submissionsState").as[String] shouldBe "shuttered"
     }
   }
@@ -154,21 +120,10 @@ class PersonalIncomeTaxCreditRenewalCheckStatusOnlyPeriodSpec extends PersonalIn
     }
   }
 
-  "GET /income/tax-credits/submission/state" should {
-    "return check-only state " in {
-      val response = await(submissionStateRequest.get)
-      response.status shouldBe 200
-      (response.json \ "submissionShuttered").as[Boolean] shouldBe false
-      (response.json \ "inSubmitRenewalsPeriod").as[Boolean] shouldBe false
-      (response.json \ "inViewRenewalsPeriod").as[Boolean] shouldBe true
-    }
-  }
-
   "GET /income/tax-credits/submission/state/enabled" should {
     "return check-only state " in {
       val response = await(submissionStateEnabledRequest.get)
       response.status shouldBe 200
-      (response.json \ "submissionState").as[Boolean] shouldBe false
       (response.json \ "submissionsState").as[String] shouldBe "check_status_only"
     }
   }

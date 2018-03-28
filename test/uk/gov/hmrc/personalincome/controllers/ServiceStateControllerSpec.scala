@@ -30,51 +30,33 @@ class ServiceStateControllerSpec extends TestSetup with WithFakeApplication {
     }
   }
 
-  "taxCreditsSubmissionState Live" should {
-    "return the submission state" in {
-      val controller = new TestServiceStateController()
-      val result = await(controller.taxCreditsSubmissionState().apply(fakeRequest))
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.parse("""{"submissionShuttered":false,"inSubmitRenewalsPeriod":true,"inViewRenewalsPeriod":true}""")
-    }
-  }
-
-  "taxCreditsSubmissionState Sandbox" should {
-    "return the submission state" in {
-      val controller = new SandboxServiceStateController()
-      val result = await(controller.taxCreditsSubmissionState().apply(fakeRequest))
-      status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.parse("""{"submissionShuttered":false,"inSubmitRenewalsPeriod":true,"inViewRenewalsPeriod":true}""")
-    }
-  }
-
   "taxCreditsSubmissionStateEnabled Live" should {
     "enable renewals submission when submissionShuttered is OFF during the Submission Period" in {
       val controller = new TestServiceStateController()
       val result = await(controller.taxCreditsSubmissionStateEnabled()(fakeRequest))
       status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.parse("""{"submissionState":true,"submissionsState":"open"}""")
+      contentAsJson(result) shouldBe Json.parse("""{"submissionsState":"open"}""")
     }
 
     "shutter renewals submission when submissionShuttered is ON during the Submission Period" in {
       val controller = new TestServiceStateController(new TaxCreditsSubmissions(true, true, true))
       val result = await(controller.taxCreditsSubmissionStateEnabled()(fakeRequest))
       status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.parse("""{"submissionState":false,"submissionsState":"shuttered"}""")
+      contentAsJson(result) shouldBe Json.parse("""{"submissionsState":"shuttered"}""")
     }
 
     "disable renewals submission during the check_status_only period" in {
       val controller = new TestServiceStateController(new TaxCreditsSubmissions(true, false, true))
       val result = await(controller.taxCreditsSubmissionStateEnabled()(fakeRequest))
       status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.parse("""{"submissionState":false,"submissionsState":"check_status_only"}""")
+      contentAsJson(result) shouldBe Json.parse("""{"submissionsState":"check_status_only"}""")
     }
 
     "disable renewals submission and viewing during the closed period" in {
       val controller = new TestServiceStateController(new TaxCreditsSubmissions(true, false, false))
       val result = await(controller.taxCreditsSubmissionStateEnabled()(fakeRequest))
       status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.parse("""{"submissionState":false,"submissionsState":"closed"}""")
+      contentAsJson(result) shouldBe Json.parse("""{"submissionsState":"closed"}""")
     }
   }
 
@@ -83,7 +65,7 @@ class ServiceStateControllerSpec extends TestSetup with WithFakeApplication {
       val controller = new SandboxServiceStateController()
       val result = await(controller.taxCreditsSubmissionStateEnabled().apply(fakeRequest))
       status(result) shouldBe 200
-      contentAsJson(result) shouldBe Json.parse("""{"submissionState":true,"submissionsState":"open"}""")
+      contentAsJson(result) shouldBe Json.parse("""{"submissionsState":"open"}""")
     }
   }
 }
