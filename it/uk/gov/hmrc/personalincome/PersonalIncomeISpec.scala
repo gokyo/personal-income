@@ -148,19 +148,6 @@ class PersonalIncomeISpec extends BaseISpec with FileResource {
       verify(0, getRequestedFor(urlEqualTo(s"/tcs/${mainApplicantNino.value}/claimant-details")))
     }
 
-    "retrieve claimant claims for main applicant and not set renewalFormType if no auth token is found" in {
-      grantAccess(mainApplicantNino.value)
-      claimantClaimsAreFound(mainApplicantNino,barcodeReference)
-      authenticationRenewalNotFound(mainApplicantNino,barcodeReference)
-
-      val response = await(request.get())
-      response.status shouldBe 200
-
-      val references = (response.json \ "references" ).as[JsArray]
-      val renewal = (references(0) \ "renewal" ).as[JsObject]
-      renewal.value.get("renewalFormType") shouldBe None
-    }
-
     "retrieve claimant claims for main applicant and not set renewalFormType if no claimant details found" in {
       grantAccess(mainApplicantNino.value)
       claimantClaimsAreFound(mainApplicantNino,barcodeReference)

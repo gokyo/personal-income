@@ -145,11 +145,8 @@ trait PersonalIncomeController extends BaseController with AccessControl with Er
             }
 
             service.authenticateRenewal(nino, RenewalReference(claim.household.barcodeReference)).flatMap { maybeToken =>
-              if (maybeToken.nonEmpty) {
-                getClaimantDetail(maybeToken.get,hc)
-              } else {
-                Future successful claim
-              }
+              if (maybeToken.nonEmpty) getClaimantDetail(maybeToken.get,hc)
+              else  Future successful claim
             }.recover{
               case e: Exception => {
                 Logger.warn(s"${e.getMessage} for ${claim.household.barcodeReference}")
@@ -162,11 +159,8 @@ trait PersonalIncomeController extends BaseController with AccessControl with Er
             val claims: Seq[Claim] = claimantClaims.references.getOrElse(Seq.empty[Claim])
 
             Future sequence claims.map { claim =>
-              if (claim.household.barcodeReference.equals("000000000000000")) {
-                Future successful claim
-              } else {
-                fullClaimantDetails(claim)
-              }
+              if (claim.household.barcodeReference.equals("000000000000000")) Future successful claim
+              else fullClaimantDetails(claim)
             }
           }
 
