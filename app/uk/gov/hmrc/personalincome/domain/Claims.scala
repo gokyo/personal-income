@@ -57,7 +57,8 @@ case class Renewal(awardStartDate: Option[String],
                    awardEndDate: Option[String],
                    renewalStatus: Option[String],
                    renewalNoticeIssuedDate: Option[String],
-                   renewalNoticeFirstSpecifiedDate: Option[String])
+                   renewalNoticeFirstSpecifiedDate: Option[String],
+                   renewalFormType: Option[String] = None)
 
 object Renewal {
   implicit val formats: Format[Renewal] = Json.format[Renewal]

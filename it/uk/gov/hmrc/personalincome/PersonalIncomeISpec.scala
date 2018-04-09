@@ -16,8 +16,12 @@
 
 package uk.gov.hmrc.personalincome
 
-import play.api.libs.json.JsArray
+import com.github.tomakehurst.wiremock.client.WireMock._
+import play.api.libs.json.{JsArray, JsObject}
+import play.api.libs.json.Json.parse
+import uk.gov.hmrc.api.sandbox.FileResource
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.personalincome.domain.RenewalReference
 import uk.gov.hmrc.personalincome.stubs.AuthStub.grantAccess
 import uk.gov.hmrc.personalincome.stubs.NtcStub._
 import uk.gov.hmrc.personalincome.stubs.PersonalTaxSummaryStub._
@@ -25,7 +29,7 @@ import uk.gov.hmrc.personalincome.stubs.TaiStub.taxSummaryExists
 import uk.gov.hmrc.personalincome.stubs.TaxCreditsBrokerStub._
 import uk.gov.hmrc.personalincome.support.BaseISpec
 
-class PersonalIncomeISpec extends BaseISpec {
+class PersonalIncomeISpec extends BaseISpec with FileResource {
   "GET /income/:nino/tax-summary/:year" should {
     val year = 2017
     val url = wsUrl(s"/income/${nino1.value}/tax-summary/$year").withHeaders(acceptJsonHeader)
@@ -107,12 +111,64 @@ class PersonalIncomeISpec extends BaseISpec {
     }
   }
 
+  "GET /income/:nino/tax-credits/full-claimant-details" should {
+    val mainApplicantNino = Nino("CS700100A")
+    val barcodeReference = RenewalReference("200000000000013")
+    val request = wsUrl(s"/income/${mainApplicantNino.value}/tax-credits/full-claimant-details").withHeaders(acceptJsonHeader, tcrAuthTokenHeader)
+
+    "retrieve claimant claims for main applicant and set renewalFormType for a renewal where bar code ref is not '000000000000000'" in {
+      grantAccess(mainApplicantNino.value)
+      claimantClaimsAreFound(mainApplicantNino,barcodeReference)
+      authenticationRenewalSuccessful(mainApplicantNino,barcodeReference,tcrAuthenticationToken)
+      claimantDetailsAreFoundFor(mainApplicantNino, mainApplicantNino, nino2, tcrAuthenticationToken)
+
+      val response = await(request.get())
+      response.status shouldBe 200
+
+      val expectedJson = parse(findResource("/resources/claimantdetails/tax-credit-claimant-details-response.json").get)
+      response.json shouldBe expectedJson
+
+      val references = (response.json \ "references" ).as[JsArray]
+      val renewal = (references(0) \ "renewal" ).as[JsObject]
+      renewal.value("renewalFormType").as[String] shouldBe "D"
+    }
+
+    "retrieve claimant claims for main applicant and not set renewalFormType if no token is found" in {
+      grantAccess(mainApplicantNino.value)
+      claimantClaimsAreFound(mainApplicantNino,barcodeReference)
+      authenticationRenewalNotFound(mainApplicantNino,barcodeReference)
+
+      val response = await(request.get())
+      response.status shouldBe 200
+
+      val references = (response.json \ "references" ).as[JsArray]
+      val renewal = (references(0) \ "renewal" ).as[JsObject]
+      renewal.value.get("renewalFormType") shouldBe None
+
+      verify(0, getRequestedFor(urlEqualTo(s"/tcs/${mainApplicantNino.value}/claimant-details")))
+    }
+
+    "retrieve claimant claims for main applicant and not set renewalFormType if no claimant details found" in {
+      grantAccess(mainApplicantNino.value)
+      claimantClaimsAreFound(mainApplicantNino,barcodeReference)
+      authenticationRenewalSuccessful(mainApplicantNino,barcodeReference,tcrAuthenticationToken)
+      claimantDetailsAreNotFoundFor(mainApplicantNino)
+
+      val response = await(request.get())
+      response.status shouldBe 200
+
+      val references = (response.json \ "references" ).as[JsArray]
+      val renewal = (references(0) \ "renewal" ).as[JsObject]
+      renewal.value.get("renewalFormType") shouldBe None
+    }
+  }
+
   "GET /income/:nino/tax-credits/claimant-details" should {
     def request(nino:Nino) = wsUrl(s"/income/${nino.value}/tax-credits/claimant-details").withHeaders(acceptJsonHeader, tcrAuthTokenHeader)
 
     "retrieve claimant details for main applicant" in {
       grantAccess(nino1.value)
-      claimantDetailsAreFoundFor(nino1, nino1, nino2)
+      claimantDetailsAreFoundFor(nino1, nino1, nino2, tcrAuthenticationToken)
 
       val response = await(request(nino1).get())
 
@@ -122,7 +178,7 @@ class PersonalIncomeISpec extends BaseISpec {
 
     "retrieve claimant details for partner" in {
       grantAccess(nino2.value)
-      claimantDetailsAreFoundFor(nino2, nino1, nino2)
+      claimantDetailsAreFoundFor(nino2, nino1, nino2, tcrAuthenticationToken)
 
       val response = await(request(nino2).get())
 
