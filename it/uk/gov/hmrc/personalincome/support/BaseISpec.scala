@@ -37,9 +37,9 @@ class BaseISpec extends WordSpec with Matchers with OptionValues with WsScalaTes
   protected val nino1 = Nino("AA000000A")
   protected val nino2 = Nino("AP412713B")
   protected val acceptJsonHeader: (String, String) = "Accept" -> "application/vnd.hmrc.1.0+json"
-  protected val tcrAuthTokenHeader: (String, String) = tcrAuthToken -> tcrAuthenticationToken
   protected val renewalReference: RenewalReference = RenewalReference("renewalReference")
   protected val tcrAuthenticationToken: String = basicAuthString(nino1.value, renewalReference.value)
+  protected val tcrAuthTokenHeader: (String, String) = tcrAuthToken -> tcrAuthenticationToken
 
   def config: Map[String, Any] = Map(
     "auditing.enabled" -> false,
