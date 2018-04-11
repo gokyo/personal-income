@@ -71,6 +71,7 @@ trait PersonalIncomeController extends BaseController with AccessControl with Er
 
   val service: PersonalIncomeService
   val taxCreditsSubmissionControlConfig: TaxCreditsControl
+  val logger: LoggerLike
 
   def addCacheHeader(maxAge:Long, result:Result):Result = {
     result.withHeaders(HeaderNames.CACHE_CONTROL -> s"max-age=$maxAge")
@@ -149,7 +150,7 @@ trait PersonalIncomeController extends BaseController with AccessControl with Er
               else  Future successful claim
             }.recover{
               case e: Exception => {
-                Logger.warn(s"${e.getMessage} for ${claim.household.barcodeReference}")
+                logger.warn(s"${e.getMessage} for ${claim.household.barcodeReference}")
                 claim
               }
             }
@@ -158,9 +159,15 @@ trait PersonalIncomeController extends BaseController with AccessControl with Er
           val eventualClaims: Future[Seq[Claim]] = service.claimantClaims(nino).flatMap { claimantClaims =>
             val claims: Seq[Claim] = claimantClaims.references.getOrElse(Seq.empty[Claim])
 
+            if ( claims.isEmpty ) logger.warn(s"Empty claims list for journeyId $journeyId")
+
             Future sequence claims.map { claim =>
-              if (claim.household.barcodeReference.equals("000000000000000")) Future successful claim
-              else fullClaimantDetails(claim)
+              val barcodeReference = claim.household.barcodeReference
+
+              if (barcodeReference.equals("000000000000000")) {
+                logger.warn(s"Invalid barcode reference ${barcodeReference} for journeyId $journeyId applicationId ${claim.household.applicationID}")
+                Future successful claim
+              } else fullClaimantDetails(claim)
             }
           }
 
@@ -179,19 +186,29 @@ trait PersonalIncomeController extends BaseController with AccessControl with Er
 
         request.body.validate[TcrRenewal].fold(
           errors => {
-            Logger.warn("Received error with service submitRenewal: " + errors)
+            logger.warn("Received error with service submitRenewal: " + errors)
             Future.successful(BadRequest(Json.obj("message" -> JsError.toJson(errors))))
           },
           renewal => {
             errorWrapper(validateTcrAuthHeader(None) {
               implicit hc =>
                 if (enabled != "open") {
-                  Logger.info("Renewals have been disabled.")
+                  logger.info("Renewals have been disabled.")
                   Future.successful(Ok)
                 } else {
                   service.submitRenewal(nino, renewal).map {
-                    case Error(status) => Status(status)(toJson(ErrorwithNtcRenewal))
-                    case _ => Ok
+                    case Error(status) => {
+                      logger.warn(s"Tax credit renewal submission failed with status $status for journeyId $journeyId")
+                      Status(status)(toJson(ErrorwithNtcRenewal))
+                    } case _ => {
+                      logger.info(s"Tax credit renewal submission successful for journeyId $journeyId")
+                      Ok
+                    }
+                  }.recover{
+                    case e: Exception => {
+                      logger.warn(s"Tax credit renewal submission failed with exception ${e.getMessage} for journeyId $journeyId")
+                      throw e
+                    }
                   }
                 }
             })
@@ -217,7 +234,7 @@ trait PersonalIncomeController extends BaseController with AccessControl with Er
         val default: ErrorResponse = ErrorNoAuthToken
         val authTokenShouldNotBeSupplied = ErrorAuthTokenSupplied
         val response = mode.fold(default){ found => authTokenShouldNotBeSupplied}
-        Logger.warn("Either tcrAuthToken must be supplied as header or 'claims' as query param.")
+        logger.warn("Either tcrAuthToken must be supplied as header or 'claims' as query param.")
         Future.successful(Forbidden(toJson(response)))
     }
   }
@@ -234,7 +251,8 @@ trait ConfigLoad {
 
 @Singleton
 class SandboxPersonalIncomeController @Inject()(override val authConnector: AuthConnector,
-                                                @Named("controllers.confidenceLevel") override val confLevel: Int) extends PersonalIncomeController {
+                                                @Named("controllers.confidenceLevel") override val confLevel: Int,
+                                                override val logger: LoggerLike) extends PersonalIncomeController {
   override lazy val requiresAuth: Boolean = false
   override val service = SandboxPersonalIncomeService
   override val taxCreditsSubmissionControlConfig: TaxCreditsControl = new TaxCreditsControl {
@@ -248,7 +266,8 @@ class SandboxPersonalIncomeController @Inject()(override val authConnector: Auth
 
 @Singleton
 class LivePersonalIncomeController @Inject()(override val authConnector: AuthConnector,
-                                             @Named("controllers.confidenceLevel") override val confLevel: Int) extends PersonalIncomeController {
+                                             @Named("controllers.confidenceLevel") override val confLevel: Int,
+                                             override val logger: LoggerLike) extends PersonalIncomeController {
   override val service = LivePersonalIncomeService
   override val taxCreditsSubmissionControlConfig: TaxCreditsControl = TaxCreditsSubmissionControl
   override def getConfigForClaimsMaxAge = Play.current.configuration.getLong(maxAgeClaimsConfig)

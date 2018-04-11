@@ -19,8 +19,7 @@ package uk.gov.hmrc.personalincome.config
 import com.google.inject.name.Names.named
 import com.google.inject.{AbstractModule, TypeLiteral}
 import play.api.Mode.Mode
-import play.api.{Configuration, Environment}
-import uk.gov.hmrc.api.connector.ServiceLocatorConnector
+import play.api.{Configuration, Environment, Logger, LoggerLike}
 import uk.gov.hmrc.api.controllers.DocumentationController
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.config.ServicesConfig
@@ -36,6 +35,7 @@ class GuiceModule(environment: Environment, configuration: Configuration) extend
     bind(classOf[DocumentationController]).toInstance(DocumentationController)
 
     bindConfigInt("controllers.confidenceLevel")
+    bind(classOf[LoggerLike]).toInstance(Logger)
   }
 
   /**

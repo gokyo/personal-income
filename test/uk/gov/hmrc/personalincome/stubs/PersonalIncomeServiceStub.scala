@@ -48,6 +48,14 @@ trait PersonalIncomeServiceStub extends UnitSpec {
     when(personalIncomeService.claimantDetails(any[Nino]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(response)
   }
 
+  def stubServiceClaimantClaims(claims: Claims)(implicit personalIncomeService: PersonalIncomeService) : OngoingStubbing[Future[Claims]] = {
+    when(personalIncomeService.claimantClaims(any[Nino]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(claims)
+  }
+
+  def stubServiceAuthenticateRenewal(implicit personalIncomeService: PersonalIncomeService) : OngoingStubbing[Future[Option[TcrAuthenticationToken]]] = {
+    when(personalIncomeService.authenticateRenewal(any[Nino](), any[RenewalReference]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(Some(new TcrAuthenticationToken("token")))
+  }
+
   def stubClaimantClaimsResponse(response: Claims)(implicit personalIncomeService: PersonalIncomeService) : OngoingStubbing[Future[Claims]] = {
     when(personalIncomeService.claimantClaims(any[Nino]())(any[HeaderCarrier](), any[ExecutionContext]())).thenReturn(response)
   }

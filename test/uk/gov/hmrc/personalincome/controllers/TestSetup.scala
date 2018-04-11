@@ -18,6 +18,7 @@ package uk.gov.hmrc.personalincome.controllers
 
 import com.ning.http.util.Base64
 import org.scalatest.mockito.MockitoSugar
+import play.api.{Logger, LoggerLike}
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
@@ -31,6 +32,34 @@ import uk.gov.hmrc.personalincome.stubs.{AuthorisationStub, NtcConnectorStub, Pe
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
+class TestLoggerLike extends LoggerLike{
+  override val logger: org.slf4j.Logger = Logger("test").logger
+
+  var infoMessages: Seq[String] = Seq()
+  var warnMessages: Seq[String] = Seq()
+
+  override def info(message : => scala.Predef.String) : scala.Unit = {
+    infoMessages =  infoMessages ++ Seq(message)
+  }
+  override def warn(message : => scala.Predef.String) : scala.Unit = {
+    warnMessages =  warnMessages ++ Seq(message)
+  }
+
+  def warnMessageWaslogged(message: String): Boolean = {
+    warnMessages.contains(message)
+  }
+
+  def infoMessageWasLogged(message: String): Boolean = {
+    infoMessages.contains(message)
+  }
+
+  def clearMessages = {
+    infoMessages = Seq()
+    warnMessages = Seq()
+  }
+}
+
+
 trait TestSetup extends MockitoSugar with UnitSpec with WithFakeApplication with PersonalIncomeServiceStub
   with AuthorisationStub with TaxCreditBrokerConnectorStub with NtcConnectorStub {
 
@@ -43,6 +72,8 @@ trait TestSetup extends MockitoSugar with UnitSpec with WithFakeApplication with
     implicit val mockTaxCreditsBrokerConnector: TaxCreditsBrokerConnector =  mock[TaxCreditsBrokerConnector]
     implicit val mockAuditConnector: AuditConnector = mock[AuditConnector]
     implicit val mockLivePersonalIncomeService: PersonalIncomeService = mock[LivePersonalIncomeService]
+
+    implicit val logger = new TestLoggerLike()
   }
 
   val noNinoFoundOnAccount = Json.parse("""{"code":"UNAUTHORIZED","message":"NINO does not exist on account"}""")
