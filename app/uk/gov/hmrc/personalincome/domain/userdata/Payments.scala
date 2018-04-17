@@ -17,7 +17,6 @@
 package uk.gov.hmrc.personalincome.domain.userdata
 
 import org.joda.time.DateTime
-import play.api.Play
 import play.api.libs.functional.FunctionalBuilder
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -27,7 +26,7 @@ case class PaymentSummary(workingTaxCredit: Option[PaymentSection], childTaxCred
 
   def informationMessage: Option[String] = {
     if(specialCircumstances.isDefined) {
-      Play.current.configuration.getString(s"specialCircumstanceMessage.${specialCircumstances.get}")
+      Some(s"We are currently working out your payments as your child is changing their education or training. This should be done by 7 September ${DateTime.now.year.get}. If your child is staying in education or training, update their details on GOV.UK.")
     }
     else None
   }

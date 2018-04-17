@@ -409,7 +409,7 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
       Json.stringify(Json.toJson(paymentSummary)) shouldBe expectedResponse
     }
   }
-  "correctly parse the informationMessage" in {
+  "correctly return the informationMessage" in {
     val wtc =
       s"""
          |"workingTaxCredit": {
@@ -447,7 +447,7 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
          |$wtc, $ctc,
          |"paymentEnabled": true,
          |"specialCircumstances":"FTNAE",
-         |"informationMessage": "We are currently working out your payments as your child is changing their education or training. This should be done by 7 September 2017. If your child is staying in education or training, update their details on GOV.UK.",
+         |"informationMessage": "We are currently working out your payments as your child is changing their education or training. This should be done by 7 September ${DateTime.now.year.get}. If your child is staying in education or training, update their details on GOV.UK.",
          |$totalsByDate
          |}""".stripMargin))
     val response = Json.parse(request).validate[PaymentSummary]
@@ -460,57 +460,6 @@ class PaymentSummarySpec extends UnitSpec with WithFakeApplication {
     paymentSummary.childTaxCredit.isDefined shouldBe true
     paymentSummary.workingTaxCredit.isDefined shouldBe true
     paymentSummary.informationMessage.isDefined shouldBe true
-    paymentSummary.totalsByDate.isDefined shouldBe true
-
-    Json.stringify(Json.toJson(paymentSummary)) shouldBe expectedResponse
-  }
-  "correctly parse NO informationMessage if specialCircumstance value is not configured" in {
-    val wtc =
-      s"""
-         |"workingTaxCredit": {
-         |  "paymentSeq": [
-         |    ${payment(50.00, date(1, now.plusMonths), false)}
-         |  ],
-         |  "paymentFrequency": "weekly"
-         |}
-         """.stripMargin
-    val ctc =
-      s"""
-         |"childTaxCredit": {
-         |  "paymentSeq": [
-         |    ${payment(25.00, date(2, now.plusMonths), false)}
-         |  ],
-         |  "paymentFrequency": "weekly"
-         |}
-         """.stripMargin
-    val totalsByDate =
-      s"""
-         |"totalsByDate": [
-         |  ${total(50.00, date(1, now.plusMonths))},
-         |  ${total(25.00, date(2, now.plusMonths))}
-         |]
-         """.stripMargin
-    val request = s"""{$wtc,$ctc,
-                    |  "specialCircumstances": "This key has not been configured",
-                    |  "paymentEnabled": true
-                    |}""".stripMargin
-    val expectedResponse = Json.stringify(Json.parse(
-      s"""
-         |{$wtc,$ctc,
-         |"paymentEnabled": true,
-         |"specialCircumstances":"This key has not been configured",
-         |$totalsByDate
-         |}""".stripMargin))
-    val response = Json.parse(request).validate[PaymentSummary]
-    val paymentSummary = response match {
-      case success: JsSuccess[PaymentSummary] => {
-        success.get
-      }
-    }
-    paymentSummary.paymentEnabled shouldBe true
-    paymentSummary.childTaxCredit.isDefined shouldBe true
-    paymentSummary.workingTaxCredit.isDefined shouldBe true
-    paymentSummary.informationMessage.isDefined shouldBe false
     paymentSummary.totalsByDate.isDefined shouldBe true
 
     Json.stringify(Json.toJson(paymentSummary)) shouldBe expectedResponse
